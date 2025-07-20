@@ -1,4 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Grow My Team - AI Recruitment Agent
+
+Welcome to **Grow My Team**, a SaaS application designed to streamline the recruitment process for small to medium-sized businesses. This project acts as an AI-powered recruitment agent, automating tedious tasks and providing intelligent insights to help companies find and hire the right talent faster.
+
+## ✨ Features
+
+- **Position Management**: Create, edit, and manage job listings from a centralized dashboard.
+- **AI-Powered Recruitment Workflow**: An automated, multi-step process including application, AI screening, review, interview, and offer stages.
+- **Centralized Candidate Database**: A searchable database of all applicants with AI-powered updates and profile merging.
+- **Intelligent Resume Parsing**: Automatically extract key information from resumes.
+- **White-Labeling**: Customize the platform with your organization's branding, including logos and color schemes.
+
+## 🚀 Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+Make sure you have [pnpm](https://pnpm.io/installation) installed.
+
+### Installation
+
+1. Clone the repo:
+   ```sh
+   git clone https://github.com/your_username/grow-my-team.git
+   ```
+2. Install NPM packages:
+   ```sh
+   pnpm install
+   ```
+3. Run the development server:
+   ```sh
+   pnpm dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## 🛠️ Tech Stack
+
+This project is built with the following technologies:
+
+- [Next.js](https://nextjs.org/) - React framework for production.
+- [React](https://reactjs.org/) - A JavaScript library for building user interfaces.
+- [TypeScript](https://www.typescriptlang.org/) - Typed JavaScript at any scale.
+- [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework.
+- [Biome](https://biomejs.dev/) - A toolchain for web projects, used here for linting and formatting.
+- [Playwright](https://playwright.dev/) - A framework for end-to-end testing.
+
+## 📜 Available Scripts
+
+In the project directory, you can run:
+
+- `pnpm dev`: Runs the app in development mode.
+- `pnpm build`: Builds the app for production.
+- `pnpm start`: Starts the production server.
+- `pnpm lint`: Lints the code using Next.js's built-in ESLint configuration.
+- `pnpm test:e2e`: Runs end-to-end tests using Playwright.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Getting Started
 
