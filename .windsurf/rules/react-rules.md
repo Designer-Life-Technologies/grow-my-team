@@ -9,6 +9,10 @@ description: React best practices and patterns for modern web applications
 
 # React Best Practices
 
+## Tools
+
+- Always use pnpm to install packages and run scripts
+
 ## Component Structure
 
 - Use functional components over class components

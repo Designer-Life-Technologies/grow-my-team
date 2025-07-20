@@ -19,7 +19,8 @@
 next-env.d.ts
 
 # Test results and reports
-/test/
+/test/playwright-report/
+/test/test-results/
 /coverage/
 
 # Local environment variables
