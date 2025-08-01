@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+// No need to import React in 'use client' components
 import { useTheme } from "@/lib/theme/ThemeProvider"
 
 export function ThemeToggle() {
@@ -47,7 +47,7 @@ export function ThemeSelector() {
   // This would typically be populated from your theme config
   const availableThemes = [
     { id: "default", name: "Grow My Team" },
-    { id: "client-acme", name: "ACME Corporation" },
+    { id: "team-puzzle", name: "Team Puzzle" },
   ]
 
   return (

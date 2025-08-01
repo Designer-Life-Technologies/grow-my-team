@@ -1,10 +1,10 @@
 import type { Theme } from "./types"
 import { defaultTheme } from "./themes/default"
-import { clientAcmeTheme } from "./themes/client-acme"
+import { teamPuzzleTheme } from "./themes/team-puzzle"
 
 export const themes: Record<string, Theme> = {
   default: defaultTheme,
-  "client-acme": clientAcmeTheme,
+  "team-puzzle": teamPuzzleTheme,
   // Add more themes here
 }
 
@@ -14,7 +14,7 @@ export const getTheme = (themeId?: string): Theme => {
 }
 
 export const getThemeFromDomain = (hostname: string): string => {
-  if (hostname.includes("acme")) return "client-acme"
+  if (hostname.includes("puzzle")) return "team-puzzle"
   // Add more domain-based theme detection here
   return "default"
 }

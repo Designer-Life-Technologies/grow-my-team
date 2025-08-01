@@ -22,7 +22,8 @@ test("theme showcase page displays theme components", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Button Sizes" })).toBeVisible()
   await expect(page.getByRole("heading", { name: "Inputs" })).toBeVisible()
   await expect(page.getByRole("heading", { name: "Cards" })).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Theme Comparison" })).toBeVisible()
+  // Verify current theme info is displayed
+  await expect(page.getByText("Current Theme")).toBeVisible()
 })
 
 test("theme mode toggle works", async ({ page }) => {

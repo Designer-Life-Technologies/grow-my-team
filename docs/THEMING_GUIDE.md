@@ -11,17 +11,17 @@ Grow My Team supports comprehensive white labeling through a flexible theming sy
 1. **Set the theme ID in your environment:**
    ```bash
    # .env.local
-   NEXT_PUBLIC_THEME_ID=client-acme
+   NEXT_PUBLIC_THEME_ID=team-puzzle
    ```
 
 2. **Create theme configuration:**
    ```typescript
-   // lib/theme/themes/client-acme.ts
+   // lib/theme/themes/team-puzzle.ts
    import { Theme } from '../types';
    
-   export const clientAcmeTheme: Theme = {
-     id: 'client-acme',
-     name: 'ACME Corporation',
+   export const teamPuzzleTheme: Theme = {
+     id: 'team-puzzle',
+     name: 'Team Puzzle',
      colors: {
        light: {
          primary: '#FF6B35',
@@ -51,12 +51,12 @@ Grow My Team supports comprehensive white labeling through a flexible theming sy
        }
      },
      branding: {
-       companyName: 'ACME Corporation',
+       companyName: 'Team Puzzle',
        logo: {
-         light: '/themes/acme/logo-light.svg',
-         dark: '/themes/acme/logo-dark.svg'
+         light: '/themes/team-puzzle/logo-light.svg',
+         dark: '/themes/team-puzzle/logo-dark.svg'
        },
-       favicon: '/themes/acme/favicon.ico'
+       favicon: '/themes/team-puzzle/favicon.ico'
      }
    };
    ```
@@ -64,11 +64,11 @@ Grow My Team supports comprehensive white labeling through a flexible theming sy
 3. **Register the theme:**
    ```typescript
    // lib/theme/config.ts
-   import { clientAcmeTheme } from './themes/client-acme';
+   import { teamPuzzleTheme } from './themes/team-puzzle';
    
    export const themes = {
      default: defaultTheme,
-     'client-acme': clientAcmeTheme,
+     'team-puzzle': teamPuzzleTheme,
      // Add more themes here
    };
    ```
@@ -88,7 +88,7 @@ function ThemeSwitcher() {
       onChange={(e) => setTheme(e.target.value)}
     >
       <option value="default">Default</option>
-      <option value="client-acme">ACME Corp</option>
+      <option value="team-puzzle">Team Puzzle</option>
       <option value="client-beta">Beta Industries</option>
     </select>
   );
@@ -121,14 +121,14 @@ interface Theme {
 ### Single-Tenant Deployment
 ```bash
 # Deploy with specific theme
-NEXT_PUBLIC_THEME_ID=client-acme pnpm build
+NEXT_PUBLIC_THEME_ID=team-puzzle pnpm build
 ```
 
 ### Multi-Tenant Deployment
 ```typescript
 // Detect theme from subdomain or domain
 const getThemeFromDomain = (hostname: string): string => {
-  if (hostname.includes('acme')) return 'client-acme';
+  if (hostname.includes('puzzle')) return 'team-puzzle';
   if (hostname.includes('beta')) return 'client-beta';
   return 'default';
 };
@@ -140,7 +140,7 @@ const getThemeFromDomain = (hostname: string): string => {
    ```
    public/
    ├── themes/
-   │   ├── acme/
+   │   ├── team-puzzle/
    │   │   ├── logo-light.svg
    │   │   ├── logo-dark.svg
    │   │   └── favicon.ico

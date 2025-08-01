@@ -183,11 +183,11 @@ For colors not covered by Shadcn, use our custom variables:
 ### 1. Test with Different Themes
 ```tsx
 // Set theme via environment variable
-NEXT_PUBLIC_THEME_ID=client-acme pnpm dev
+NEXT_PUBLIC_THEME_ID=team-puzzle pnpm dev
 
 // Or programmatically
 const { setTheme } = useTheme()
-setTheme('client-acme')
+setTheme('team-puzzle')
 ```
 
 ### 2. Test Light/Dark Modes
