@@ -11,7 +11,8 @@
     "check": "biome check .",
     "test:e2e:list": "playwright test --reporter=list",
     "test:e2e": "playwright test",
-    "test:results": "playwright show-report test/playwright-report"
+    "test:results": "playwright show-report test/playwright-report",
+    "prepare": "husky"
   },
   "dependencies": {
     "@biomejs/biome": "^2.1.2",
@@ -33,8 +34,15 @@
     "@types/react-dom": "^19",
     "eslint": "^9.31.0",
     "eslint-config-next": "15.4.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": [
+      "biome format --write"
+    ]
   }
 }
