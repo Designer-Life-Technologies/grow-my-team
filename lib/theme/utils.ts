@@ -5,31 +5,31 @@ export const generateShadcnVariables = (colors: ColorPalette): string => {
   // Map our theme colors to Shadcn's expected variable names
   const shadcnMapping = {
     // Core colors
-    '--background': colors.background,
-    '--foreground': colors.text,
-    '--primary': colors.primary,
-    '--primary-foreground': colors.background, // Contrast color for primary
-    '--secondary': colors.secondary,
-    '--secondary-foreground': colors.background,
-    '--accent': colors.accent,
-    '--accent-foreground': colors.background,
-    '--muted': colors.surface,
-    '--muted-foreground': colors.textSecondary,
-    '--border': colors.border,
-    '--input': colors.border,
-    '--ring': colors.primary,
-    '--destructive': colors.error,
-    '--destructive-foreground': colors.background,
+    "--background": colors.background,
+    "--foreground": colors.text,
+    "--primary": colors.primary,
+    "--primary-foreground": colors.background, // Contrast color for primary
+    "--secondary": colors.secondary,
+    "--secondary-foreground": colors.background,
+    "--accent": colors.accent,
+    "--accent-foreground": colors.background,
+    "--muted": colors.surface,
+    "--muted-foreground": colors.textSecondary,
+    "--border": colors.border,
+    "--input": colors.border,
+    "--ring": colors.primary,
+    "--destructive": colors.error,
+    "--destructive-foreground": colors.background,
     // Card colors
-    '--card': colors.surface,
-    '--card-foreground': colors.text,
-    '--popover': colors.surface,
-    '--popover-foreground': colors.text,
+    "--card": colors.surface,
+    "--card-foreground": colors.text,
+    "--popover": colors.surface,
+    "--popover-foreground": colors.text,
   }
-  
+
   return Object.entries(shadcnMapping)
     .map(([key, value]) => `${key}: ${value};`)
-    .join('\n  ')
+    .join("\n  ")
 }
 
 export const applyThemeToDocument = (theme: Theme, isDark: boolean) => {
@@ -39,29 +39,29 @@ export const applyThemeToDocument = (theme: Theme, isDark: boolean) => {
   // Apply Shadcn-compatible variables (simplified approach)
   const shadcnMapping = {
     // Core colors
-    '--background': colors.background,
-    '--foreground': colors.text,
-    '--primary': colors.primary,
-    '--primary-foreground': colors.background,
-    '--secondary': colors.secondary,
-    '--secondary-foreground': colors.background,
-    '--accent': colors.accent,
-    '--accent-foreground': colors.background,
-    '--muted': colors.surface,
-    '--muted-foreground': colors.textSecondary,
-    '--border': colors.border,
-    '--input': colors.border,
-    '--ring': colors.primary,
-    '--destructive': colors.error,
-    '--destructive-foreground': colors.background,
+    "--background": colors.background,
+    "--foreground": colors.text,
+    "--primary": colors.primary,
+    "--primary-foreground": colors.background,
+    "--secondary": colors.secondary,
+    "--secondary-foreground": colors.background,
+    "--accent": colors.accent,
+    "--accent-foreground": colors.background,
+    "--muted": colors.surface,
+    "--muted-foreground": colors.textSecondary,
+    "--border": colors.border,
+    "--input": colors.border,
+    "--ring": colors.primary,
+    "--destructive": colors.error,
+    "--destructive-foreground": colors.background,
     // Card colors
-    '--card': colors.surface,
-    '--card-foreground': colors.text,
-    '--popover': colors.surface,
-    '--popover-foreground': colors.text,
+    "--card": colors.surface,
+    "--card-foreground": colors.text,
+    "--popover": colors.surface,
+    "--popover-foreground": colors.text,
     // Extended colors (not in standard Shadcn)
-    '--success': colors.success,
-    '--warning': colors.warning,
+    "--success": colors.success,
+    "--warning": colors.warning,
   }
 
   // Apply all variables to document

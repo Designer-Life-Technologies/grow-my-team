@@ -14,8 +14,8 @@ export default function Home() {
             Welcome to {currentTheme.branding.companyName}
           </h1>
           <div className="flex items-center gap-4">
-            <Link 
-              href="/theme-showcase" 
+            <Link
+              href="/theme-showcase"
               className="px-4 py-2 rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Theme Showcase
@@ -23,13 +23,21 @@ export default function Home() {
             <ThemeToggle />
           </div>
         </div>
-        
+
         <div className="space-y-4 p-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
-          <h2 className="text-xl font-semibold text-[var(--color-text)]">Theme Information</h2>
+          <h2 className="text-xl font-semibold text-[var(--color-text)]">
+            Theme Information
+          </h2>
           <div className="space-y-2 text-[var(--color-text-secondary)]">
-            <p><strong>Current Theme:</strong> {currentTheme.id}</p>
-            <p><strong>Company:</strong> {currentTheme.branding.companyName}</p>
-            <p><strong>Mode:</strong> {isDark ? 'Dark' : 'Light'}</p>
+            <p>
+              <strong>Current Theme:</strong> {currentTheme.id}
+            </p>
+            <p>
+              <strong>Company:</strong> {currentTheme.branding.companyName}
+            </p>
+            <p>
+              <strong>Mode:</strong> {isDark ? "Dark" : "Light"}
+            </p>
           </div>
         </div>
       </div>

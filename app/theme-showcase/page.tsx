@@ -2,15 +2,21 @@
 import { useTheme } from "@/lib/theme/ThemeProvider"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ThemeToggle, ThemeSelector } from "@/components/ui/ThemeToggle"
 
-
 export default function ThemeShowcase() {
   const { currentTheme, isDark } = useTheme()
-  
+
   return (
     <div className="container mx-auto py-12 px-4">
       <div className="mb-8 text-center">
@@ -18,34 +24,48 @@ export default function ThemeShowcase() {
         <p className="text-lg text-[var(--color-textSecondary)] mb-6">
           Explore and test the different themes and components
         </p>
-        
+
         <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
           <div className="flex flex-col items-center">
-            <Label htmlFor="theme-selector" className="mb-2">Theme</Label>
+            <Label htmlFor="theme-selector" className="mb-2">
+              Theme
+            </Label>
             <ThemeSelector />
           </div>
-          
+
           <div className="flex flex-col items-center">
             <Label className="mb-2">Mode</Label>
             <ThemeToggle />
           </div>
         </div>
-        
+
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-4 mb-8">
           <h2 className="text-xl font-semibold mb-2">Current Theme</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p><strong>ID:</strong> {currentTheme.id}</p>
-              <p><strong>Name:</strong> {currentTheme.name}</p>
-              <p><strong>Mode:</strong> {isDark ? "Dark" : "Light"}</p>
+              <p>
+                <strong>ID:</strong> {currentTheme.id}
+              </p>
+              <p>
+                <strong>Name:</strong> {currentTheme.name}
+              </p>
+              <p>
+                <strong>Mode:</strong> {isDark ? "Dark" : "Light"}
+              </p>
             </div>
             <div>
-              <p><strong>Company:</strong> {currentTheme.branding.companyName}</p>
+              <p>
+                <strong>Company:</strong> {currentTheme.branding.companyName}
+              </p>
               <div className="mt-2">
                 <strong>Logo:</strong>
-                <Image 
-                  src={isDark ? currentTheme.branding.logo.dark : currentTheme.branding.logo.light} 
-                  alt={`${currentTheme.name} logo`} 
+                <Image
+                  src={
+                    isDark
+                      ? currentTheme.branding.logo.dark
+                      : currentTheme.branding.logo.light
+                  }
+                  alt={`${currentTheme.name} logo`}
                   width={120}
                   height={32}
                   className="h-8 mt-1 w-auto"
@@ -60,14 +80,18 @@ export default function ThemeShowcase() {
       <section className="mb-12">
         <h2 className="text-2xl font-bold mb-4">Color Palette</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {Object.entries(isDark ? currentTheme.colors.dark : currentTheme.colors.light).map(([name, color]) => (
+          {Object.entries(
+            isDark ? currentTheme.colors.dark : currentTheme.colors.light,
+          ).map(([name, color]) => (
             <div key={name} className="flex flex-col items-center">
-              <div 
-                className="w-16 h-16 rounded-md mb-2 border border-[var(--color-border)]" 
+              <div
+                className="w-16 h-16 rounded-md mb-2 border border-[var(--color-border)]"
                 style={{ backgroundColor: color }}
               />
               <span className="text-sm font-medium">{name}</span>
-              <span className="text-xs text-[var(--color-textSecondary)]">{color}</span>
+              <span className="text-xs text-[var(--color-textSecondary)]">
+                {color}
+              </span>
             </div>
           ))}
         </div>
@@ -144,11 +168,19 @@ export default function ThemeShowcase() {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="disabled-input">Disabled Input</Label>
-              <Input id="disabled-input" placeholder="Disabled input" disabled />
+              <Input
+                id="disabled-input"
+                placeholder="Disabled input"
+                disabled
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="invalid-input">Invalid Input</Label>
-              <Input id="invalid-input" placeholder="Invalid input" aria-invalid="true" />
+              <Input
+                id="invalid-input"
+                placeholder="Invalid input"
+                aria-invalid="true"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="file-input">File Input</Label>
@@ -168,13 +200,16 @@ export default function ThemeShowcase() {
               <CardDescription>Card description text goes here</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>This is the main content area of the card. It can contain any elements.</p>
+              <p>
+                This is the main content area of the card. It can contain any
+                elements.
+              </p>
             </CardContent>
             <CardFooter>
               <Button>Action</Button>
             </CardFooter>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Interactive Card</CardTitle>
@@ -194,8 +229,6 @@ export default function ThemeShowcase() {
           </Card>
         </div>
       </section>
-
-
     </div>
   )
 }
