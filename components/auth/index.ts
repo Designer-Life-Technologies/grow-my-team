@@ -1,3 +1,4 @@
-export { AuthProvider } from "./AuthProvider"
-export { LoginForm } from "./LoginForm"
-export { UserProfile } from "./UserProfile"
+export * from "./AuthProvider"
+export * from "./LoginForm"
+export * from "./SignOutButton"
+export * from "./UserProfile"

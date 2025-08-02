@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { UserProfile } from "@/components/auth"
-import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { SignOutButton, UserProfile } from "@/components/auth"
+import { ThemeModeToggle } from "@/components/theme"
 import { useTheme } from "@/lib/theme"
 
 export default function Home() {
@@ -21,7 +21,8 @@ export default function Home() {
             >
               Theme Showcase
             </Link>
-            <ThemeToggle />
+            <ThemeModeToggle />
+            <SignOutButton />
           </div>
         </div>
 

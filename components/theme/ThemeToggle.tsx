@@ -3,7 +3,7 @@
 // No need to import React in 'use client' components
 import { useTheme } from "@/components/theme"
 
-export function ThemeToggle() {
+export function ThemeModeToggle() {
   const { mode, setMode, isDark } = useTheme()
 
   const toggleMode = () => {

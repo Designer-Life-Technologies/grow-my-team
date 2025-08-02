@@ -1,6 +1,6 @@
 "use client"
 import Image from "next/image"
-import { useTheme } from "@/components/theme"
+import { ThemeModeToggle, ThemeSelector, useTheme } from "@/components/theme"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ThemeSelector, ThemeToggle } from "@/components/ui/ThemeToggle"
 
 export default function ThemeShowcase() {
   const { currentTheme, isDark } = useTheme()
@@ -35,7 +34,7 @@ export default function ThemeShowcase() {
 
           <div className="flex flex-col items-center">
             <Label className="mb-2">Mode</Label>
-            <ThemeToggle />
+            <ThemeModeToggle />
           </div>
         </div>
 

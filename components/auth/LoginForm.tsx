@@ -2,8 +2,9 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { useState } from "react"
-import { signIn } from "@/app/(auth)/auth"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -36,6 +37,7 @@ export function LoginForm({
     setError(null)
 
     try {
+      console.log("Login: ", formData)
       const result = await signIn("credentials", {
         username: formData.username,
         password: formData.password,

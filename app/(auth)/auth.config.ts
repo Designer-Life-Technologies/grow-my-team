@@ -1,8 +1,9 @@
 import type { NextAuthOptions, Session, User } from "next-auth"
 import type { JWT } from "next-auth/jwt"
-import Credentials from "next-auth/providers/credentials"
+import { credentialsProvider } from "./credentials.provider"
 
 export const authConfig: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
   },
@@ -72,49 +73,5 @@ export const authConfig: NextAuthOptions = {
    * @param credentials - The credentials object containing username and password
    * @returns User object with access token if authentication is successful
    */
-  providers: [
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          return null
-        }
-
-        try {
-          // Make a request to the GetMe.video API token endpoint
-          const response = await fetch(`${process.env.GETME_API_URL}/token`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: credentials.username,
-              password: credentials.password,
-            }),
-          })
-
-          if (!response.ok) {
-            return null
-          }
-
-          const data = await response.json()
-
-          // Return user object with access token
-          return {
-            id: data.user_id || data.id || "user-id",
-            name: data.name || credentials.username,
-            email: data.email || `${credentials.username}@example.com`,
-            accessToken: data.access_token,
-          }
-        } catch (error) {
-          console.error("Authentication error:", error)
-          return null
-        }
-      },
-    }),
-  ],
+  providers: [credentialsProvider],
 }
