@@ -1,10 +1,10 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
 import type React from "react"
-import type { Theme, ThemeMode, ThemeContextType } from "./types"
-import { getTheme, getThemeFromDomain } from "./config"
-import { applyThemeToDocument, getSystemTheme } from "./utils"
+import { createContext, useContext, useEffect, useState } from "react"
+import { getTheme, getThemeFromDomain } from "@/lib/theme/config"
+import type { Theme, ThemeContextType, ThemeMode } from "@/lib/theme/types"
+import { applyThemeToDocument, getSystemTheme } from "@/lib/theme/utils"
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 

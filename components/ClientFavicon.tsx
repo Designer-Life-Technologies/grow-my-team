@@ -1,7 +1,7 @@
 "use client"
 
-import { useTheme } from "@/lib/theme"
 import { useEffect } from "react"
+import { useTheme } from "@/lib/theme"
 
 export function ClientFavicon() {
   const { currentTheme } = useTheme()

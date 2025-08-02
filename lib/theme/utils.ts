@@ -1,4 +1,4 @@
-import type { Theme, ColorPalette } from "./types"
+import type { ColorPalette, Theme } from "./types"
 
 // Generate Shadcn-compatible CSS variables from our theme colors
 export const generateShadcnVariables = (colors: ColorPalette): string => {

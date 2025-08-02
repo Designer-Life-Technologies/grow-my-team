@@ -1,8 +1,9 @@
 "use client"
 
-import { useTheme } from "@/lib/theme"
-import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import Link from "next/link"
+import { UserProfile } from "@/components/auth"
+import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { useTheme } from "@/lib/theme"
 
 export default function Home() {
   const { currentTheme, isDark } = useTheme()
@@ -24,7 +25,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="space-y-4 p-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="space-y-4 p-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] mb-8">
           <h2 className="text-xl font-semibold text-[var(--color-text)]">
             Theme Information
           </h2>
@@ -39,6 +40,19 @@ export default function Home() {
               <strong>Mode:</strong> {isDark ? "Dark" : "Light"}
             </p>
           </div>
+        </div>
+
+        {/* User Profile Component */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-[var(--color-text)] mb-4">
+            User Profile Example
+          </h2>
+          <p className="text-[var(--color-text-secondary)] mb-4">
+            This component demonstrates secure access token handling with
+            Next-Auth. The access token is only available server-side in API
+            routes and server actions.
+          </p>
+          <UserProfile />
         </div>
       </div>
     </div>

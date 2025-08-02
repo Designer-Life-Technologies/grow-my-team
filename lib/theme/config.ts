@@ -1,6 +1,6 @@
-import type { Theme } from "./types"
 import { defaultTheme } from "./themes/default"
 import { teamPuzzleTheme } from "./themes/team-puzzle"
+import type { Theme } from "./types"
 
 export const themes: Record<string, Theme> = {
   default: defaultTheme,

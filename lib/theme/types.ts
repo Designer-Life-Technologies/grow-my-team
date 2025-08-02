@@ -18,6 +18,7 @@ export interface Theme {
   colors: {
     light: ColorPalette
     dark: ColorPalette
+    primary?: string // For theme color in metadata
   }
   branding: {
     companyName: string
@@ -26,6 +27,13 @@ export interface Theme {
       dark: string
     }
     favicon?: string
+    description?: string
+    keywords?: string[]
+    website?: string
+    appleTouchIcon?: string
+    ogImage?: string
+    twitterImage?: string
+    twitterHandle?: string
   }
 }
 

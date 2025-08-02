@@ -1,9 +1,10 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import { useTheme } from "@/lib/theme"
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { signIn } from "@/app/(auth)/auth"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -13,12 +14,47 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useTheme } from "@/lib/theme"
+import { cn } from "@/lib/utils"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const { currentTheme, isDark } = useTheme()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await signIn("credentials", {
+        username: formData.username,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError("Invalid username or password")
+        setIsLoading(false)
+      } else {
+        router.push("/")
+        router.refresh()
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setError("An error occurred. Please try again.")
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -45,15 +81,25 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md">
+                  {error}
+                </div>
+              )}
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="username"
+                  type="text"
+                  placeholder="username"
                   required
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-3">
@@ -66,15 +112,22 @@ export function LoginForm({
                     Forgot your password?
                   </button>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  disabled={isLoading}
+                />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
                 </Button>
-                <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button>
+                {/* Removed Google login as we're only implementing username/password */}
               </div>
             </div>
             <div className="mt-4 text-center text-sm">

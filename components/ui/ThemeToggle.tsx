@@ -1,7 +1,7 @@
 "use client"
 
 // No need to import React in 'use client' components
-import { useTheme } from "@/lib/theme/ThemeProvider"
+import { useTheme } from "@/components/theme"
 
 export function ThemeToggle() {
   const { mode, setMode, isDark } = useTheme()

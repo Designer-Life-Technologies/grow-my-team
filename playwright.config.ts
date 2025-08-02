@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test"
+
 // Use process.env.PORT by default and fallback to 3000 if not specified.
 const PORT = process.env.PORT || 3000
 
