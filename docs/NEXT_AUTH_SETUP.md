@@ -45,7 +45,36 @@ The following routes are protected and require authentication:
 - `/candidates/*`
 - `/settings/*`
 
-## API Integration
+## Server-Side API Integration
+
+The authentication system provides secure server-side access to the GetMe.video API using JWT tokens. Access tokens are never exposed to the client-side for security.
+
+### Server-Side API Utility
+
+A utility function `callGetMeApi` is available at `lib/api/index.ts` for making authenticated requests to the GetMe.video API:
+
+```typescript
+import { callGetMeApi } from '@/lib/api'
+
+// Example usage in server actions or API routes
+export async function getUserProfile() {
+  try {
+    const profile = await callGetMeApi<UserProfile>('/users/me')
+    return profile
+  } catch (error) {
+    console.error('Failed to fetch user profile:', error)
+    throw error
+  }
+}
+```
+
+This function automatically:
+- Retrieves the JWT token from server-side cookies
+- Extracts the access token from the JWT (server-side only)
+- Includes the Authorization header with the Bearer token
+- Handles errors and authentication failures
+
+### GetMe.video API Integration
 
 The authentication system connects to the GetMe.video API token endpoint to validate credentials. The endpoint is expected to return a JSON response with at least:
 
@@ -134,63 +163,79 @@ await signOut()
 
 ### Server-Side (Recommended)
 
-Create server actions to make authenticated API requests:
+Use the provided `callGetMeApi` utility function for all authenticated API requests:
 
 ```tsx
-// app/actions/api.ts
+// lib/user/actions.ts
 "use server"
 
-import { auth } from "@/app/(auth)/auth"
+import { callGetMeApi } from '@/lib/api'
+import type { UserProfile } from './types'
 
-export async function fetchUserData() {
-  const session = await auth()
-  
-  if (!session?.token?.accessToken) {
-    throw new Error("Not authenticated")
-  }
-  
-  const response = await fetch(`${process.env.GETME_API_URL}/user/profile`, {
-    headers: {
-      Authorization: `Bearer ${session.token.accessToken}`,
-    },
+export async function getCurrentUserProfile(): Promise<UserProfile> {
+  return await callGetMeApi<UserProfile>('/users/me')
+}
+
+export async function updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+  return await callGetMeApi<UserProfile>('/users/me', {
+    method: 'PUT',
+    body: data
   })
-  
-  if (!response.ok) {
-    throw new Error("Failed to fetch user data")
-  }
-  
-  return response.json()
 }
 ```
 
-Then call these server actions from client components:
+### Implementation Details
+
+The `callGetMeApi` function handles authentication automatically by:
+
+1. **Retrieving JWT Token**: Uses `getToken` from `next-auth/jwt` to access the JWT token from server-side cookies
+2. **Extracting Access Token**: Gets the `accessToken` from the JWT token (never exposed to client)
+3. **Making Authenticated Requests**: Includes the `Authorization: Bearer <token>` header
+4. **Error Handling**: Throws appropriate errors for authentication failures
+
+```typescript
+// lib/api/index.ts implementation
+"use server"
+
+import { getToken } from "next-auth/jwt"
+import { cookies } from "next/headers"
+
+async function callGetMeApi<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  // Get JWT token directly from cookies (server-side only)
+  const cookieStore = await cookies()
+  const token = await getToken({
+    req: {
+      cookies: Object.fromEntries(
+        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value]),
+      ),
+    } as unknown as Request,
+    secret: process.env.NEXTAUTH_SECRET,
+  })
+  
+  const accessToken = token?.accessToken
+  if (!accessToken) {
+    throw new Error("Not authenticated")
+  }
+  
+  // Make authenticated request...
+}
+```
+
+### Using Server Actions in Components
+
+Call server actions from client components:
 
 ```tsx
-// components/UserProfile.tsx
-"use client"
+// components/auth/ProfileDisplay.tsx
+import { getCurrentUserProfile } from '@/lib/user/actions'
 
-import { useSession } from "next-auth/react"
-import { fetchUserData } from "@/app/actions/api"
-
-export function UserProfile() {
-  const { data: session } = useSession()
-  const [userData, setUserData] = useState(null)
-  
-  async function loadUserData() {
-    try {
-      const data = await fetchUserData()
-      setUserData(data)
-    } catch (error) {
-      console.error("Error loading user data:", error)
-    }
-  }
+export async function ProfileDisplay() {
+  const user = await getCurrentUserProfile()
   
   return (
     <div>
-      <h2>User Profile</h2>
-      <p>Name: {session?.user?.name}</p>
-      <button onClick={loadUserData}>Load User Data</button>
-      {userData && <pre>{JSON.stringify(userData, null, 2)}</pre>}
+      <h2>Welcome, {user.firstname}!</h2>
+      <p>Email: {user.email}</p>
     </div>
   )
 }

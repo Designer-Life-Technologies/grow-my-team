@@ -16,7 +16,7 @@ export default function Home() {
           </h1>
           <div className="flex items-center gap-4">
             <Link
-              href="/theme-showcase"
+              href="/dev/theme-showcase"
               className="px-4 py-2 rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Theme Showcase

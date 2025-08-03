@@ -47,11 +47,11 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "biome format --write",
-      "biome check"
+      "pnpm exec biome format --write",
+      "pnpm exec biome check"
     ],
     "*.{json,css,md}": [
-      "biome format --write"
+      "pnpm exec biome format --write"
     ]
   }
 }
