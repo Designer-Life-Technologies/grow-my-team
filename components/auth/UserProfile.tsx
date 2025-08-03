@@ -75,10 +75,15 @@ export function UserProfile() {
         <div className="flex flex-col gap-6">
           {/* Display client-side session data */}
           <div>
-            <h3 className="text-lg font-medium">Client-Side Session Data:</h3>
+            <h3 className="text-lg font-medium">
+              Client-Side Session Data: (used when only basic user data is
+              required)
+            </h3>
             <p>User ID: {session.user.id}</p>
             <p>Name: {session.user.name}</p>
             <p>Email: {session.user.email}</p>
+            <p>Expires: {session.expires}</p>
+
             {/* Notice: No access token is available here */}
           </div>
 

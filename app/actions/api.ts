@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { getServerSession } from "next-auth"
 import { getToken } from "next-auth/jwt"
-import { authConfig } from "../(auth)/auth.config"
+import { authConfig } from "@/lib/auth/auth.config"
 
 /**
  * Example server action that fetches user data from an API

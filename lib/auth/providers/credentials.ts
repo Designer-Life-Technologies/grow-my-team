@@ -6,6 +6,21 @@ export const credentialsProvider = Credentials({
     username: { label: "Username", type: "text" },
     password: { label: "Password", type: "password" },
   },
+
+  /**
+   * Authenticates the user with the GetMe.video API.
+   *
+   * This function takes the user's credentials (username and password) and attempts
+   * to exchange them for an access token from the `/auth/token` endpoint of the API.
+   * If successful, it uses the obtained token to fetch the user's profile information
+   * from the `/user` endpoint.
+   *
+   * @param credentials The user's username and password.
+   * @returns On successful authentication, it returns a user object containing the user's
+   *          ID, email, name, the API access token, and token expiration time.
+   *          On any failure (e.g., invalid credentials, API errors, network issues),
+   *          it logs the error and returns `null`.
+   */
   async authorize(credentials) {
     if (!credentials?.username || !credentials?.password) {
       return null
@@ -61,10 +76,14 @@ export const credentialsProvider = Credentials({
 
       // Attach the access token to the user object
       return {
-        id: data.id,
+        id: userData.id,
         email: credentials.username,
-        name: userData.firstname,
+        firstname: userData.firstname,
+        lastname: userData.lastname,
+        organisations: userData.organisations,
         accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresIn: data.expires_in,
       }
     } catch (error) {
       console.error("Network or other error during authorization:", error)
