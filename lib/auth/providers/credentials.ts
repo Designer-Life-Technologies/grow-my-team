@@ -80,7 +80,7 @@ export const credentialsProvider = Credentials({
         email: credentials.username,
         firstname: userData.firstname,
         lastname: userData.lastname,
-        organisations: userData.organisations,
+        organisations: userData.organisations || [],
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
         expiresIn: data.expires_in,

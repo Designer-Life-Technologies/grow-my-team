@@ -5,6 +5,7 @@ import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
 import { ClientFavicon } from "@/components/ClientFavicon"
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,6 +75,7 @@ export default function RootLayout({
               - Individual page components can implement their own Suspense boundaries as needed
             */}
             {children}
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </body>

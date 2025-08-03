@@ -1,6 +1,7 @@
 // import type { DefaultSession } from "next-auth"
 
 import type { DefaultSession } from "next-auth"
+import type { UserOrganisationRoles } from "@/lib/user/types"
 
 declare module "next-auth" {
   /**
@@ -11,6 +12,11 @@ declare module "next-auth" {
     user: {
       id: string
     } & DefaultSession["user"]
+    organisation?: {
+      id: string
+      name: string
+      roles: UserOrganisationRoles[]
+    }
     expires: string
   }
 
@@ -18,7 +24,6 @@ declare module "next-auth" {
    * Raw user object received from authentication provider
    * Contains all user data including sensitive information
    */
-  type UserOrganisationRoles = "ADMIN" | "MEMBER" | "GUEST"
 
   interface Organisation {
     id: string
@@ -50,5 +55,10 @@ declare module "next-auth/jwt" {
     firstname: string
     accessToken: string
     expires?: number
+    organisation?: {
+      id: string
+      name: string
+      roles: [UserOrganisationRoles]
+    }
   }
 }

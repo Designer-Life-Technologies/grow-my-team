@@ -1,4 +1,5 @@
 export * from "./AuthProvider"
 export * from "./LoginForm"
+export * from "./ProfileDisplay"
+export * from "./SessionData"
 export * from "./SignOutButton"
-export * from "./UserProfile"

@@ -10,13 +10,27 @@ export const authConfig: NextAuthOptions = {
     async jwt({ token, user }) {
       // Initial sign in
       if (user) {
+        // Add user data to the token
         token.id = user.id
         token.email = user.email
         token.firstname = user.firstname
         token.accessToken = user.accessToken
         token.expiresIn = user.expiresIn
+
+        // Add expiration time to the token
         if (user.expiresIn) {
           token.expires = Math.floor(Date.now() / 1000) + user.expiresIn
+        }
+
+        // Add organisation data to the token
+        // CUrrent the first organisation will be added, this can be replaced
+        // with use selection in the future
+        if (user.organisations && user.organisations.length > 0) {
+          token.organisation = {
+            id: user.organisations[0].organisation.id,
+            name: user.organisations[0].organisation.name,
+            roles: user.organisations[0].roles,
+          }
         }
         return token
       }
@@ -47,6 +61,10 @@ export const authConfig: NextAuthOptions = {
         session.user.id = token.id
         session.user.name = token.firstname
         session.user.email = token.email
+      }
+
+      if (token.organisation) {
+        session.organisation = token.organisation
       }
 
       if (token.expires) {
