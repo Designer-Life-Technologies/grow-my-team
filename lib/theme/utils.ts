@@ -25,6 +25,15 @@ export const generateShadcnVariables = (colors: ColorPalette): string => {
     "--card-foreground": colors.text,
     "--popover": colors.surface,
     "--popover-foreground": colors.text,
+    // Sidebar colors - use surface color from theme
+    "--sidebar": colors.surface,
+    "--sidebar-foreground": colors.text,
+    "--sidebar-primary": colors.primary,
+    "--sidebar-primary-foreground": colors.background,
+    "--sidebar-accent": colors.surface,
+    "--sidebar-accent-foreground": colors.text,
+    "--sidebar-border": colors.border,
+    "--sidebar-ring": colors.primary,
   }
 
   return Object.entries(shadcnMapping)
@@ -59,6 +68,15 @@ export const applyThemeToDocument = (theme: Theme, isDark: boolean) => {
     "--card-foreground": colors.text,
     "--popover": colors.surface,
     "--popover-foreground": colors.text,
+    // Sidebar colors - use surface color from theme
+    "--sidebar": colors.surface,
+    "--sidebar-foreground": colors.text,
+    "--sidebar-primary": colors.primary,
+    "--sidebar-primary-foreground": colors.background,
+    "--sidebar-accent": colors.surface,
+    "--sidebar-accent-foreground": colors.text,
+    "--sidebar-border": colors.border,
+    "--sidebar-ring": colors.primary,
     // Extended colors (not in standard Shadcn)
     "--success": colors.success,
     "--warning": colors.warning,
