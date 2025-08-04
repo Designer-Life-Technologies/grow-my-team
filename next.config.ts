@@ -1,7 +1,10 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Project already uses Biome for linting
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default nextConfig
