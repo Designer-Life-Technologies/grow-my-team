@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme"
 import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
-import { ClientFavicon } from "@/components/ClientFavicon"
+import { ClientFavicon } from "@/components/layout"
 import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({

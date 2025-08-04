@@ -5,9 +5,9 @@ export const teamPuzzleTheme: Theme = {
   name: "Team Puzzle",
   colors: {
     light: {
-      primary: "#FF6B35",
-      secondary: "#004E89",
-      accent: "#009FFD",
+      primary: "#205baa",
+      secondary: "#222d69",
+      accent: "#b5cded",
       background: "#FFFFFF",
       surface: "#F8F9FA",
       text: "#1A1A1A",
@@ -18,9 +18,9 @@ export const teamPuzzleTheme: Theme = {
       error: "#EF4444",
     },
     dark: {
-      primary: "#FF8A65",
-      secondary: "#42A5F5",
-      accent: "#26C6DA",
+      primary: "#4A90E2",
+      secondary: "#5A6ACF",
+      accent: "#D4E6F7",
       background: "#0F172A",
       surface: "#1E293B",
       text: "#F8FAFC",
@@ -34,8 +34,8 @@ export const teamPuzzleTheme: Theme = {
   branding: {
     companyName: "Team Puzzle",
     logo: {
-      light: "/themes/team-puzzle/logo-light.svg",
-      dark: "/themes/team-puzzle/logo-dark.svg",
+      light: "/themes/team-puzzle/logo.png",
+      dark: "/themes/team-puzzle/logo.png",
     },
     favicon: "/themes/team-puzzle/favicon.ico",
   },

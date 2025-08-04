@@ -1,7 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { getToken } from "next-auth/jwt"
+import { decode } from "next-auth/jwt"
 import type { ApiOptions } from "./types"
 
 const BASE_URL = process.env.GETME_API_URL
@@ -12,13 +12,24 @@ async function callGetMeApi<T>(
 ): Promise<T> {
   // Get JWT token directly from cookies (server-side only)
   const cookieStore = await cookies()
-  const token = await getToken({
-    req: {
-      cookies: Object.fromEntries(
-        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value]),
-      ),
-    } as unknown as Request,
-    secret: process.env.NEXTAUTH_SECRET,
+
+  // Get the session token from cookies
+  const sessionToken =
+    cookieStore.get("next-auth.session-token")?.value ||
+    cookieStore.get("__Secure-next-auth.session-token")?.value
+
+  if (!sessionToken) {
+    throw new Error("Not authenticated - no session token found")
+  }
+
+  // Decode the JWT token to get the access token
+  const secret = process.env.NEXTAUTH_SECRET
+  if (!secret) {
+    throw new Error("NEXTAUTH_SECRET environment variable is not configured")
+  }
+  const token = await decode({
+    token: sessionToken,
+    secret,
   })
 
   const accessToken = token?.accessToken

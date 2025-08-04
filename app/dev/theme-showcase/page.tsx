@@ -1,5 +1,5 @@
 "use client"
-import Image from "next/image"
+import { ClientLogo } from "@/components/layout"
 import { ThemeModeToggle, ThemeSelector, useTheme } from "@/components/theme"
 import { Button } from "@/components/ui/button"
 import {
@@ -58,17 +58,7 @@ export default function ThemeShowcase() {
               </p>
               <div className="mt-2">
                 <strong>Logo:</strong>
-                <Image
-                  src={
-                    isDark
-                      ? currentTheme.branding.logo.dark
-                      : currentTheme.branding.logo.light
-                  }
-                  alt={`${currentTheme.name} logo`}
-                  width={120}
-                  height={32}
-                  className="h-8 mt-1 w-auto"
-                />
+                <ClientLogo />
               </div>
             </div>
           </div>

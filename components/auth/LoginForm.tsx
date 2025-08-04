@@ -1,28 +1,22 @@
 "use client"
 
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+import { ClientLogo } from "../layout"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { currentTheme, isDark } = useTheme()
+  const { currentTheme } = useTheme()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,25 +58,11 @@ export function LoginForm({
         <CardHeader className="text-center">
           {/* Theme-aware logo */}
           <div className="flex justify-center mb-4">
-            <Image
-              src={
-                isDark
-                  ? currentTheme.branding.logo.dark
-                  : currentTheme.branding.logo.light
-              }
-              alt={currentTheme.branding.companyName}
-              width={120}
-              height={32}
-              className="h-8 w-auto"
-              priority
-            />
+            <ClientLogo />
           </div>
           <CardTitle>Welcome to {currentTheme.branding.companyName}</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="mt-8">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {error && (
@@ -91,11 +71,10 @@ export function LoginForm({
                 </div>
               )}
               <div className="grid gap-3">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Email</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="username"
                   required
                   value={formData.username}
                   onChange={(e) =>
