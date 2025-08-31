@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { useState } from "react"
@@ -54,7 +55,14 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card
+        className={cn(
+          // Smooth, premium entrance on mount
+          "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-left-4 motion-safe:duration-300 motion-safe:ease-out",
+          // Respect reduced motion preferences
+          "motion-reduce:transition-none motion-reduce:transform-none",
+        )}
+      >
         <CardHeader className="text-center">
           {/* Theme-aware logo */}
           <div className="flex justify-center mb-4">
@@ -113,12 +121,12 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <button
-                type="button"
-                className="underline underline-offset-4 bg-transparent border-none p-0 text-primary hover:text-primary/80"
+              <Link
+                href="/signup"
+                className="underline underline-offset-4 text-primary hover:text-primary/80"
               >
                 Sign up
-              </button>
+              </Link>
             </div>
           </form>
         </CardContent>
