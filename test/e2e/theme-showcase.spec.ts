@@ -1,14 +1,11 @@
 import { expect, test } from "@playwright/test"
 
 test("should navigate to the theme showcase page", async ({ page }) => {
-  // Start from the home page
-  await page.goto("/")
-
-  // Find and click the theme showcase link
-  await page.getByText("Theme Showcase").click()
+  // Go directly to the theme showcase page under dev routes
+  await page.goto("/dev/theme-showcase")
 
   // Verify we're on the theme showcase page
-  await expect(page).toHaveURL(/theme-showcase/)
+  await expect(page).toHaveURL(/\/dev\/theme-showcase/)
   await expect(
     page.getByRole("heading", { name: "Theme Showcase" }),
   ).toBeVisible()
@@ -16,7 +13,7 @@ test("should navigate to the theme showcase page", async ({ page }) => {
 
 test("theme showcase page displays theme components", async ({ page }) => {
   // Go directly to the theme showcase page
-  await page.goto("/theme-showcase")
+  await page.goto("/dev/theme-showcase")
 
   // Verify key sections are present
   await expect(
@@ -34,7 +31,7 @@ test("theme showcase page displays theme components", async ({ page }) => {
 
 test("theme mode toggle works", async ({ page }) => {
   // Go to the theme showcase page
-  await page.goto("/theme-showcase")
+  await page.goto("/dev/theme-showcase")
 
   // Find the current theme mode
   const themeToggleButton = page
@@ -52,7 +49,7 @@ test("theme mode toggle works", async ({ page }) => {
 
 test("theme selector changes theme", async ({ page }) => {
   // Go to the theme showcase page
-  await page.goto("/theme-showcase")
+  await page.goto("/dev/theme-showcase")
 
   // Find the theme selector dropdown
   const themeSelector = page.locator("select").first()

@@ -24,6 +24,7 @@ export function SignupForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [formData, setFormData] = useState({
+    companyName: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -93,6 +94,18 @@ export function SignupForm({
                   {success}
                 </div>
               )}
+              <div className="grid gap-3">
+                <Label htmlFor="companyName">Company name (optional)</Label>
+                <Input
+                  id="companyName"
+                  type="text"
+                  value={formData.companyName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, companyName: e.target.value })
+                  }
+                  disabled={isLoading}
+                />
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="firstName">First name</Label>

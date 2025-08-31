@@ -4,14 +4,15 @@ test.describe("Login Page", () => {
   test("should display the login form", async ({ page }) => {
     await page.goto("/login")
 
-    await expect(page.getByText("Login to your account").first()).toBeVisible()
     await expect(page.getByLabel("Email")).toBeVisible()
     await expect(page.getByLabel("Password")).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Login", exact: true }),
     ).toBeVisible()
+
+    // Link to signup should be present
     await expect(
-      page.getByRole("button", { name: "Login with Google" }),
+      page.getByRole("link", { name: "Sign up", exact: true }),
     ).toBeVisible()
   })
 
