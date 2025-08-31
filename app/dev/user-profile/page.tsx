@@ -8,7 +8,7 @@ export default async function Home() {
         <SessionData />
       </div>
 
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-5xl pt-4">
         <Suspense fallback={<div>Loading...</div>}>
           <ProfileDisplay />
         </Suspense>
