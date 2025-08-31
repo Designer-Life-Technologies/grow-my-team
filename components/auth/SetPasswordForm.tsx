@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -12,9 +11,9 @@ import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 import { ClientLogo } from "../layout"
 
-// Signup form collects basic user info. Actual registration endpoint
-// is not implemented yet. Wire this to your backend when available.
-export function SignupForm({
+// A simple Set Password form shown after signup.
+// Backend integration is not implemented yet; wire to your API when available.
+export function SetPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -24,10 +23,8 @@ export function SignupForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    companyName: "",
-    firstName: "",
-    lastName: "",
-    email: "",
+    password: "",
+    confirmPassword: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,19 +34,24 @@ export function SignupForm({
     setSuccess(null)
 
     try {
-      // TODO: Replace with your registration API/server action.
-      // Example: await registerUser(formData)
-      console.log("Signup:", formData)
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match")
+        setIsLoading(false)
+        return
+      }
 
-      setSuccess("Account created. Please set your password.")
+      // TODO: Call your backend to set the password
+      console.log("Set password:", { length: formData.password.length })
+
+      setSuccess("Your password has been set. You can now sign in.")
       setIsLoading(false)
 
-      // Optional: navigate to login after short delay
+      // Redirect to login after a short delay
       setTimeout(() => {
-        router.push("/set-password")
+        router.push("/login")
       }, 800)
     } catch (err) {
-      console.error("Signup error:", err)
+      console.error("Set password error:", err)
       setError("An error occurred. Please try again.")
       setIsLoading(false)
     }
@@ -59,9 +61,7 @@ export function SignupForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card
         className={cn(
-          // Smooth, premium entrance on mount
           "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-right-4 motion-safe:duration-300 motion-safe:ease-out",
-          // Respect reduced motion preferences
           "motion-reduce:transition-none motion-reduce:transform-none",
         )}
       >
@@ -70,7 +70,7 @@ export function SignupForm({
             <ClientLogo />
           </div>
           <CardTitle>
-            Create your {currentTheme.branding.companyName} account
+            Set your {currentTheme.branding.companyName} password
           </CardTitle>
         </CardHeader>
         <CardContent className="mt-8">
@@ -86,55 +86,32 @@ export function SignupForm({
                   {success}
                 </div>
               )}
+
               <div className="grid gap-3">
-                <Label htmlFor="companyName">Company name (optional)</Label>
+                <Label htmlFor="newPassword">New password</Label>
                 <Input
-                  id="companyName"
-                  type="text"
-                  value={formData.companyName}
+                  id="newPassword"
+                  type="password"
+                  required
+                  value={formData.password}
                   onChange={(e) =>
-                    setFormData({ ...formData, companyName: e.target.value })
+                    setFormData({ ...formData, password: e.target.value })
                   }
                   disabled={isLoading}
                 />
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="firstName">First name</Label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="lastName">Last name</Label>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="confirmNewPassword">Confirm new password</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="confirmNewPassword"
+                  type="password"
                   required
-                  value={formData.email}
+                  value={formData.confirmPassword}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
                   }
                   disabled={isLoading}
                 />
@@ -142,18 +119,9 @@ export function SignupForm({
 
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Create account"}
+                  {isLoading ? "Saving..." : "Set password"}
                 </Button>
               </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="underline underline-offset-4 text-primary hover:text-primary/80"
-              >
-                Sign in
-              </Link>
             </div>
           </form>
         </CardContent>

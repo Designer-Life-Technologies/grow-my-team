@@ -8,8 +8,6 @@ test.describe("Signup Page", () => {
     await expect(page.getByLabel("First name")).toBeVisible()
     await expect(page.getByLabel("Last name")).toBeVisible()
     await expect(page.getByLabel("Email")).toBeVisible()
-    await expect(page.getByLabel("Password", { exact: true })).toBeVisible()
-    await expect(page.getByLabel("Confirm password")).toBeVisible()
 
     await expect(
       page.getByRole("button", { name: "Create account", exact: true }),
@@ -59,7 +57,5 @@ test.describe("Auth navigation", () => {
     await expect(page.getByLabel("First name")).toBeVisible()
     await expect(page.getByLabel("Last name")).toBeVisible()
     await expect(page.getByLabel("Email")).toBeVisible()
-    await expect(page.getByLabel("Password", { exact: true })).toBeVisible()
-    await expect(page.getByLabel("Confirm password")).toBeVisible()
   })
 })
