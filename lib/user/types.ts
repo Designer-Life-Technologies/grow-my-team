@@ -17,7 +17,7 @@ export interface UserProfile {
   lastname?: string
   organisations?: {
     organisation: Organisation
-    roles: [UserOrganisationRoles]
+    roles?: UserOrganisationRoles[]
   }[]
   onboardingStatus?: UserOnboardingStatus
   updated?: string
@@ -30,3 +30,19 @@ export interface Organisation {
   updated?: string
   created?: string
 }
+
+// Registration types for unauthenticated user creation
+// These types are intentionally minimal and use camelCase to match our codebase conventions.
+export interface RegisterUserInput {
+  firstname: string
+  lastname?: string
+  email: Email | string
+  mobile?: Phone
+  organisationName?: string
+  // Include password if the API requires it; optional to avoid hard coupling.
+  password?: string
+}
+
+export type RegisterUserResult =
+  | { success: true }
+  | { success: false; error: string; errorMessage?: string }

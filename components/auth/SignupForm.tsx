@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
+import { registerUser } from "@/lib/user/actions"
 import { cn } from "@/lib/utils"
+
 import { ClientLogo } from "../layout"
 
 // Signup form collects basic user info. Actual registration endpoint
@@ -37,17 +39,30 @@ export function SignupForm({
     setSuccess(null)
 
     try {
-      // TODO: Replace with your registration API/server action.
-      // Example: await registerUser(formData)
-      console.log("Signup:", formData)
+      const result = await registerUser({
+        firstname: formData.firstName,
+        lastname: formData.lastName,
+        email: formData.email,
+        organisations: formData.companyName
+          ? [
+              {
+                organisation: { name: formData.companyName },
+                roles: [],
+              },
+            ]
+          : undefined,
+      })
 
-      setSuccess("Account created. Please set your password.")
-      setIsLoading(false)
-
-      // Optional: navigate to login after short delay
-      setTimeout(() => {
-        router.push("/set-password")
-      }, 800)
+      if (result.success) {
+        setSuccess("Account created. Please set your password.")
+        setIsLoading(false)
+        setTimeout(() => {
+          router.push("/set-password")
+        }, 800)
+      } else {
+        setError(result.errorMessage || result.error || "Registration failed")
+        setIsLoading(false)
+      }
     } catch (err) {
       console.error("Signup error:", err)
       setError("An error occurred. Please try again.")
