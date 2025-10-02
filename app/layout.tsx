@@ -1,3 +1,32 @@
+/**
+ * Global Root Layout
+ *
+ * This is the top-level layout for the entire application. It wraps ALL routes
+ * and provides global providers, fonts, and styles.
+ *
+ * Purpose:
+ * - Defines the HTML structure (<html>, <body>) for the entire app
+ * - Provides global context providers (Theme, Auth) to all nested layouts and pages
+ * - Loads and applies global fonts (Geist Sans, Geist Mono)
+ * - Imports global CSS styles
+ * - Manages global UI elements (favicon, toast notifications)
+ *
+ * Layout Hierarchy:
+ * app/layout.tsx (THIS FILE - Global providers)
+ * ├── app/(user)/layout.tsx (Authenticated user routes with sidebar)
+ * │   ├── app/(user)/dashboard/page.tsx
+ * │   └── ... other authenticated pages
+ * ├── app/candidate/(public)/layout.tsx (Public candidate routes)
+ * │   ├── app/candidate/(public)/page.tsx
+ * │   └── ... other candidate pages
+ * └── app/(auth)/... (Authentication pages)
+ *
+ * Important Notes:
+ * - This layout should ONLY contain global providers and configuration
+ * - Route-specific UI (sidebars, headers, etc.) should be in nested layouts
+ * - All child routes automatically inherit the providers defined here
+ * - Changes to this file affect the entire application
+ */
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme"
