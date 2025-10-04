@@ -3,16 +3,17 @@ import { Suspense } from "react"
 import { PositionDetail, PositionDetailSkeleton } from "@/components/candidate"
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
+  const { id } = await params
   // In a real app, fetch the position to generate a rich title/description.
   // For now, use the ID as a placeholder.
   return {
-    title: `Position ${params.id} | Grow My Team`,
+    title: `Position ${id} | Grow My Team`,
     description: "Position details page",
   }
 }
@@ -20,7 +21,7 @@ export async function generateMetadata({
 export default async function CandidatePositionDetailPage({
   params,
 }: PageProps) {
-  const { id } = params
+  const { id } = await params
 
   return (
     <Suspense fallback={<PositionDetailSkeleton />}>

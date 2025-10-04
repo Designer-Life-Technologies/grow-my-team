@@ -28,52 +28,60 @@ interface PositionDetailProps {
  * PositionDetailSkeleton Component
  *
  * Loading skeleton that matches the PositionDetail layout.
- * Used as a Suspense fallback while position data is being fetched.
- *
- * Features:
- * - Matches PositionDetail structure
- * - Theme-aware skeleton colors
- * - Smooth pulse animation
+ * Used as a loading state while position data is being fetched.
  */
 export function PositionDetailSkeleton() {
   return (
-    <section className="mx-auto max-w-3xl">
+    <section className="mx-auto max-w-3xl opacity-60">
       <div className="mb-6">
-        <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-32 animate-pulse rounded bg-foreground/10" />
       </div>
 
       <header>
-        <div className="h-9 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="mt-2 h-5 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="h-9 w-3/4 animate-pulse rounded bg-foreground/10" />
       </header>
 
       <div className="mt-8 grid gap-6">
-        <div className="rounded-lg border bg-card p-5">
-          <div className="h-6 w-24 animate-pulse rounded bg-muted" />
-          <div className="mt-2 space-y-2">
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-          </div>
-        </div>
+        <div className="rounded-lg border border-border bg-card p-5">
+          <div className="space-y-4">
+            {/* Paragraph 1 */}
+            <div className="space-y-2">
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-4/5 animate-pulse rounded bg-foreground/10" />
+            </div>
 
-        <div className="rounded-lg border bg-card p-5">
-          <div className="h-6 w-32 animate-pulse rounded bg-muted" />
-          <div className="mt-2 space-y-2">
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
-          </div>
-        </div>
+            {/* Heading */}
+            <div className="h-5 w-2/5 animate-pulse rounded bg-foreground/10" />
 
-        <div className="rounded-lg border bg-card p-5">
-          <div className="h-6 w-32 animate-pulse rounded bg-muted" />
-          <div className="mt-2 space-y-2">
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+            {/* Paragraph 2 */}
+            <div className="space-y-2">
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-3/4 animate-pulse rounded bg-foreground/10" />
+            </div>
+
+            {/* Heading */}
+            <div className="h-5 w-1/3 animate-pulse rounded bg-foreground/10" />
+
+            {/* Paragraph 3 */}
+            <div className="space-y-2">
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-5/6 animate-pulse rounded bg-foreground/10" />
+            </div>
+
+            {/* Paragraph 4 */}
+            <div className="space-y-2">
+              <div className="h-3.5 w-full animate-pulse rounded bg-foreground/10" />
+              <div className="h-3.5 w-4/5 animate-pulse rounded bg-foreground/10" />
+            </div>
           </div>
-          <div className="mt-4 h-9 w-24 animate-pulse rounded bg-muted" />
+
+          {/* Apply button skeleton */}
+          <div className="mt-6 flex justify-end">
+            <div className="h-9 w-24 animate-pulse rounded-md bg-foreground/10" />
+          </div>
         </div>
       </div>
     </section>
@@ -85,14 +93,14 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
   const vacancy = await getPositionById(positionId)
 
   // Show 404 if position not found
-  if (!vacancy || !vacancy.jobDescription) {
+  if (!vacancy || !vacancy.candidateSourcing?.advert) {
     notFound()
   }
 
-  const { jobDescription, candidateSourcing } = vacancy
+  const { candidateSourcing } = vacancy
 
   return (
-    <section className="mx-auto max-w-3xl">
+    <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
       <div className="mb-6">
         <Link
           href="/candidate"
@@ -104,111 +112,29 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
 
       <header>
         <h1 className="text-3xl font-bold tracking-tight">
-          {jobDescription.title || "Untitled Position"}
+          {candidateSourcing?.advert.title || "Untitled Position"}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          {jobDescription.location || "Location not specified"}
-        </p>
       </header>
 
       <div className="mt-8 grid gap-6">
-        {/* Overview Section */}
+        {/* Job Advert Section */}
         <div className="rounded-lg border bg-card p-5">
-          <h2 className="text-lg font-semibold">Overview</h2>
-          <div className="mt-2 space-y-2 text-sm text-muted-foreground">
-            {jobDescription.title && (
-              <p>
-                <span className="font-medium text-foreground">Title:</span>{" "}
-                {jobDescription.title}
-              </p>
-            )}
-            {jobDescription.type && (
-              <p>
-                <span className="font-medium text-foreground">Type:</span>{" "}
-                {jobDescription.type.replace(/_/g, " ")}
-              </p>
-            )}
-            {jobDescription.workplaceType && (
-              <p>
-                <span className="font-medium text-foreground">Workplace:</span>{" "}
-                {jobDescription.workplaceType.replace(/_/g, " ")}
-              </p>
-            )}
-            {jobDescription.location && (
-              <p>
-                <span className="font-medium text-foreground">Location:</span>{" "}
-                {jobDescription.location}
-              </p>
-            )}
-            {jobDescription.seniority && (
-              <p>
-                <span className="font-medium text-foreground">Seniority:</span>{" "}
-                {jobDescription.seniority}
-              </p>
-            )}
-            {jobDescription.industry && (
-              <p>
-                <span className="font-medium text-foreground">Industry:</span>{" "}
-                {jobDescription.industry}
-              </p>
-            )}
-            {jobDescription.salary && (
-              <p>
-                <span className="font-medium text-foreground">Salary:</span>{" "}
-                {jobDescription.salary}
-              </p>
-            )}
-            {jobDescription.skills && jobDescription.skills.length > 0 && (
-              <p>
-                <span className="font-medium text-foreground">Skills:</span>{" "}
-                {jobDescription.skills.join(", ")}
-              </p>
-            )}
-            {jobDescription.qualifications &&
-              jobDescription.qualifications.length > 0 && (
-                <p>
-                  <span className="font-medium text-foreground">
-                    Qualifications:
-                  </span>{" "}
-                  {jobDescription.qualifications.join(", ")}
-                </p>
-              )}
+          <div
+            className="prose-html"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML content from API is trusted
+            dangerouslySetInnerHTML={{
+              __html: candidateSourcing?.advert?.copy || "",
+            }}
+          />
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              className="h-9 rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
+            >
+              Apply now
+            </button>
           </div>
         </div>
-
-        {/* Job Advert Section */}
-        {candidateSourcing?.advert && (
-          <div className="rounded-lg border bg-card p-5">
-            <h2 className="text-lg font-semibold">
-              {candidateSourcing.advert.title || "About this role"}
-            </h2>
-            <div
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML content from API is trusted
-              dangerouslySetInnerHTML={{
-                __html: candidateSourcing.advert.copy,
-              }}
-            />
-          </div>
-        )}
-
-        {/* Application Section */}
-        {candidateSourcing?.status === "OPEN" && (
-          <div className="rounded-lg border bg-card p-5">
-            <h2 className="text-lg font-semibold">How to apply</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              This position is currently accepting applications. Click below to
-              start your application.
-            </p>
-            <div className="mt-4">
-              <button
-                type="button"
-                className="h-9 rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
-              >
-                Apply now
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </section>
   )

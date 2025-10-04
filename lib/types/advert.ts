@@ -6,18 +6,6 @@
  */
 
 /**
- * Group name of a related set of screening questions.
- */
-export type ScreeningQuestionGroup =
-  | "BACKGROUND"
-  | "EXPERIENCE"
-  | "SKILLS"
-  | "INDUSTRY"
-  | "LICENCE_CERTIFICATION"
-  | "WORKRIGHTS"
-  | "ENVIRONMENT"
-
-/**
  * Represents a job advert.
  */
 export interface Advert {

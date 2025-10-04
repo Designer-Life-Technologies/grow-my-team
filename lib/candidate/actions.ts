@@ -1,6 +1,6 @@
 "use server"
 
-import type { Vacancy } from "@/lib/types"
+import type { Candidate } from "./types"
 
 /**
  * Candidate Actions
@@ -37,13 +37,13 @@ import type { Vacancy } from "@/lib/types"
  */
 export async function getPositionById(
   positionId: string,
-): Promise<Vacancy | null> {
+): Promise<Candidate.Vacancy | null> {
   try {
     const response = await fetch(
       `${process.env.GETME_API_URL}/public/vacancy/${positionId}`,
     )
-    const position = await response.json()
-    console.log(position)
+    const position = (await response.json()) as Candidate.Vacancy
+
     return position
   } catch (error) {
     console.error("Error fetching position details:", error)

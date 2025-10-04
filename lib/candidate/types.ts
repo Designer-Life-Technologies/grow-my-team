@@ -1,35 +1,42 @@
+import type {
+  Advert,
+  Industry,
+  Seniority,
+  VacancyType,
+  WorkplaceType,
+} from "../types"
+
 /**
- * Candidate-related types
+ * Candidate namespace
  *
- * Types used for job positions and candidate-facing features.
+ * Contains all types related to candidate-facing features like job positions,
+ * vacancy details, and candidate sourcing.
  */
+export namespace Candidate {
+  export interface JobDescription {
+    title: string
+    location: string
+    type: VacancyType
+    workplaceType: WorkplaceType
+    skills: string[]
+    personality: string[]
+    qualifications: string[]
+    industry: Industry
+    seniority: Seniority
+    salary: string
+    reportingTo: string
+  }
 
-/**
- * Job position type
- */
-export interface Position {
-  id: string
-  title: string
-  company: string
-  location: string
-  type: "Full-time" | "Part-time" | "Contract" | "Internship"
-  tags: string[]
-  description: string
-  applicationInstructions: string
-  salary?: string
-  postedDate: string
-  status: "open" | "closed" | "draft"
-}
+  export interface CandidateSourcing {
+    advert: Advert
+    status?: "DRAFT" | "OPEN" | "CLOSED"
+  }
 
-/**
- * Simplified position for list views
- */
-export interface PositionSummary {
-  id: string
-  title: string
-  company: string
-  location: string
-  type: string
-  tags: string[]
-  postedDate: string
+  export interface Vacancy {
+    id: string
+    jobDescription: JobDescription
+    candidateSourcing: CandidateSourcing
+    updated: string
+    created: string
+  }
 }
