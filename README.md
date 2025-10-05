@@ -89,10 +89,9 @@ pnpm theme:dev    # Theme development mode
 
 For detailed documentation, visit the `docs/` folder:
 
-- [Environment Setup](docs/ENVIRONMENT.md)
-
+- [Next-Auth Setup](docs/NEXT_AUTH_SETUP.md)
 - [Theming Guide](docs/THEMING_GUIDE.md)
-- [Contributing Guidelines](docs/CONTRIBUTING.md)
+- [Streaming Modal System](docs/STREAMING_MODAL.md)
 
 ## 🚀 Deployment
 

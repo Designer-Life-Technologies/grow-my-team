@@ -1,8 +1,8 @@
 /**
- * Candidate Library
+ * Candidate Module
  *
  * Server actions and utilities for candidate-facing features.
  */
 
-export { createApplication, getPositionById } from "./actions"
+export { getPositionById } from "./actions"
 export type { Candidate } from "./types"

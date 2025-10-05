@@ -5,7 +5,8 @@ import { type ChangeEvent, type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createApplication } from "@/lib/candidate"
+import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
+import { useCreateApplication } from "@/hooks/use-create-application"
 import { ApplicationForm } from "./ApplicationForm"
 import { ResumeDropzone } from "./ResumeDropzone"
 
@@ -96,8 +97,18 @@ export function PositionApply({
     setLinkedInUrl(e.target.value)
   }
 
+  const {
+    startStreaming,
+    addEvent,
+    completeStreaming,
+    errorStreaming,
+    isProcessing,
+  } = useStreamingModal()
+
+  const { createApplication } = useCreateApplication()
+
   /**
-   * Handle resume upload and/or LinkedIn submission
+   * Handle resume upload and/or LinkedIn submission with streaming updates
    */
   const handleNext = async () => {
     if (!selectedFile && !linkedInUrl.trim()) return
@@ -105,29 +116,57 @@ export function PositionApply({
     setIsUploading(true)
     setError(null)
 
+    // Start the streaming modal
+    startStreaming(
+      "Submitting Application",
+      "Please wait while we process your application...",
+    )
+
     try {
-      const result = await createApplication(positionId, {
-        resumeFile: selectedFile || undefined,
-        linkedInUrl: linkedInUrl.trim() || undefined,
+      // Create FormData
+      const applicationFormData = new FormData()
+      applicationFormData.append("vacancyId", positionId)
+      if (selectedFile) {
+        applicationFormData.append("resume", selectedFile)
+      }
+      if (linkedInUrl.trim()) {
+        applicationFormData.append("linkedInUrl", linkedInUrl.trim())
+      }
+
+      // Initial event
+      addEvent("Preparing your application...", "info")
+
+      // Submit with real-time streaming
+      const result = await createApplication(applicationFormData, (event) => {
+        // Display events as they arrive in real-time
+        addEvent(event.message, event.type)
       })
 
+      // Check if there were any errors
       if (!result.success) {
-        setError(result.error || "Failed to submit. Please try again.")
+        const errorMessage =
+          result.events.find((e) => e.type === "error")?.message ||
+          "Failed to submit. Please try again."
+        setError(errorMessage)
+        completeStreaming()
         return
       }
 
       // Success - show application form
+      completeStreaming()
       setShowApplicationForm(true)
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
-      console.error("Submission error:", err)
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      errorStreaming(errorMessage)
+      setError(errorMessage)
     } finally {
       setIsUploading(false)
     }
   }
 
   /**
-   * Handle form input changes
+   * Handle form field changes
    */
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -219,10 +258,14 @@ export function PositionApply({
           <div className="mt-6 flex justify-end">
             <Button
               onClick={handleNext}
-              disabled={(!selectedFile && !linkedInUrl.trim()) || isUploading}
+              disabled={
+                (!selectedFile && !linkedInUrl.trim()) ||
+                isUploading ||
+                isProcessing
+              }
               className="min-w-24"
             >
-              {isUploading ? (
+              {isUploading || isProcessing ? (
                 <>
                   <svg
                     className="mr-2 h-4 w-4 animate-spin"

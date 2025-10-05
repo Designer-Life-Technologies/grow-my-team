@@ -69,7 +69,7 @@
       "pnpm exec biome format --write",
       "pnpm exec biome check"
     ],
-    "*.{json,css,md}": [
+    "*.{json,css}": [
       "pnpm exec biome format --write"
     ]
   }

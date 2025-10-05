@@ -34,6 +34,7 @@ import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
 import { ClientFavicon } from "@/components/layout"
+import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
 import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
@@ -85,26 +86,29 @@ export default function RootLayout({
         <ThemeProvider>
           {/* AuthProvider: Provides authentication session to all components */}
           <AuthProvider>
-            {/* 
-              Suspense boundary only for ClientFavicon:
-              - Isolates loading state to just the favicon component
-              - Allows main content to render immediately without waiting
-              - Improves perceived performance by not blocking main content
-              - Uses null fallback since favicon loading shouldn't show a visual indicator
-            */}
-            <Suspense fallback={null}>
-              <ClientFavicon />
-            </Suspense>
+            {/* StreamingModalProvider: Provides global access to streaming modal for long-running operations */}
+            <StreamingModalProvider>
+              {/* 
+                Suspense boundary only for ClientFavicon:
+                - Isolates loading state to just the favicon component
+                - Allows main content to render immediately without waiting
+                - Improves perceived performance by not blocking main content
+                - Uses null fallback since favicon loading shouldn't show a visual indicator
+              */}
+              <Suspense fallback={null}>
+                <ClientFavicon />
+              </Suspense>
 
-            {/* 
-              Main content not wrapped in Suspense at root level:
-              - Allows pages to handle their own loading states
-              - Enables more granular control of loading indicators
-              - Improves initial page load performance
-              - Individual page components can implement their own Suspense boundaries as needed
-            */}
-            {children}
-            <Toaster />
+              {/* 
+                Main content not wrapped in Suspense at root level:
+                - Allows pages to handle their own loading states
+                - Enables more granular control of loading indicators
+                - Improves initial page load performance
+                - Individual page components can implement their own Suspense boundaries as needed
+              */}
+              {children}
+              <Toaster />
+            </StreamingModalProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
