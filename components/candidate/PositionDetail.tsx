@@ -127,12 +127,12 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
             }}
           />
           <div className="mt-6 flex justify-end">
-            <button
-              type="button"
-              className="h-9 rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
+            <Link
+              href={`/candidate/position/${positionId}/apply`}
+              className="inline-flex h-9 items-center rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
             >
               Apply now
-            </button>
+            </Link>
           </div>
         </div>
       </div>

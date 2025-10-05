@@ -50,3 +50,68 @@ export async function getPositionById(
     return null
   }
 }
+
+/**
+ * Create application with resume and/or LinkedIn profile
+ *
+ * Creates a candidate's application with either a resume file, LinkedIn URL, or both.
+ *
+ * @param positionId - The ID of the position being applied to
+ * @param options - Object containing optional resume file and/or LinkedIn URL
+ * @returns Promise with success status and optional error message
+ */
+export async function createApplication(
+  positionId: string,
+  options: {
+    resumeFile?: File
+    linkedInUrl?: string
+  },
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { resumeFile, linkedInUrl } = options
+
+    // Validate that at least one option is provided
+    if (!resumeFile && !linkedInUrl) {
+      return {
+        success: false,
+        error: "Please provide a resume or LinkedIn profile",
+      }
+    }
+
+    // Create FormData to send both file and LinkedIn URL
+    const formData = new FormData()
+    formData.append("vacancyId", positionId)
+
+    if (resumeFile) {
+      formData.append("resume", resumeFile)
+    }
+
+    if (linkedInUrl) {
+      formData.append("linkedInUrl", linkedInUrl)
+    }
+
+    const response = await fetch(
+      `${process.env.GETME_API_URL}/public/applicant`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        error: errorData.message || "Failed to submit application",
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("Application submission error:", error)
+    return {
+      success: false,
+      error: "An error occurred while submitting your application",
+    }
+  }
+}
