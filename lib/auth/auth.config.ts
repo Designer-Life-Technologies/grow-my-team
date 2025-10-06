@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth"
+import { applicantProvider } from "./providers/applicant"
 import { credentialsProvider } from "./providers/credentials"
 
 export const authConfig: NextAuthOptions = {
@@ -16,15 +17,22 @@ export const authConfig: NextAuthOptions = {
         token.firstname = user.firstname
         token.accessToken = user.accessToken
         token.expiresIn = user.expiresIn
+        token.userType = user.userType || "staff"
 
         // Add expiration time to the token
         if (user.expiresIn) {
           token.expires = Math.floor(Date.now() / 1000) + user.expiresIn
         }
 
-        // Add organisation data to the token
-        // CUrrent the first organisation will be added, this can be replaced
-        // with use selection in the future
+        // Handle applicant users - flatten applicant-specific fields
+        if (user.userType === "applicant") {
+          token.mobile = user.mobile
+          token.linkedInUrl = user.linkedInUrl
+        }
+
+        // Add organisation data to the token (for staff users)
+        // Current the first organisation will be added, this can be replaced
+        // with user selection in the future
         if (user.organisations && user.organisations.length > 0) {
           token.organisation = {
             id: user.organisations[0].organisation.id,
@@ -58,13 +66,24 @@ export const authConfig: NextAuthOptions = {
      */
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
-        session.user.name = token.firstname
-        session.user.email = token.email
+        // biome-ignore lint/suspicious/noExplicitAny: Cast to any to bypass TypeScript's strict checking for augmented properties
+        const user = session.user as any
+        user.id = token.id
+        user.name = token.firstname
+        user.email = token.email
+        user.userType = token.userType
+
+        // Add applicant-specific fields to session user (for applicant users)
+        if (token.userType === "applicant") {
+          user.mobile = token.mobile
+          user.linkedInUrl = token.linkedInUrl
+        }
       }
 
+      // Add organisation data to session (for staff users)
       if (token.organisation) {
-        session.organisation = token.organisation
+        // biome-ignore lint/suspicious/noExplicitAny: see above
+        ;(session as any).organisation = token.organisation
       }
 
       if (token.expires) {
@@ -73,5 +92,5 @@ export const authConfig: NextAuthOptions = {
       return session
     },
   },
-  providers: [credentialsProvider],
+  providers: [credentialsProvider, applicantProvider],
 }

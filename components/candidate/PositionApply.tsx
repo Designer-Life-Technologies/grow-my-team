@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { type ChangeEvent, type FormEvent, useState } from "react"
+import { signIn } from "next-auth/react"
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
+import { useApplicantSession } from "@/hooks/use-applicant-session"
 import { useCreateApplication } from "@/hooks/use-create-application"
 import type { Applicant } from "@/lib/candidate/types"
 import { ApplicationForm } from "./ApplicationForm"
@@ -70,7 +72,7 @@ export function PositionApply({
   const [isUploading, setIsUploading] = useState(false)
   const [showApplicationForm, setShowApplicationForm] = useState(false)
   // Store applicant data from API (available for future use/debugging)
-  const [applicantData, setApplicantData] = useState<Applicant | null>(null)
+  const [_applicantData, setApplicantData] = useState<Applicant | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -78,6 +80,25 @@ export function PositionApply({
     phone: "",
     linkedInUrl: "",
   })
+
+  // Check if applicant is already signed in
+  const { isApplicant, user, isLoading } = useApplicantSession()
+
+  // Populate form with existing applicant session data
+  useEffect(() => {
+    if (isApplicant && user) {
+      console.log("👤 Existing applicant session found:", user)
+      setFormData({
+        firstName: user.name || "",
+        lastName: "", // lastname not in session.user.name
+        email: user.email || "",
+        phone: user.mobile?.localNumber || "",
+        linkedInUrl: user.linkedInUrl || "",
+      })
+      // Skip resume upload and show application form directly
+      setShowApplicationForm(true)
+    }
+  }, [isApplicant, user])
 
   /**
    * Handle file selection from dropzone
@@ -159,6 +180,7 @@ export function PositionApply({
       if (result.applicant) {
         setApplicantData(result.applicant)
         console.log("👤 Applicant data:", result.applicant)
+
         // Populate form with data from API (note: API uses lowercase field names)
         setFormData({
           firstName: result.applicant.firstname || "",
@@ -167,6 +189,14 @@ export function PositionApply({
           phone: result.applicant.mobile?.localNumber || "",
           linkedInUrl: result.applicant.linkedInUrl || "",
         })
+
+        // Sign in the applicant to create a session
+        await signIn("applicant", {
+          redirect: false,
+          applicantId: result.applicant.id,
+          applicantData: JSON.stringify(result.applicant),
+        })
+        console.log("🔐 Applicant session created")
       }
 
       completeStreaming()
@@ -202,6 +232,11 @@ export function PositionApply({
     console.log("Application submitted:", { formData, positionId })
   }
 
+  // Show loading skeleton while checking session
+  if (isLoading) {
+    return <PositionApplySkeleton />
+  }
+
   return (
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
       <div className="mb-6">
@@ -217,9 +252,12 @@ export function PositionApply({
         <h1 className="text-3xl font-bold tracking-tight">
           Apply for {positionTitle}
         </h1>
-        {/* <p className="mt-2 text-muted-foreground">
-          Please upload your resumé to start your application.
-        </p> */}
+        {isApplicant && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Welcome back! Your information has been pre-filled from your
+            previous application.
+          </p>
+        )}
       </header>
 
       {/* Resume Upload Section - Hidden when applicant data is available */}

@@ -6,7 +6,7 @@
  *
  * Purpose:
  * - Provides public access to job positions and candidate-facing pages
- * - Displays a simple header with logo and minimal navigation
+ * - Displays a simple header with logo and applicant user menu
  * - Uses sticky footer layout to keep footer at bottom of viewport
  * - Maintains consistent branding through theme-aware logo
  * - No authentication required (unlike user routes)
@@ -21,12 +21,14 @@
  * - Responsive: Mobile-first design with container constraints
  * - Minimal UI: No sidebar or complex navigation (unlike dashboard)
  * - Sticky footer: Uses flexbox to keep footer at bottom
+ * - Applicant session: Shows user avatar/menu when applicant is logged in
  *
  * Design Decisions:
  * - Intentionally differs from authenticated app layouts (no sidebar/app chrome)
  * - Focuses on candidate experience and job discovery
  * - Uses semantic theme colors for consistent branding
  * - Header height (h-14) optimized for mobile and desktop
+ * - ApplicantUserMenu in header provides consistent session UI across all pages
  *
  * Note: This layout is nested inside the root `app/layout.tsx` which provides
  * global providers (ThemeProvider, AuthProvider, fonts, etc.).
@@ -34,6 +36,7 @@
 import type { Metadata } from "next"
 import "@/app/globals.css"
 import type React from "react"
+import { ApplicantUserMenu } from "@/components/candidate"
 import { ClientLogo } from "@/components/layout"
 export const metadata: Metadata = {
   title: "Candidate | Grow My Team",
@@ -52,9 +55,8 @@ export default function CandidatePublicLayout({
             <ClientLogo size="sm" priority />
             <span className="text-muted-foreground">· Candidate</span>
           </div>
-          <nav className="text-sm text-muted-foreground">
-            {/* Placeholder nav for public candidate section */}
-            <span>Public</span>
+          <nav className="flex items-center">
+            <ApplicantUserMenu />
           </nav>
         </div>
       </header>
