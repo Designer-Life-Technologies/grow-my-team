@@ -121,6 +121,37 @@
   }
 }
 
+/* Hide scrollbar for streaming modal */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sliding animation for streaming messages */
+@keyframes message-slide {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Linear progress indicator animation */
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Prose styling for injected HTML content */
 .prose-html {
   @apply text-foreground;

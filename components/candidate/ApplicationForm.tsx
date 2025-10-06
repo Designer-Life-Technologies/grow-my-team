@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label"
  * ApplicationForm Component
  *
  * Form for collecting candidate's basic information during job application.
- * Includes first name, last name, and email fields.
+ * Includes first name, last name, email, phone, and LinkedIn URL fields.
  *
  * Features:
  * - Controlled form inputs
+ * - Auto-populated from API data
  * - Email validation
  * - Required field validation
  * - Back navigation
@@ -23,6 +24,8 @@ interface ApplicationFormData {
   firstName: string
   lastName: string
   email: string
+  phone: string
+  linkedInUrl: string
 }
 
 interface ApplicationFormProps {
@@ -55,7 +58,7 @@ export function ApplicationForm({
       <div className="rounded-lg border bg-card p-6">
         <h2 className="text-xl font-semibold">Application Details</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Please provide your contact information
+          Please review and confirm your information
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -97,6 +100,30 @@ export function ApplicationForm({
               onChange={onChange}
               placeholder="john.doe@example.com"
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={onChange}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedInUrl">LinkedIn Profile URL</Label>
+            <Input
+              id="linkedInUrl"
+              name="linkedInUrl"
+              type="url"
+              value={formData.linkedInUrl}
+              onChange={onChange}
+              placeholder="https://www.linkedin.com/in/your-profile"
             />
           </div>
 

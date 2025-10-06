@@ -1,17 +1,14 @@
 import { useState } from "react"
-
-export interface StreamingEvent {
-  type: "info" | "success" | "error" | "progress" | "loading"
-  message: string
-}
+import type { Applicant } from "@/lib/candidate/types"
+import type { StreamingEvent } from "@/lib/types/streaming"
 
 export function useCreateApplication() {
   const [isStreaming, setIsStreaming] = useState(false)
-  const [events, setEvents] = useState<StreamingEvent[]>([])
+  const [events, setEvents] = useState<StreamingEvent<Applicant>[]>([])
 
   const createApplication = async (
     formData: FormData,
-    onEvent?: (event: StreamingEvent) => void,
+    onEvent?: (event: StreamingEvent<Applicant>) => void,
   ) => {
     setIsStreaming(true)
     setEvents([])
@@ -24,7 +21,7 @@ export function useCreateApplication() {
 
       if (!response.ok) {
         const error = await response.json()
-        const errorEvent: StreamingEvent = {
+        const errorEvent: StreamingEvent<Applicant> = {
           type: "error",
           message: error.error || "Failed to submit application",
         }
@@ -35,7 +32,7 @@ export function useCreateApplication() {
       }
 
       if (!response.body) {
-        const errorEvent: StreamingEvent = {
+        const errorEvent: StreamingEvent<Applicant> = {
           type: "error",
           message: "No response body",
         }
@@ -49,7 +46,8 @@ export function useCreateApplication() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
-      const receivedEvents: StreamingEvent[] = []
+      const receivedEvents: StreamingEvent<Applicant>[] = []
+      let applicantData: Applicant | null = null
 
       while (true) {
         const { done, value } = await reader.read()
@@ -74,17 +72,25 @@ export function useCreateApplication() {
             if (currentData) {
               try {
                 const data = JSON.parse(currentData)
-                const streamEvent: StreamingEvent = {
-                  type: currentEvent as StreamingEvent["type"],
+                console.log("📦 SSE Data received:", data)
+
+                const streamEvent: StreamingEvent<Applicant> = {
+                  type: currentEvent as StreamingEvent<Applicant>["type"],
                   message: data.message || currentData,
+                  data: data.applicant, // Include the applicant payload
+                }
+
+                // Capture applicant data from success event
+                if (currentEvent === "success" && data.applicant) {
+                  applicantData = data.applicant as Applicant
                 }
 
                 receivedEvents.push(streamEvent)
                 setEvents((prev) => [...prev, streamEvent])
                 onEvent?.(streamEvent)
               } catch {
-                const streamEvent: StreamingEvent = {
-                  type: currentEvent as StreamingEvent["type"],
+                const streamEvent: StreamingEvent<Applicant> = {
+                  type: currentEvent as StreamingEvent<Applicant>["type"],
                   message: currentData,
                 }
                 receivedEvents.push(streamEvent)
@@ -105,9 +111,10 @@ export function useCreateApplication() {
       return {
         success: !hasError,
         events: receivedEvents,
+        applicant: applicantData,
       }
     } catch (error) {
-      const errorEvent: StreamingEvent = {
+      const errorEvent: StreamingEvent<Applicant> = {
         type: "error",
         message: error instanceof Error ? error.message : "Unknown error",
       }

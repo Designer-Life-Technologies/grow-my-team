@@ -1,7 +1,8 @@
 "use client"
 
-import { AlertCircle, CheckCircle2, Loader2, XCircle } from "lucide-react"
+import { CheckCircle2, XCircle } from "lucide-react"
 import * as React from "react"
+import type { StreamingEvent } from "@/lib/types/streaming"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -14,36 +15,16 @@ import {
 /**
  * StreamingModal Component
  *
- * A modal that displays real-time streaming updates from long-running API operations.
- * Updates are displayed in a scrollable list with timestamps and status indicators.
+ * A compact modal that displays real-time streaming updates from long-running API operations.
+ * Updates are displayed in a scrolling list with fade-out effect for older items.
  *
  * Features:
  * - Real-time event streaming display
  * - Auto-scrolling to latest updates
- * - Status indicators (loading, success, error, info)
- * - Timestamp for each event
+ * - Fade-out effect for older messages
+ * - Central spinner while processing
  * - Cannot be closed while operation is in progress
- * - Automatic cleanup on completion
  */
-
-export interface StreamingEvent {
-  /**
-   * Unique identifier for the event
-   */
-  id: string
-  /**
-   * Event message to display
-   */
-  message: string
-  /**
-   * Event type/status
-   */
-  type: "info" | "success" | "error" | "loading" | "progress"
-  /**
-   * Timestamp when event occurred
-   */
-  timestamp: Date
-}
 
 interface StreamingModalProps {
   /**
@@ -90,35 +71,18 @@ export function StreamingModal({
     }
   }, [events])
 
-  /**
-   * Get icon component based on event type
-   */
-  const getEventIcon = (type: StreamingEvent["type"]) => {
-    switch (type) {
-      case "success":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />
-      case "error":
-        return <XCircle className="h-4 w-4 text-red-500" />
-      case "loading":
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-      case "progress":
-        return <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
-      default:
-        return <AlertCircle className="h-4 w-4 text-blue-500" />
+  // Auto-close modal 1 second after success message
+  React.useEffect(() => {
+    if (!isProcessing && events.length > 0) {
+      const lastEvent = events[events.length - 1]
+      if (lastEvent.type === "success") {
+        const timer = setTimeout(() => {
+          onOpenChange(false)
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
     }
-  }
-
-  /**
-   * Format timestamp for display
-   */
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-  }
+  }, [isProcessing, events, onOpenChange])
 
   return (
     <Dialog
@@ -131,7 +95,7 @@ export function StreamingModal({
       }}
     >
       <DialogContent
-        className="max-w-2xl"
+        className="max-w-md overflow-hidden p-0 border-0 [&>button]:hidden"
         onPointerDownOutside={(e) => {
           // Prevent closing by clicking outside while processing
           if (isProcessing) {
@@ -145,64 +109,50 @@ export function StreamingModal({
           }
         }}
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
-            {title}
-          </DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-
-        {/* Events container */}
-        <div
-          ref={scrollRef}
-          className="max-h-96 space-y-3 overflow-y-auto rounded-lg border bg-muted/30 p-4"
-        >
-          {events.length === 0 ? (
-            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-              Waiting for updates...
-            </div>
-          ) : (
-            events.map((event) => (
-              <div
-                key={event.id}
-                className={cn(
-                  "flex items-start gap-3 rounded-md border bg-background p-3 transition-all",
-                  event.type === "error" && "border-red-200 bg-red-50/50",
-                  event.type === "success" && "border-green-200 bg-green-50/50",
-                )}
-              >
-                <div className="mt-0.5 flex-shrink-0">
-                  {getEventIcon(event.type)}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm leading-relaxed">{event.message}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTime(event.timestamp)}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Status footer */}
-        <div className="flex items-center justify-between border-t pt-4">
-          <div className="text-sm text-muted-foreground">
-            {isProcessing ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Complete
-              </span>
-            )}
+        {/* Linear progress indicator */}
+        {isProcessing && (
+          <div className="h-1 bg-muted overflow-hidden">
+            <div className="h-full bg-primary animate-[progress_1.5s_ease-in-out_infinite]" />
           </div>
-          <div className="text-sm text-muted-foreground">
-            {events.length} {events.length === 1 ? "update" : "updates"}
+        )}
+
+        <div className="p-4">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            {description && (
+              <DialogDescription className="mt-2">
+                {description}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          {/* Message window - single line height */}
+          <div className="relative h-6 overflow-hidden border rounded bg-muted/20 mt-6 mb-4">
+            {events.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                Waiting for updates...
+              </div>
+            ) : (
+              <div className="h-6 flex items-center justify-center text-xs px-3">
+                {events[events.length - 1].type === "success" && (
+                  <CheckCircle2 className="mr-1.5 inline-block h-3 w-3 text-green-600" />
+                )}
+                {events[events.length - 1].type === "error" && (
+                  <XCircle className="mr-1.5 inline-block h-3 w-3 text-red-600" />
+                )}
+                <span
+                  className={cn(
+                    "truncate",
+                    events[events.length - 1].type === "success" &&
+                      "text-green-600",
+                    events[events.length - 1].type === "error" &&
+                      "text-red-600",
+                  )}
+                >
+                  {events[events.length - 1].message}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

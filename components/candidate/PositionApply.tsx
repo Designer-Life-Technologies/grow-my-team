@@ -3,10 +3,9 @@
 import Link from "next/link"
 import { type ChangeEvent, type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
 import { useCreateApplication } from "@/hooks/use-create-application"
+import type { Applicant } from "@/lib/candidate/types"
 import { ApplicationForm } from "./ApplicationForm"
 import { ResumeDropzone } from "./ResumeDropzone"
 
@@ -70,10 +69,14 @@ export function PositionApply({
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [showApplicationForm, setShowApplicationForm] = useState(false)
+  // Store applicant data from API (available for future use/debugging)
+  const [applicantData, setApplicantData] = useState<Applicant | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
+    linkedInUrl: "",
   })
 
   /**
@@ -93,7 +96,7 @@ export function PositionApply({
   /**
    * Handle LinkedIn URL change
    */
-  const handleLinkedInChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const _handleLinkedInChange = (e: ChangeEvent<HTMLInputElement>) => {
     setLinkedInUrl(e.target.value)
   }
 
@@ -118,8 +121,8 @@ export function PositionApply({
 
     // Start the streaming modal
     startStreaming(
-      "Submitting Application",
-      "Please wait while we process your application...",
+      "AI is processing your resumé",
+      "This process can take up to a minute. Please be patient...",
     )
 
     try {
@@ -133,11 +136,9 @@ export function PositionApply({
         applicationFormData.append("linkedInUrl", linkedInUrl.trim())
       }
 
-      // Initial event
-      addEvent("Preparing your application...", "info")
-
       // Submit with real-time streaming
       const result = await createApplication(applicationFormData, (event) => {
+        console.log("🎯 Event received:", event)
         // Display events as they arrive in real-time
         addEvent(event.message, event.type)
       })
@@ -152,7 +153,22 @@ export function PositionApply({
         return
       }
 
-      // Success - show application form
+      // Success - show application form with applicant data
+      console.log("✅ Application result:", result)
+
+      if (result.applicant) {
+        setApplicantData(result.applicant)
+        console.log("👤 Applicant data:", result.applicant)
+        // Populate form with data from API (note: API uses lowercase field names)
+        setFormData({
+          firstName: result.applicant.firstname || "",
+          lastName: result.applicant.lastname || "",
+          email: result.applicant.email?.address || "",
+          phone: result.applicant.mobile?.localNumber || "",
+          linkedInUrl: result.applicant.linkedInUrl || "",
+        })
+      }
+
       completeStreaming()
       setShowApplicationForm(true)
     } catch (err) {
@@ -201,60 +217,59 @@ export function PositionApply({
         <h1 className="text-3xl font-bold tracking-tight">
           Apply for {positionTitle}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Please upload your resumé or provide your LinkedIn profile. Ideally,
-          provide both so that we can quickly create an accurate profile for
-          you.
-        </p>
+        {/* <p className="mt-2 text-muted-foreground">
+          Please upload your resumé to start your application.
+        </p> */}
       </header>
 
-      <div className="mt-8">
-        <ResumeDropzone
-          selectedFile={selectedFile}
-          onFileSelect={handleFileSelect}
-          onError={handleError}
-          isDragging={isDragging}
-          onDraggingChange={setIsDragging}
-        />
-
-        {/* Or divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              And / Or
-            </span>
-          </div>
-        </div>
-
-        {/* LinkedIn URL input */}
-        <div className="space-y-2">
-          <Label htmlFor="linkedInUrl">LinkedIn Profile URL</Label>
-          <Input
-            id="linkedInUrl"
-            name="linkedInUrl"
-            type="url"
-            value={linkedInUrl}
-            onChange={handleLinkedInChange}
-            placeholder="https://www.linkedin.com/in/your-profile"
+      {/* Resume Upload Section - Hidden when applicant data is available */}
+      {!showApplicationForm && (
+        <div className="mt-8">
+          <ResumeDropzone
+            selectedFile={selectedFile}
+            onFileSelect={handleFileSelect}
+            onError={handleError}
+            isDragging={isDragging}
+            onDraggingChange={setIsDragging}
           />
-          {/* <p className="text-xs text-muted-foreground">
-            Provide your LinkedIn profile as an alternative to uploading a
-            resume
-          </p> */}
-        </div>
 
-        {/* Error message */}
-        {error && (
-          <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
+          {/* Or divider */}
+          {/* <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                And / Or
+              </span>
+            </div>
+          </div> */}
 
-        {/* Next button */}
-        {!showApplicationForm && (
+          {/* LinkedIn URL input */}
+          {/* <div className="space-y-2">
+            <Label htmlFor="linkedInUrl">LinkedIn Profile URL</Label>
+            <Input
+              id="linkedInUrl"
+              name="linkedInUrl"
+              type="url"
+              value={linkedInUrl}
+              onChange={handleLinkedInChange}
+              placeholder="https://www.linkedin.com/in/your-profile"
+            />
+            <p className="text-xs text-muted-foreground">
+              Provide your LinkedIn profile as an alternative to uploading a
+              resume
+            </p>
+          </div> */}
+
+          {/* Error message */}
+          {error && (
+            <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          {/* Next button */}
           <div className="mt-6 flex justify-end">
             <Button
               onClick={handleNext}
@@ -295,8 +310,8 @@ export function PositionApply({
               )}
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Application Form */}
       {showApplicationForm && (

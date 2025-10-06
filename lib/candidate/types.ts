@@ -1,10 +1,25 @@
 import type {
   Advert,
+  Email,
   Industry,
+  Phone,
   Seniority,
   VacancyType,
   WorkplaceType,
 } from "../types"
+
+/**
+ * Applicant interface matching the API response format
+ * Note: API uses lowercase field names (firstname, lastname, mobile)
+ */
+export interface Applicant {
+  id: string
+  firstname: string
+  lastname: string
+  email: Email
+  mobile: Phone
+  linkedInUrl?: string
+}
 
 /**
  * Candidate namespace

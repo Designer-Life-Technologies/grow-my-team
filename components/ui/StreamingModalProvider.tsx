@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { type StreamingEvent, StreamingModal } from "./StreamingModal"
+import type { StreamingEvent } from "@/lib/types/streaming"
+import { StreamingModal } from "./StreamingModal"
 
 /**
  * StreamingModalProvider Context
