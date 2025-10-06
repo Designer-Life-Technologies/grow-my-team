@@ -15,6 +15,7 @@ export const authConfig: NextAuthOptions = {
         token.id = user.id
         token.email = user.email
         token.firstname = user.firstname
+        token.lastname = user.lastname
         token.accessToken = user.accessToken
         token.expiresIn = user.expiresIn
         token.userType = user.userType || "staff"
@@ -72,6 +73,8 @@ export const authConfig: NextAuthOptions = {
         user.name = token.firstname
         user.email = token.email
         user.userType = token.userType
+        user.firstname = token.firstname
+        user.lastname = token.lastname
 
         // Add applicant-specific fields to session user (for applicant users)
         if (token.userType === "applicant") {

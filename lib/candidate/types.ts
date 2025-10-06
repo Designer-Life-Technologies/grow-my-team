@@ -22,6 +22,17 @@ export interface Applicant {
 }
 
 /**
+ * Screening questions data
+ */
+export interface ScreeningQuestionsData {
+  q1: string
+  q2: string
+  q3: string
+  q4: string
+  q5: string
+}
+
+/**
  * Candidate namespace
  *
  * Contains all types related to candidate-facing features like job positions,

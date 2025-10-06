@@ -39,6 +39,8 @@ declare module "next-auth" {
       id: string
       name?: string | null
       email?: string | null
+      firstname?: string
+      lastname?: string
       userType?: "staff" | "applicant"
       // Applicant-specific fields available in session
       mobile?: Phone

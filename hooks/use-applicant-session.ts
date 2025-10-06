@@ -8,6 +8,8 @@ export interface ApplicantUser {
   id: string
   name?: string | null
   email?: string | null
+  firstname?: string
+  lastname?: string
   image?: string | null
   userType?: "staff" | "applicant"
   mobile?: Phone

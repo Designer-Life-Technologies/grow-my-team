@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
 import { useApplicantSession } from "@/hooks/use-applicant-session"
 import { useCreateApplication } from "@/hooks/use-create-application"
+import { submitScreeningQuestions, updateApplicant } from "@/lib/candidate"
 import type { Applicant } from "@/lib/candidate/types"
 import { ApplicationForm } from "./ApplicationForm"
+import { ApplicationSuccess } from "./ApplicationSuccess"
 import { ResumeDropzone } from "./ResumeDropzone"
+import { ScreeningQuestionsForm } from "./ScreeningQuestionsForm"
 
 /**
  * PositionApply Component
@@ -71,6 +74,10 @@ export function PositionApply({
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [showApplicationForm, setShowApplicationForm] = useState(false)
+  const [showScreeningQuestions, setShowScreeningQuestions] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false)
+  const [isSubmittingApplication, setIsSubmittingApplication] = useState(false)
   // Store applicant data from API (available for future use/debugging)
   const [_applicantData, setApplicantData] = useState<Applicant | null>(null)
   const [formData, setFormData] = useState({
@@ -79,6 +86,13 @@ export function PositionApply({
     email: "",
     phone: "",
     linkedInUrl: "",
+  })
+  const [screeningData, setScreeningData] = useState({
+    q1: "",
+    q2: "",
+    q3: "",
+    q4: "",
+    q5: "",
   })
 
   // Check if applicant is already signed in
@@ -89,8 +103,8 @@ export function PositionApply({
     if (isApplicant && user) {
       console.log("👤 Existing applicant session found:", user)
       setFormData({
-        firstName: user.name || "",
-        lastName: "", // lastname not in session.user.name
+        firstName: user.firstname || "",
+        lastName: user.lastname || "",
         email: user.email || "",
         phone: user.mobile?.localNumber || "",
         linkedInUrl: user.linkedInUrl || "",
@@ -223,13 +237,127 @@ export function PositionApply({
   }
 
   /**
-   * Handle form submission
+   * Handle application form submission - update applicant and show screening questions
    */
   const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsUpdatingApplicant(true)
+    setError(null)
 
-    // TODO: Submit application with form data
-    console.log("Application submitted:", { formData, positionId })
+    try {
+      // Get applicant ID from session
+      if (!user?.id) {
+        setError("No applicant session found")
+        return
+      }
+
+      // Prepare update data
+      const updateData: Parameters<typeof updateApplicant>[1] = {
+        firstname: formData.firstName,
+        lastname: formData.lastName,
+      }
+
+      // Only include email if it's different from session
+      if (formData.email && formData.email !== user.email) {
+        // Note: For now, we're not updating email as it requires full Email object
+        // This would need proper Email object construction in production
+        console.log("Email update skipped - requires full Email object")
+      }
+
+      // Only include phone if provided
+      if (formData.phone) {
+        // Note: For now, we're not updating phone as it requires full Phone object
+        // This would need proper Phone object construction in production
+        console.log("Phone update skipped - requires full Phone object")
+      }
+
+      // Include LinkedIn URL if provided
+      if (formData.linkedInUrl) {
+        updateData.linkedInUrl = formData.linkedInUrl
+      }
+
+      console.log("Updating applicant:", { applicantId: user.id, updateData })
+
+      // Update applicant
+      const result = await updateApplicant(user.id, updateData)
+
+      if (!result.success) {
+        setError(result.error || "Failed to update applicant information")
+        return
+      }
+
+      console.log("✅ Applicant updated successfully:", result.applicant)
+
+      // Show screening questions form
+      setShowApplicationForm(false)
+      setShowScreeningQuestions(true)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      setError(errorMessage)
+      console.error("Error updating applicant:", err)
+    } finally {
+      setIsUpdatingApplicant(false)
+    }
+  }
+
+  /**
+   * Handle screening questions form field changes
+   */
+  const handleScreeningChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setScreeningData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  /**
+   * Handle screening questions form submission
+   */
+  const handleScreeningSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmittingApplication(true)
+    setError(null)
+
+    try {
+      // Get applicant ID from session
+      if (!user?.id) {
+        setError("No applicant session found")
+        return
+      }
+
+      console.log("Submitting screening questions:", {
+        vacancyId: positionId,
+        applicantId: user.id,
+        screeningData,
+      })
+
+      // Submit screening questions
+      const result = await submitScreeningQuestions(
+        positionId,
+        user.id,
+        screeningData,
+      )
+
+      if (!result.success) {
+        setError(result.error || "Failed to submit application")
+        return
+      }
+
+      console.log("✅ Application submitted successfully")
+
+      // Show success message
+      setShowScreeningQuestions(false)
+      setShowSuccess(true)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      setError(errorMessage)
+      console.error("Error submitting application:", err)
+    } finally {
+      setIsSubmittingApplication(false)
+    }
   }
 
   // Show loading skeleton while checking session
@@ -252,16 +380,16 @@ export function PositionApply({
         <h1 className="text-3xl font-bold tracking-tight">
           Apply for {positionTitle}
         </h1>
-        {isApplicant && (
+        {/* {isApplicant && (
           <p className="mt-2 text-sm text-muted-foreground">
             Welcome back! Your information has been pre-filled from your
             previous application.
           </p>
-        )}
+        )} */}
       </header>
 
-      {/* Resume Upload Section - Hidden when applicant data is available */}
-      {!showApplicationForm && (
+      {/* Resume Upload Section - Hidden when applicant data, screening questions, or success are shown */}
+      {!showApplicationForm && !showScreeningQuestions && !showSuccess && (
         <div className="mt-8">
           <ResumeDropzone
             selectedFile={selectedFile}
@@ -352,12 +480,50 @@ export function PositionApply({
       )}
 
       {/* Application Form */}
-      {showApplicationForm && (
-        <ApplicationForm
-          formData={formData}
-          onChange={handleFormChange}
-          onSubmit={handleFormSubmit}
-          onBack={() => setShowApplicationForm(false)}
+      {showApplicationForm && !showScreeningQuestions && !showSuccess && (
+        <>
+          <ApplicationForm
+            formData={formData}
+            onChange={handleFormChange}
+            onSubmit={handleFormSubmit}
+            onBack={() => setShowApplicationForm(false)}
+            isSubmitting={isUpdatingApplicant}
+          />
+          {error && (
+            <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Screening Questions Form */}
+      {showScreeningQuestions && !showSuccess && (
+        <>
+          <ScreeningQuestionsForm
+            formData={screeningData}
+            onChange={handleScreeningChange}
+            onSubmit={handleScreeningSubmit}
+            onBack={() => {
+              setShowScreeningQuestions(false)
+              setShowApplicationForm(true)
+            }}
+            isSubmitting={isSubmittingApplication}
+          />
+          {error && (
+            <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Success Message */}
+      {showSuccess && (
+        <ApplicationSuccess
+          positionTitle={positionTitle}
+          positionId={positionId}
+          applicantEmail={user?.email || undefined}
         />
       )}
     </section>

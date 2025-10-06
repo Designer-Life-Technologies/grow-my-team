@@ -45,6 +45,10 @@ interface ApplicationFormProps {
    * Callback when back button is clicked
    */
   onBack: () => void
+  /**
+   * Whether the form is currently submitting
+   */
+  isSubmitting?: boolean
 }
 
 export function ApplicationForm({
@@ -52,11 +56,16 @@ export function ApplicationForm({
   onChange,
   onSubmit,
   onBack,
+  isSubmitting = false,
 }: ApplicationFormProps) {
+  // Validate that required fields are filled
+  const isFormValid =
+    formData.firstName.trim() !== "" && formData.email.trim() !== ""
+
   return (
     <div className="mt-8 animate-in fade-in duration-500">
       <div className="rounded-lg border bg-card p-6">
-        <h2 className="text-xl font-semibold">Application Details</h2>
+        <h2 className="text-xl font-semibold">Personal Details</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Please review and confirm your information
         </p>
@@ -64,7 +73,9 @@ export function ApplicationForm({
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">
+                First Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="firstName"
                 name="firstName"
@@ -85,13 +96,14 @@ export function ApplicationForm({
                 value={formData.lastName}
                 onChange={onChange}
                 placeholder="Doe"
-                required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">
+              Email <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="email"
               name="email"
@@ -128,10 +140,17 @@ export function ApplicationForm({
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onBack}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              disabled={isSubmitting}
+            >
               Back
             </Button>
-            <Button type="submit">Submit Application</Button>
+            <Button type="submit" disabled={!isFormValid || isSubmitting}>
+              {isSubmitting ? "Updating..." : "Next"}
+            </Button>
           </div>
         </form>
       </div>

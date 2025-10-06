@@ -4,5 +4,9 @@
  * Server actions and utilities for candidate-facing features.
  */
 
-export { getPositionById } from "./actions"
-export type { Candidate } from "./types"
+export {
+  getPositionById,
+  submitScreeningQuestions,
+  updateApplicant,
+} from "./actions"
+export type { Applicant, Candidate, ScreeningQuestionsData } from "./types"
