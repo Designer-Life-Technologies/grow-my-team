@@ -58,7 +58,7 @@ export namespace Candidate {
     status?: "DRAFT" | "OPEN" | "CLOSED"
   }
 
-  export interface Vacancy {
+  export interface Position {
     id: string
     jobDescription: JobDescription
     candidateSourcing: CandidateSourcing

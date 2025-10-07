@@ -2,11 +2,11 @@ import { useState } from "react"
 import type { Applicant } from "@/lib/candidate/types"
 import type { StreamingEvent } from "@/lib/types/streaming"
 
-export function useCreateApplication() {
+export function useCreateApplicant() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [events, setEvents] = useState<StreamingEvent<Applicant>[]>([])
 
-  const createApplication = async (
+  const createApplicant = async (
     formData: FormData,
     onEvent?: (event: StreamingEvent<Applicant>) => void,
   ) => {
@@ -14,7 +14,7 @@ export function useCreateApplication() {
     setEvents([])
 
     try {
-      const response = await fetch("/api/candidate/apply", {
+      const response = await fetch("/api/candidate/create", {
         method: "POST",
         body: formData,
       })
@@ -126,7 +126,7 @@ export function useCreateApplication() {
   }
 
   return {
-    createApplication,
+    createApplicant,
     isStreaming,
     events,
   }

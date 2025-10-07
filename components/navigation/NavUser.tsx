@@ -39,16 +39,24 @@ export function NavUser() {
     avatar: session.user.image || "",
   }
 
-  // Generate user initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
+  // Generate user initials from firstname and lastname
+  const getInitials = () => {
+    const firstname = session.user.firstname || ""
+    const lastname = session.user.lastname || ""
+
+    if (firstname && lastname) {
+      return `${firstname.charAt(0).toUpperCase()}${lastname.charAt(0).toUpperCase()}`
+    }
+
+    // Fallback to splitting name if firstname/lastname not available
+    return user.name
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase())
       .slice(0, 2)
       .join("")
   }
 
-  const userInitials = getInitials(user.name)
+  const userInitials = getInitials()
 
   return (
     <SidebarMenu>

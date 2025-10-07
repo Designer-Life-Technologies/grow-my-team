@@ -2,77 +2,54 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import type { Candidate } from "@/lib/candidate/types"
 
-// Placeholder data. Replace with API results.
-const MOCK_POSITIONS = [
-  {
-    id: "1",
-    title: "Senior Frontend Engineer",
-    company: "Acme Corp",
-    location: "Remote",
-    type: "Full-time",
-    tags: ["React", "TypeScript", "Next.js"],
-    description:
-      "Build delightful user experiences and contribute to a modern frontend platform.",
-  },
-  {
-    id: "2",
-    title: "Product Designer",
-    company: "Bright Labs",
-    location: "Sydney, AU",
-    type: "Contract",
-    tags: ["Figma", "Design Systems", "Prototyping"],
-    description:
-      "Own end-to-end design workstreams across discovery, delivery, and iteration.",
-  },
-  {
-    id: "3",
-    title: "Backend Engineer",
-    company: "Northwind",
-    location: "Melbourne, AU",
-    type: "Full-time",
-    tags: ["Node.js", "PostgreSQL", "API"],
-    description:
-      "Design and build reliable APIs and services to power our applications.",
-  },
-]
+interface PositionsClientProps {
+  vacancies: Candidate.Position[]
+}
 
-export default function PositionsClient() {
+export default function PositionsClient({ vacancies }: PositionsClientProps) {
   const [query, setQuery] = useState("")
   const [location, setLocation] = useState("")
   const [jobType, setJobType] = useState<string | "">("")
   const [remoteOnly, setRemoteOnly] = useState(false)
 
-  // In a real implementation, call your API based on the filters.
+  // Filter vacancies based on search criteria
   const results = useMemo(() => {
-    return MOCK_POSITIONS.filter((p) => {
+    return vacancies.filter((vacancy) => {
+      const { jobDescription } = vacancy
       const q = query.trim().toLowerCase()
       const matchesQuery = !q
         ? true
-        : [p.title, p.company, p.description, ...p.tags]
+        : [
+            jobDescription.title,
+            jobDescription.industry,
+            ...jobDescription.skills,
+          ]
             .join(" ")
             .toLowerCase()
             .includes(q)
 
       const l = location.trim().toLowerCase()
-      const matchesLocation = !l ? true : p.location.toLowerCase().includes(l)
+      const matchesLocation = !l
+        ? true
+        : jobDescription.location.toLowerCase().includes(l)
 
-      const matchesType = jobType ? p.type === jobType : true
+      const matchesType = jobType ? jobDescription.type === jobType : true
 
       const matchesRemote = remoteOnly
-        ? p.location.toLowerCase() === "remote"
+        ? jobDescription.workplaceType === "REMOTE"
         : true
 
       return matchesQuery && matchesLocation && matchesType && matchesRemote
     })
-  }, [query, location, jobType, remoteOnly])
+  }, [vacancies, query, location, jobType, remoteOnly])
 
   return (
     <section className="mx-auto max-w-5xl">
       <h1 className="text-3xl font-bold tracking-tight">Open Positions</h1>
       <p className="mt-2 text-muted-foreground">
-        Search and filter roles that match your skills and goals. The results
-        below are placeholders.
+        Search and filter roles that match your skills and goals.
       </p>
 
       {/* Search and filters */}
@@ -146,41 +123,45 @@ export default function PositionsClient() {
         </div>
 
         <ul className="mt-4 grid gap-4 md:grid-cols-2">
-          {results.map((p) => (
-            <li key={p.id} className="rounded-lg border bg-card p-5">
-              <div className="flex items-start justify-between gap-3">
+          {results.map((vacancy) => {
+            const { id, jobDescription } = vacancy
+            return (
+              <li
+                key={id}
+                className="rounded-lg border bg-card p-5 flex flex-col"
+              >
                 <div>
                   <h3 className="text-lg font-semibold leading-tight">
-                    {p.title}
+                    {jobDescription.title}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {p.company} · {p.location} · {p.type}
+                    {jobDescription.location} · {jobDescription.type}
                   </p>
                 </div>
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                {p.description}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {p.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground"
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {jobDescription.salary}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {jobDescription.skills.slice(0, 5).map((skill) => (
+                    <span
+                      key={skill}
+                      className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-auto pt-4 flex justify-end">
+                  <Link
+                    href={`/position/${id}`}
+                    className="inline-flex h-9 items-center justify-center rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
                   >
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-4">
-                <Link
-                  href={`/candidate/position/${p.id}`}
-                  className="inline-flex h-9 items-center justify-center rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
-                >
-                  View details
-                </Link>
-              </div>
-            </li>
-          ))}
+                    View details
+                  </Link>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </section>

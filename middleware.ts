@@ -9,9 +9,9 @@ export default withAuth(
     const { token } = request.nextauth
 
     // If user is logged in and trying to access login page,
-    // redirect to dashboard
+    // redirect to employer dashboard
     if (token && pathname === "/login") {
-      return NextResponse.redirect(new URL("/dashboard", request.url))
+      return NextResponse.redirect(new URL("/employer/dashboard", request.url))
     }
 
     return NextResponse.next()
@@ -28,9 +28,6 @@ export default withAuth(
 export const config = {
   matcher: [
     "/", // Home page
-    "/dashboard/:path*",
-    "/positions/:path*",
-    "/candidates/:path*",
-    "/settings/:path*",
+    "/employer/:path*", // All employer routes (dashboard, positions, candidates, settings)
   ],
 }

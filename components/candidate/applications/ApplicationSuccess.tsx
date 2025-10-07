@@ -92,12 +92,10 @@ export function ApplicationSuccess({
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild variant="outline">
-            <Link href={`/candidate/position/${positionId}`}>
-              View Position Details
-            </Link>
+            <Link href={`/position/${positionId}`}>View Position Details</Link>
           </Button>
           <Button asChild>
-            <Link href="/candidate">Browse More Positions</Link>
+            <Link href="/">Browse More Positions</Link>
           </Button>
         </div>
 

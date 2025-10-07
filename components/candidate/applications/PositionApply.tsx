@@ -6,8 +6,12 @@ import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
 import { useApplicantSession } from "@/hooks/use-applicant-session"
-import { useCreateApplication } from "@/hooks/use-create-application"
-import { submitScreeningQuestions, updateApplicant } from "@/lib/candidate"
+import { useCreateApplicant } from "@/hooks/use-create-applicant"
+import {
+  createApplication,
+  submitScreeningQuestions,
+  updateApplicant,
+} from "@/lib/candidate"
 import type { Applicant } from "@/lib/candidate/types"
 import { ApplicationForm } from "./ApplicationForm"
 import { ApplicationSuccess } from "./ApplicationSuccess"
@@ -143,7 +147,7 @@ export function PositionApply({
     isProcessing,
   } = useStreamingModal()
 
-  const { createApplication } = useCreateApplication()
+  const { createApplicant } = useCreateApplicant()
 
   /**
    * Handle resume upload and/or LinkedIn submission with streaming updates
@@ -172,7 +176,7 @@ export function PositionApply({
       }
 
       // Submit with real-time streaming
-      const result = await createApplication(applicationFormData, (event) => {
+      const result = await createApplicant(applicationFormData, (event) => {
         console.log("🎯 Event received:", event)
         // Display events as they arrive in real-time
         addEvent(event.message, event.type)
@@ -288,6 +292,24 @@ export function PositionApply({
 
       console.log("✅ Applicant updated successfully:", result.applicant)
 
+      // Create application
+      console.log("Creating application:", {
+        applicantId: user.id,
+        positionId,
+      })
+
+      const applicationResult = await createApplication(user.id, positionId)
+
+      if (!applicationResult.success) {
+        setError(applicationResult.error || "Failed to create application")
+        return
+      }
+
+      console.log(
+        "✅ Application created successfully:",
+        applicationResult.applicationId,
+      )
+
       // Show screening questions form
       setShowApplicationForm(false)
       setShowScreeningQuestions(true)
@@ -369,7 +391,7 @@ export function PositionApply({
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
       <div className="mb-6">
         <Link
-          href={`/candidate/position/${positionId}`}
+          href={`/position/${positionId}`}
           className="text-sm text-muted-foreground hover:underline"
         >
           ← Back to position details

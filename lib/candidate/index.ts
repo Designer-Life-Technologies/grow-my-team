@@ -5,6 +5,8 @@
  */
 
 export {
+  createApplication,
+  getOpenPositions,
   getPositionById,
   submitScreeningQuestions,
   updateApplicant,

@@ -1,7 +1,7 @@
 /**
  * Public Candidate Layout
  *
- * This layout wraps all public-facing candidate routes under `/candidate/(public)/`.
+ * This layout wraps all public-facing candidate routes at the root level.
  * It provides a minimal, marketing-focused UI without authentication requirements.
  *
  * Purpose:
@@ -9,11 +9,12 @@
  * - Displays a simple header with logo and applicant user menu
  * - Uses sticky footer layout to keep footer at bottom of viewport
  * - Maintains consistent branding through theme-aware logo
- * - No authentication required (unlike user routes)
+ * - No authentication required (unlike employer routes)
  *
  * Routes Using This Layout:
- * - /candidate - Candidate landing page
- * - /candidate/position/[id] - Individual job position pages
+ * - / - Positions listing (root/home page)
+ * - /position/[id] - Individual job position details
+ * - /position/[id]/apply - Job application page
  * - ... other public candidate pages
  *
  * Key Features:

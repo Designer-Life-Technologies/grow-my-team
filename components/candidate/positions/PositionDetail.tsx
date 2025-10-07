@@ -103,7 +103,7 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
       <div className="mb-6">
         <Link
-          href="/candidate"
+          href="/"
           className="text-sm text-muted-foreground hover:underline"
         >
           ← Back to positions
@@ -128,7 +128,7 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
           />
           <div className="mt-6 flex justify-end">
             <Link
-              href={`/candidate/position/${positionId}/apply`}
+              href={`/position/${positionId}/apply`}
               className="inline-flex h-9 items-center rounded-md border bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95"
             >
               Apply now

@@ -26,7 +26,7 @@ export default function CandidateHomePage() {
             employers.
           </p>
         </div>
-        <Link className="rounded-lg border bg-card p-5" href="/candidate">
+        <Link className="rounded-lg border bg-card p-5" href="/">
           <h2 className="text-lg font-semibold">Explore Opportunities</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Browse open roles and find positions that match your goals and

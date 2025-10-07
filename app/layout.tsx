@@ -13,13 +13,14 @@
  *
  * Layout Hierarchy:
  * app/layout.tsx (THIS FILE - Global providers)
- * ├── app/(user)/layout.tsx (Authenticated user routes with sidebar)
- * │   ├── app/(user)/dashboard/page.tsx
- * │   └── ... other authenticated pages
- * ├── app/candidate/(public)/layout.tsx (Public candidate routes)
- * │   ├── app/candidate/(public)/page.tsx
+ * ├── app/employer/layout.tsx (Authenticated employer routes - /employer/*)
+ * │   ├── app/employer/dashboard/page.tsx
+ * │   └── ... other employer pages
+ * ├── app/(candidate)/(public)/layout.tsx (Public candidate routes - root level)
+ * │   ├── app/(candidate)/(public)/page.tsx (/)
+ * │   ├── app/(candidate)/(public)/position/[id]/page.tsx (/position/[id])
  * │   └── ... other candidate pages
- * └── app/(auth)/... (Authentication pages)
+ * └── app/(auth)/... (Authentication pages - /login, /set-password)
  *
  * Important Notes:
  * - This layout should ONLY contain global providers and configuration
