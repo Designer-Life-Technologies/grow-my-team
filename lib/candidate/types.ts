@@ -16,8 +16,8 @@ export interface Applicant {
   id: string
   firstname: string
   lastname: string
-  email: Email
-  mobile: Phone
+  email: Email | string
+  mobile: Phone | string
   linkedInUrl?: string
 }
 
@@ -30,6 +30,14 @@ export interface ScreeningQuestionsData {
   q3: string
   q4: string
   q5: string
+}
+
+/**
+ * Screening answer with question and answer pair
+ */
+export interface ScreeningAnswer {
+  question: string
+  answer: string
 }
 
 /**

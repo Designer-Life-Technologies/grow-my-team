@@ -9,14 +9,19 @@ import { useApplicantSession } from "@/hooks/use-applicant-session"
 import { useCreateApplicant } from "@/hooks/use-create-applicant"
 import {
   createApplication,
-  submitScreeningQuestions,
+  findApplication,
+  submitScreeningAnswers,
   updateApplicant,
 } from "@/lib/candidate"
 import type { Applicant } from "@/lib/candidate/types"
+import { logger } from "@/lib/utils/logger"
 import { ApplicationForm } from "./ApplicationForm"
 import { ApplicationSuccess } from "./ApplicationSuccess"
 import { ResumeDropzone } from "./ResumeDropzone"
-import { ScreeningQuestionsForm } from "./ScreeningQuestionsForm"
+import {
+  SCREENING_QUESTIONS,
+  ScreeningQuestionsForm,
+} from "./ScreeningQuestionsForm"
 
 /**
  * PositionApply Component
@@ -84,6 +89,8 @@ export function PositionApply({
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false)
   // Store applicant data from API (available for future use/debugging)
   const [_applicantData, setApplicantData] = useState<Applicant | null>(null)
+  // Store application ID to prevent duplicate application creation
+  const [applicationId, setApplicationId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -102,10 +109,10 @@ export function PositionApply({
   // Check if applicant is already signed in
   const { isApplicant, user, isLoading } = useApplicantSession()
 
-  // Populate form with existing applicant session data
+  // Populate form with existing applicant session data and check for existing application
   useEffect(() => {
     if (isApplicant && user) {
-      console.log("👤 Existing applicant session found:", user)
+      logger.log("👤 Existing applicant session found:", user)
       setFormData({
         firstName: user.firstname || "",
         lastName: user.lastname || "",
@@ -115,8 +122,29 @@ export function PositionApply({
       })
       // Skip resume upload and show application form directly
       setShowApplicationForm(true)
+
+      // Check if application already exists for this position
+      const checkExistingApplication = async () => {
+        logger.log("🔍 Checking for existing application:", {
+          applicantId: user.id,
+          positionId,
+        })
+
+        const result = await findApplication(user.id, positionId)
+
+        if (result.success && result.applicationId) {
+          logger.log("✅ Found existing application:", result.applicationId)
+          setApplicationId(result.applicationId)
+        } else if (result.success && !result.applicationId) {
+          logger.log("ℹ️ No existing application found")
+        } else {
+          logger.error("❌ Error finding application:", result.error)
+        }
+      }
+
+      checkExistingApplication()
     }
-  }, [isApplicant, user])
+  }, [isApplicant, user, positionId])
 
   /**
    * Handle file selection from dropzone
@@ -177,7 +205,7 @@ export function PositionApply({
 
       // Submit with real-time streaming
       const result = await createApplicant(applicationFormData, (event) => {
-        console.log("🎯 Event received:", event)
+        logger.log("🎯 Event received:", event)
         // Display events as they arrive in real-time
         addEvent(event.message, event.type)
       })
@@ -193,18 +221,24 @@ export function PositionApply({
       }
 
       // Success - show application form with applicant data
-      console.log("✅ Application result:", result)
+      logger.log("✅ Application result:", result)
 
       if (result.applicant) {
         setApplicantData(result.applicant)
-        console.log("👤 Applicant data:", result.applicant)
+        logger.log("👤 Applicant data:", result.applicant)
 
         // Populate form with data from API (note: API uses lowercase field names)
         setFormData({
           firstName: result.applicant.firstname || "",
           lastName: result.applicant.lastname || "",
-          email: result.applicant.email?.address || "",
-          phone: result.applicant.mobile?.localNumber || "",
+          email:
+            typeof result.applicant.email === "string"
+              ? result.applicant.email
+              : result.applicant.email?.address || "",
+          phone:
+            typeof result.applicant.mobile === "string"
+              ? result.applicant.mobile
+              : result.applicant.mobile?.localNumber || "",
           linkedInUrl: result.applicant.linkedInUrl || "",
         })
 
@@ -214,7 +248,7 @@ export function PositionApply({
           applicantId: result.applicant.id,
           applicantData: JSON.stringify(result.applicant),
         })
-        console.log("🔐 Applicant session created")
+        logger.log("🔐 Applicant session created")
       }
 
       completeStreaming()
@@ -261,18 +295,14 @@ export function PositionApply({
         lastname: formData.lastName,
       }
 
-      // Only include email if it's different from session
+      // Include email if it's different from session
       if (formData.email && formData.email !== user.email) {
-        // Note: For now, we're not updating email as it requires full Email object
-        // This would need proper Email object construction in production
-        console.log("Email update skipped - requires full Email object")
+        updateData.email = formData.email
       }
 
-      // Only include phone if provided
+      // Include phone if provided
       if (formData.phone) {
-        // Note: For now, we're not updating phone as it requires full Phone object
-        // This would need proper Phone object construction in production
-        console.log("Phone update skipped - requires full Phone object")
+        updateData.mobile = formData.phone
       }
 
       // Include LinkedIn URL if provided
@@ -280,7 +310,7 @@ export function PositionApply({
         updateData.linkedInUrl = formData.linkedInUrl
       }
 
-      console.log("Updating applicant:", { applicantId: user.id, updateData })
+      logger.log("Updating applicant:", { applicantId: user.id, updateData })
 
       // Update applicant
       const result = await updateApplicant(user.id, updateData)
@@ -290,25 +320,35 @@ export function PositionApply({
         return
       }
 
-      console.log("✅ Applicant updated successfully:", result.applicant)
+      logger.log("✅ Applicant updated successfully:", result.applicant)
 
-      // Create application
-      console.log("Creating application:", {
-        applicantId: user.id,
-        positionId,
-      })
+      // Create application only if it doesn't exist yet
+      if (!applicationId) {
+        logger.log("Creating application:", {
+          applicantId: user.id,
+          positionId,
+        })
 
-      const applicationResult = await createApplication(user.id, positionId)
+        const applicationResult = await createApplication(user.id, positionId)
 
-      if (!applicationResult.success) {
-        setError(applicationResult.error || "Failed to create application")
-        return
+        if (!applicationResult.success) {
+          setError(applicationResult.error || "Failed to create application")
+          return
+        }
+
+        logger.log(
+          "✅ Application created successfully:",
+          applicationResult.applicationId,
+        )
+
+        // Store the application ID to prevent duplicate creation
+        setApplicationId(applicationResult.applicationId || null)
+      } else {
+        logger.log(
+          "ℹ️ Application already exists, skipping creation:",
+          applicationId,
+        )
       }
-
-      console.log(
-        "✅ Application created successfully:",
-        applicationResult.applicationId,
-      )
 
       // Show screening questions form
       setShowApplicationForm(false)
@@ -317,7 +357,7 @@ export function PositionApply({
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred"
       setError(errorMessage)
-      console.error("Error updating applicant:", err)
+      logger.error("Error updating applicant:", err)
     } finally {
       setIsUpdatingApplicant(false)
     }
@@ -343,31 +383,42 @@ export function PositionApply({
     setError(null)
 
     try {
-      // Get applicant ID from session
+      // Get applicant ID and application ID
       if (!user?.id) {
         setError("No applicant session found")
         return
       }
 
-      console.log("Submitting screening questions:", {
-        vacancyId: positionId,
-        applicantId: user.id,
-        screeningData,
-      })
-
-      // Submit screening questions
-      const result = await submitScreeningQuestions(
-        positionId,
-        user.id,
-        screeningData,
-      )
-
-      if (!result.success) {
-        setError(result.error || "Failed to submit application")
+      if (!applicationId) {
+        setError("No application ID found. Please complete the previous steps.")
         return
       }
 
-      console.log("✅ Application submitted successfully")
+      // Prepare answers array with question/answer pairs
+      const answers = SCREENING_QUESTIONS.map((q) => ({
+        question: q.label,
+        answer: screeningData[q.id],
+      }))
+
+      logger.log("Submitting screening answers:", {
+        applicantId: user.id,
+        applicationId,
+        answers,
+      })
+
+      // Submit screening answers
+      const result = await submitScreeningAnswers(
+        user.id,
+        applicationId,
+        answers,
+      )
+
+      if (!result.success) {
+        setError(result.error || "Failed to submit screening answers")
+        return
+      }
+
+      logger.log("✅ Screening answers submitted successfully")
 
       // Show success message
       setShowScreeningQuestions(false)
@@ -376,7 +427,7 @@ export function PositionApply({
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred"
       setError(errorMessage)
-      console.error("Error submitting application:", err)
+      logger.error("Error submitting application:", err)
     } finally {
       setIsSubmittingApplication(false)
     }

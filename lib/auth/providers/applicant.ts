@@ -50,11 +50,17 @@ export const applicantProvider = Credentials({
       // Flatten applicant data into user object to avoid duplication
       return {
         id: applicantData.id,
-        email: applicantData.email.address,
+        email:
+          typeof applicantData.email === "string"
+            ? applicantData.email
+            : applicantData.email.address,
         firstname: applicantData.firstname,
         lastname: applicantData.lastname,
         userType: "applicant" as const,
-        mobile: applicantData.mobile,
+        mobile:
+          typeof applicantData.mobile === "string"
+            ? undefined
+            : applicantData.mobile,
         linkedInUrl: applicantData.linkedInUrl,
       }
     } catch (error) {

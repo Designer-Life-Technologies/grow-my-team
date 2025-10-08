@@ -26,7 +26,7 @@ interface Question {
 }
 
 // Array of screening questions
-const SCREENING_QUESTIONS: Question[] = [
+export const SCREENING_QUESTIONS: Question[] = [
   {
     id: "q1",
     label:
