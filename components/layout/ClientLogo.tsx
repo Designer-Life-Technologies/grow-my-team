@@ -62,12 +62,25 @@ export function ClientLogo({
   const logoHeight = height || sizeVariants[size].height
 
   // Select appropriate logo based on theme mode
-  const logoSrc = isDark
-    ? currentTheme.branding.logo.dark
-    : currentTheme.branding.logo.light
+  const logoSrc = currentTheme.branding.logo
+    ? isDark
+      ? currentTheme.branding.logo.dark
+      : currentTheme.branding.logo.light
+    : null
 
   // Use company name as fallback alt text
   const logoAlt = alt || `${currentTheme.branding.companyName} logo`
+
+  // If no logo is defined, show only the company name
+  if (!logoSrc) {
+    return (
+      <div className={cn("flex items-center", className)}>
+        <span className="text-lg font-semibold text-foreground">
+          {currentTheme.branding.companyName}
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className={cn("flex items-center gap-3", className)}>

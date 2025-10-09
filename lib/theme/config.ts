@@ -16,8 +16,7 @@ export const getTheme = (themeId?: string): Theme => {
 export const getThemeFromDomain = (hostname: string): string => {
   // Exact domain matches (highest priority)
   const domainMap: Record<string, string> = {
-    "grow-my-team.vercel.app": "team-puzzle",
-    "puzzle.growmyteam.com": "team-puzzle",
+    "puzzle-candidate.growmy.team": "team-puzzle",
     "client1.growmyteam.com": "default",
     // Add exact domain mappings here
   }

@@ -22,7 +22,7 @@ export interface Theme {
   }
   branding: {
     companyName: string
-    logo: {
+    logo?: {
       light: string
       dark: string
     }

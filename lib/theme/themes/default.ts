@@ -33,10 +33,6 @@ export const defaultTheme: Theme = {
   },
   branding: {
     companyName: "Grow My Team",
-    logo: {
-      light: "/themes/growmyteam_logo.png",
-      dark: "/themes/growmyteam_logo.png",
-    },
     favicon: "/themes/favicon.ico",
   },
 }
