@@ -62,8 +62,8 @@ export default function CandidatePublicLayout({
         </div>
       </header>
       <main className="container mx-auto flex-1 px-4 py-10">{children}</main>
-      <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Grow My Team
+      <footer className="border-t py-2 pl-4 text-left text-sm text-muted-foreground">
+        © {new Date().getFullYear()} GrowMyTeam.ai
       </footer>
     </div>
   )

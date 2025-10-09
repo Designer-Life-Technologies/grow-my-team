@@ -26,6 +26,15 @@ export type VacancyType =
   | "CASUAL"
   | "OTHER"
 
+export type ApplicationStatus =
+  | "DRAFT"
+  | "SCREENING"
+  | "PROFILING"
+  | "INTERVIEW"
+  | "OFFER"
+  | "CLOSED"
+  | "ARCHIVED"
+
 export type WorkplaceType = "ON_SITE" | "REMOTE" | "HYBRID"
 
 export type Industry =
