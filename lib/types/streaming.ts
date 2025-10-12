@@ -13,6 +13,10 @@ export interface StreamingEvent<T = unknown> {
    */
   message: string
   /**
+   * Optional progress percentage (0-100) if provided by the stream
+   */
+  progress?: number
+  /**
    * Optional data payload from the API
    */
   data?: T

@@ -62,6 +62,11 @@ export function StreamingModal({
   isProcessing,
 }: StreamingModalProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
+  const latestEvent = events.length > 0 ? events[events.length - 1] : undefined
+  const progress =
+    typeof latestEvent?.progress === "number"
+      ? Math.max(0, Math.min(100, latestEvent.progress))
+      : undefined
 
   // Auto-scroll to bottom when new events arrive
   // biome-ignore lint/correctness/useExhaustiveDependencies: Need to scroll when events array changes
@@ -109,7 +114,6 @@ export function StreamingModal({
           }
         }}
       >
-        {/* Linear progress indicator */}
         {isProcessing && (
           <div className="h-1 bg-muted overflow-hidden">
             <div className="h-full bg-primary animate-[progress_1.5s_ease-in-out_infinite]" />
@@ -126,7 +130,6 @@ export function StreamingModal({
             )}
           </DialogHeader>
 
-          {/* Message window - single line height */}
           <div className="relative h-6 overflow-hidden border rounded bg-muted/20 mt-6 mb-4">
             {events.length === 0 ? (
               <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
@@ -151,6 +154,11 @@ export function StreamingModal({
                 >
                   {events[events.length - 1].message}
                 </span>
+                {progress !== undefined && (
+                  <span className="ml-2 text-[10px] text-muted-foreground">
+                    {progress}%
+                  </span>
+                )}
               </div>
             )}
           </div>

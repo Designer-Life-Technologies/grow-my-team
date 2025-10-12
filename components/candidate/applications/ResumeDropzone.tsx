@@ -233,7 +233,7 @@ export function ResumeDropzone({
               </svg>
             </div>
             <p className="text-lg font-medium">
-              Drag and drop your resumé here
+              Drag and drop your resume here
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               or click to browse

@@ -24,9 +24,13 @@ interface StreamingModalContextValue {
    */
   startStreaming: (title: string, description?: string) => void
   /**
-   * Add a new event to the streaming modal
+   * Add a new event to the streaming modal (simple API)
    */
   addEvent: (message: string, type?: StreamingEvent["type"]) => void
+  /**
+   * Add a complete StreamingEvent object (allows progress/data)
+   */
+  addEventObject: (event: Omit<StreamingEvent, "id" | "timestamp">) => void
   /**
    * Mark the streaming operation as complete
    * Modal can then be closed by the user
@@ -116,6 +120,21 @@ export function StreamingModalProvider({
   )
 
   /**
+   * Add a complete event object (supports progress and data)
+   */
+  const addEventObject = React.useCallback(
+    (event: Omit<StreamingEvent, "id" | "timestamp">) => {
+      const newEvent: StreamingEvent = {
+        ...event,
+        id: `event-${eventIdCounter.current++}`,
+        timestamp: new Date(),
+      }
+      setEvents((prev) => [...prev, newEvent])
+    },
+    [],
+  )
+
+  /**
    * Mark streaming as complete
    */
   const completeStreaming = React.useCallback(() => {
@@ -123,12 +142,20 @@ export function StreamingModalProvider({
   }, [])
 
   /**
-   * Add error event and mark as complete
+   * Add error event and close modal immediately
+   * The error will be displayed on the underlying page
    */
   const errorStreaming = React.useCallback(
     (message: string) => {
       addEvent(message, "error")
       setIsProcessing(false)
+      // Close modal immediately on error
+      setIsOpen(false)
+      // Clear events after a delay to allow modal close animation
+      setTimeout(() => {
+        setEvents([])
+        eventIdCounter.current = 0
+      }, 300)
     },
     [addEvent],
   )
@@ -159,6 +186,7 @@ export function StreamingModalProvider({
     () => ({
       startStreaming,
       addEvent,
+      addEventObject,
       completeStreaming,
       errorStreaming,
       clearEvents,
@@ -168,6 +196,7 @@ export function StreamingModalProvider({
     [
       startStreaming,
       addEvent,
+      addEventObject,
       completeStreaming,
       errorStreaming,
       clearEvents,

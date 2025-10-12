@@ -170,6 +170,7 @@ export function PositionApply({
   const {
     startStreaming,
     addEvent,
+    addEventObject,
     completeStreaming,
     errorStreaming,
     isProcessing,
@@ -188,8 +189,8 @@ export function PositionApply({
 
     // Start the streaming modal
     startStreaming(
-      "AI is processing your resumé",
-      "This process can take up to a minute. Please be patient...",
+      "AI is processing your resume",
+      "This process can take up to 30 seconds. Please be patient...",
     )
 
     try {
@@ -206,8 +207,15 @@ export function PositionApply({
       // Submit with real-time streaming
       const result = await createApplicant(applicationFormData, (event) => {
         logger.log("🎯 Event received:", event)
-        // Display events as they arrive in real-time
-        addEvent(event.message, event.type)
+        // Display events as they arrive in real-time (preserve progress)
+        if (event) {
+          const { message, type, progress, data } = event
+          if (typeof progress === "number" || data !== undefined) {
+            addEventObject({ message, type, progress, data })
+          } else {
+            addEvent(message, type)
+          }
+        }
       })
 
       // Check if there were any errors
@@ -216,7 +224,7 @@ export function PositionApply({
           result.events.find((e) => e.type === "error")?.message ||
           "Failed to submit. Please try again."
         setError(errorMessage)
-        completeStreaming()
+        errorStreaming(errorMessage)
         return
       }
 

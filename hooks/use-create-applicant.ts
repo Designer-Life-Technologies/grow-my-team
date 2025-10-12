@@ -14,6 +14,8 @@ export function useCreateApplicant() {
     setEvents([])
 
     try {
+      // Call the next.js api route, which is just a proxy for the GMT API route
+      // This is done to allow for streaming responses from the GMT API
       const response = await fetch("/api/candidate/create", {
         method: "POST",
         body: formData,
@@ -74,15 +76,21 @@ export function useCreateApplicant() {
                 const data = JSON.parse(currentData)
                 console.log("📦 SSE Data received:", data)
 
+                const progressValue =
+                  typeof data.progress === "number"
+                    ? Math.max(0, Math.min(100, data.progress))
+                    : undefined
+
                 const streamEvent: StreamingEvent<Applicant> = {
                   type: currentEvent as StreamingEvent<Applicant>["type"],
                   message: data.message || currentData,
-                  data: data.applicant, // Include the applicant payload
+                  progress: progressValue,
+                  data: data.data,
                 }
 
                 // Capture applicant data from success event
-                if (currentEvent === "success" && data.applicant) {
-                  applicantData = data.applicant as Applicant
+                if (currentEvent === "success" && data.data) {
+                  applicantData = data.data as Applicant
                 }
 
                 receivedEvents.push(streamEvent)
