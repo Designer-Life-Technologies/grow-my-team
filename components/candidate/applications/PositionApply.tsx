@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
@@ -108,6 +108,7 @@ export function PositionApply({
 
   // Check if applicant is already signed in
   const { isApplicant, user, isLoading } = useApplicantSession()
+  const { update: updateSession } = useSession()
 
   // Populate form with existing applicant session data and check for existing application
   useEffect(() => {
@@ -329,6 +330,27 @@ export function PositionApply({
       }
 
       logger.log("✅ Applicant updated successfully:", result.applicant)
+
+      // Update the session with the new applicant data
+      if (result.applicant) {
+        // Normalize email to string (API can return object or string)
+        const normalizedEmail =
+          typeof result.applicant.email === "string"
+            ? result.applicant.email
+            : result.applicant.email?.address || ""
+
+        await updateSession({
+          user: {
+            ...user,
+            firstname: result.applicant.firstname,
+            lastname: result.applicant.lastname,
+            email: normalizedEmail,
+            mobile: result.applicant.mobile,
+            linkedInUrl: result.applicant.linkedInUrl,
+          },
+        })
+        logger.log("🔄 Session updated with new applicant data")
+      }
 
       // Create application only if it doesn't exist yet
       if (!applicationId) {

@@ -8,7 +8,28 @@ export const authConfig: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Handle session updates (when update() is called)
+      if (trigger === "update" && session?.user) {
+        // Update token with new user data from session update
+        if (session.user.firstname !== undefined) {
+          token.firstname = session.user.firstname
+        }
+        if (session.user.lastname !== undefined) {
+          token.lastname = session.user.lastname
+        }
+        if (session.user.email !== undefined) {
+          token.email = session.user.email
+        }
+        if (session.user.mobile !== undefined) {
+          token.mobile = session.user.mobile
+        }
+        if (session.user.linkedInUrl !== undefined) {
+          token.linkedInUrl = session.user.linkedInUrl
+        }
+        return token
+      }
+
       // Initial sign in
       if (user) {
         // Add user data to the token
