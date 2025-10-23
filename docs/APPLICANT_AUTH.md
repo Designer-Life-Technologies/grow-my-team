@@ -48,28 +48,42 @@ Two Next-Auth providers are configured:
 
 ### Session Flow
 
-#### For Applicants
+#### For Applicants (Guest Application Flow)
 
-1. **Application Submission**
+**Note:** Currently, the application process is guest-only. Applicants are NOT logged in during the application process.
+
+1. **Resume Upload**
    - User uploads resume
    - API processes and creates applicant record
    - API returns applicant data via SSE
+   - Applicant data is stored in component state (guest user)
 
-2. **Auto-Login**
-   - `PositionApply` component receives applicant data
-   - Calls `signIn("applicant", { applicantId, applicantData })`
-   - NextAuth creates session with `userType: "applicant"`
+2. **Application Form**
+   - User reviews and updates their personal information
+   - Form is pre-filled with data extracted from resume
+   - User can modify any field before proceeding
+   - No authentication required
 
-3. **Session Storage**
-   - JWT token stores applicant data (flattened into user object)
-   - Session callback adds applicant fields to session.user
-   - Client can access via `useSession()` or `useApplicantSession()`
+3. **Application Creation**
+   - User submits the application form
+   - System updates applicant information if needed
+   - System creates the application record linking applicant to position
+   - No session is created (guest application)
 
-4. **Returning Applicant**
-   - When applicant returns to apply for another position
-   - `PositionApply` checks for existing session
-   - If found, skips resume upload and pre-fills application form
-   - Shows welcome message: "Welcome back! Your information has been pre-filled"
+4. **Screening Questions**
+   - Applicant completes screening questions
+   - All data is submitted without authentication
+
+5. **Application Complete**
+   - Application is successfully submitted
+   - Applicant receives confirmation
+   - No login session is created
+
+**Future Enhancement:** Applicant authentication can be added later to enable features like:
+- Viewing application status
+- Applying to multiple positions with saved profile
+- Tracking interview progress
+- Updating profile information
 
 ## Usage
 
@@ -216,17 +230,30 @@ When an applicant is created via the API:
 }
 ```
 
-### Session Creation
+**Important:** The applicant is NOT logged in. All application data is stored in component state as a guest user.
 
-The applicant data is used to create a session:
+### Application Creation
+
+After the applicant reviews and confirms their information:
 
 ```typescript
-await signIn("applicant", {
-  redirect: false,
-  applicantId: applicant.id,
-  applicantData: JSON.stringify(applicant),
-})
+// Create the application (guest flow - no authentication)
+const applicationResult = await createApplication(applicantId, positionId)
+
+if (applicationResult.success) {
+  // Application created successfully
+  // No session is created - guest application flow
+  logger.log("✅ Application created - guest application flow (no login)")
+}
 ```
+
+### Guest Application Flow
+
+The current implementation uses a **guest application flow** with no authentication:
+- Applicants can apply without creating an account
+- No session or login is required
+- Application data is submitted directly to the API
+- Simpler user experience with fewer barriers to application
 
 ## Middleware Configuration
 

@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
       const errorData = await response.json().catch(() => ({}))
       return new Response(
         JSON.stringify({
-          error: errorData.detail || "Failed to submit application",
+          error:
+            errorData.error?.error_message ||
+            errorData.detail ||
+            "Failed to submit application",
         }),
         {
           status: response.status,

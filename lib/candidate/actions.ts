@@ -101,7 +101,9 @@ export async function updateApplicant(
       return {
         success: false,
         error:
-          errorData.detail || `Failed to update applicant: ${response.status}`,
+          errorData.error?.error_message ||
+          errorData.detail ||
+          `Failed to update applicant: ${response.status}`,
       }
     }
 
@@ -157,6 +159,7 @@ export async function createApplication(
       return {
         success: false,
         error:
+          errorData.error?.error_message ||
           errorData.detail ||
           `Failed to create application: ${response.status}`,
       }
@@ -217,7 +220,9 @@ export async function findApplication(
       return {
         success: false,
         error:
-          errorData.detail || `Failed to find application: ${response.status}`,
+          errorData.error?.error_message ||
+          errorData.detail ||
+          `Failed to find application: ${response.status}`,
       }
     }
 
@@ -269,6 +274,7 @@ export async function submitScreeningAnswers(
       return {
         success: false,
         error:
+          errorData.error?.error_message ||
           errorData.detail ||
           `Failed to submit screening answers: ${response.status}`,
       }

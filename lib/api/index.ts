@@ -58,7 +58,9 @@ async function callGetMeApi<T>(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(
-      errorData.detail || `HTTP error! status: ${response.status}`,
+      errorData.error?.error_message ||
+        errorData.detail ||
+        `HTTP error! status: ${response.status}`,
     )
   }
 

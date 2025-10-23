@@ -1,15 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { signIn, useSession } from "next-auth/react"
-import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
+import { type ChangeEvent, type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
-import { useApplicantSession } from "@/hooks/use-applicant-session"
 import { useCreateApplicant } from "@/hooks/use-create-applicant"
 import {
   createApplication,
-  findApplication,
   submitScreeningAnswers,
   updateApplicant,
 } from "@/lib/candidate"
@@ -105,47 +102,6 @@ export function PositionApply({
     q4: "",
     q5: "",
   })
-
-  // Check if applicant is already signed in
-  const { isApplicant, user, isLoading } = useApplicantSession()
-  const { update: updateSession } = useSession()
-
-  // Populate form with existing applicant session data and check for existing application
-  useEffect(() => {
-    if (isApplicant && user) {
-      logger.log("👤 Existing applicant session found:", user)
-      setFormData({
-        firstName: user.firstname || "",
-        lastName: user.lastname || "",
-        email: user.email || "",
-        phone: user.mobile?.localNumber || "",
-        linkedInUrl: user.linkedInUrl || "",
-      })
-      // Skip resume upload and show application form directly
-      setShowApplicationForm(true)
-
-      // Check if application already exists for this position
-      const checkExistingApplication = async () => {
-        logger.log("🔍 Checking for existing application:", {
-          applicantId: user.id,
-          positionId,
-        })
-
-        const result = await findApplication(user.id, positionId)
-
-        if (result.success && result.applicationId) {
-          logger.log("✅ Found existing application:", result.applicationId)
-          setApplicationId(result.applicationId)
-        } else if (result.success && !result.applicationId) {
-          logger.log("ℹ️ No existing application found")
-        } else {
-          logger.error("❌ Error finding application:", result.error)
-        }
-      }
-
-      checkExistingApplication()
-    }
-  }, [isApplicant, user, positionId])
 
   /**
    * Handle file selection from dropzone
@@ -251,13 +207,8 @@ export function PositionApply({
           linkedInUrl: result.applicant.linkedInUrl || "",
         })
 
-        // Sign in the applicant to create a session
-        await signIn("applicant", {
-          redirect: false,
-          applicantId: result.applicant.id,
-          applicantData: JSON.stringify(result.applicant),
-        })
-        logger.log("🔐 Applicant session created")
+        // Store applicant data for later use in the application process
+        logger.log("📋 Applicant data stored for guest application flow")
       }
 
       completeStreaming()
@@ -292,11 +243,15 @@ export function PositionApply({
     setError(null)
 
     try {
-      // Get applicant ID from session
-      if (!user?.id) {
-        setError("No applicant session found")
+      // Get applicant ID from stored applicant data
+      if (!_applicantData?.id) {
+        setError(
+          "No applicant data found. Please complete the resume upload step.",
+        )
         return
       }
+
+      const applicantId = _applicantData.id
 
       // Prepare update data
       const updateData: Parameters<typeof updateApplicant>[1] = {
@@ -304,8 +259,8 @@ export function PositionApply({
         lastname: formData.lastName,
       }
 
-      // Include email if it's different from session
-      if (formData.email && formData.email !== user.email) {
+      // Include email if provided
+      if (formData.email) {
         updateData.email = formData.email
       }
 
@@ -319,10 +274,10 @@ export function PositionApply({
         updateData.linkedInUrl = formData.linkedInUrl
       }
 
-      logger.log("Updating applicant:", { applicantId: user.id, updateData })
+      logger.log("Updating applicant:", { applicantId, updateData })
 
       // Update applicant
-      const result = await updateApplicant(user.id, updateData)
+      const result = await updateApplicant(applicantId, updateData)
 
       if (!result.success) {
         setError(result.error || "Failed to update applicant information")
@@ -331,38 +286,28 @@ export function PositionApply({
 
       logger.log("✅ Applicant updated successfully:", result.applicant)
 
-      // Update the session with the new applicant data
+      // Update stored applicant data with the latest information
       if (result.applicant) {
-        // Normalize email to string (API can return object or string)
-        const normalizedEmail =
-          typeof result.applicant.email === "string"
-            ? result.applicant.email
-            : result.applicant.email?.address || ""
-
-        await updateSession({
-          user: {
-            ...user,
-            firstname: result.applicant.firstname,
-            lastname: result.applicant.lastname,
-            email: normalizedEmail,
-            mobile: result.applicant.mobile,
-            linkedInUrl: result.applicant.linkedInUrl,
-          },
-        })
-        logger.log("🔄 Session updated with new applicant data")
+        setApplicantData(result.applicant)
       }
 
       // Create application only if it doesn't exist yet
       if (!applicationId) {
         logger.log("Creating application:", {
-          applicantId: user.id,
+          applicantId,
           positionId,
         })
 
-        const applicationResult = await createApplication(user.id, positionId)
+        const applicationResult = await createApplication(
+          applicantId,
+          positionId,
+        )
 
         if (!applicationResult.success) {
-          setError(applicationResult.error || "Failed to create application")
+          const errorMsg =
+            applicationResult.error || "Failed to create application"
+          logger.error("❌ Failed to create application:", errorMsg)
+          setError(errorMsg)
           return
         }
 
@@ -373,6 +318,8 @@ export function PositionApply({
 
         // Store the application ID to prevent duplicate creation
         setApplicationId(applicationResult.applicationId || null)
+
+        logger.log("✅ Application created - guest application flow (no login)")
       } else {
         logger.log(
           "ℹ️ Application already exists, skipping creation:",
@@ -413,9 +360,9 @@ export function PositionApply({
     setError(null)
 
     try {
-      // Get applicant ID and application ID
-      if (!user?.id) {
-        setError("No applicant session found")
+      // Get applicant ID and application ID from stored data
+      if (!_applicantData?.id) {
+        setError("No applicant data found")
         return
       }
 
@@ -431,14 +378,14 @@ export function PositionApply({
       }))
 
       logger.log("Submitting screening answers:", {
-        applicantId: user.id,
+        applicantId: _applicantData.id,
         applicationId,
         answers,
       })
 
       // Submit screening answers
       const result = await submitScreeningAnswers(
-        user.id,
+        _applicantData.id,
         applicationId,
         answers,
       )
@@ -463,11 +410,6 @@ export function PositionApply({
     }
   }
 
-  // Show loading skeleton while checking session
-  if (isLoading) {
-    return <PositionApplySkeleton />
-  }
-
   return (
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
       <div className="mb-6">
@@ -483,12 +425,6 @@ export function PositionApply({
         <h1 className="text-3xl font-bold tracking-tight">
           Apply for {positionTitle}
         </h1>
-        {/* {isApplicant && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Welcome back! Your information has been pre-filled from your
-            previous application.
-          </p>
-        )} */}
       </header>
 
       {/* Resume Upload Section - Hidden when applicant data, screening questions, or success are shown */}
@@ -626,7 +562,13 @@ export function PositionApply({
         <ApplicationSuccess
           positionTitle={positionTitle}
           positionId={positionId}
-          applicantEmail={user?.email || undefined}
+          applicantEmail={
+            _applicantData?.email
+              ? typeof _applicantData.email === "string"
+                ? _applicantData.email
+                : _applicantData.email.address
+              : undefined
+          }
         />
       )}
     </section>
