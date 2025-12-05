@@ -1,6 +1,9 @@
 import { Suspense } from "react"
 import { ProfileDisplay, SessionData } from "@/components/auth"
 
+// Force dynamic rendering since this page uses cookies
+export const dynamic = "force-dynamic"
+
 export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
