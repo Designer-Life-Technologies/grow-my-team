@@ -53,6 +53,10 @@ WARN Issues with peer dependencies found
 
 **Status**: Non-blocking warning. Next-Auth 4.24.11 doesn't officially support Next.js 16 yet, but it works correctly in testing. Monitor for Next-Auth updates that add Next.js 16 support.
 
+### Next-Auth Secret Validation
+
+Added explicit validation for `NEXTAUTH_SECRET` environment variable in `lib/auth/auth.config.ts`. Next.js 16 requires stricter environment variable handling, so the config now throws a clear error if the secret is missing rather than failing at runtime with a cryptic error.
+
 ## Testing Results
 
 ### Build

@@ -2,6 +2,13 @@ import type { NextAuthOptions } from "next-auth"
 import { applicantProvider } from "./providers/applicant"
 import { credentialsProvider } from "./providers/credentials"
 
+// Validate that NEXTAUTH_SECRET is defined
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    "NEXTAUTH_SECRET environment variable is not defined. Please add it to your .env.local file.",
+  )
+}
+
 export const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: {

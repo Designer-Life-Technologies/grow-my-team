@@ -1,4 +1,4 @@
-import type { Applicant } from "@/lib/candidate/types"
+import type { Applicant } from "@/lib/applicant/types"
 
 /**
  * Creates an applicant session after successful application submission

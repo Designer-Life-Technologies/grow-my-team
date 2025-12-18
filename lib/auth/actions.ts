@@ -2,7 +2,7 @@
 
 import { getServerSession } from "next-auth"
 import type { ApplicantUser } from "@/hooks/use-applicant-session"
-import type { Applicant } from "@/lib/candidate/types"
+import type { Applicant } from "@/lib/applicant/types"
 import { authConfig } from "./auth.config"
 
 /**

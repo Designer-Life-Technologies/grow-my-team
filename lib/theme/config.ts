@@ -16,7 +16,7 @@ export const getTheme = (themeId?: string): Theme => {
 export const getThemeFromDomain = (hostname: string): string => {
   // Exact domain matches (highest priority)
   const domainMap: Record<string, string> = {
-    "puzzle-candidate.growmy.team": "team-puzzle",
+    "puzzle-applicant.growmy.team": "team-puzzle",
     "client1.growmyteam.com": "default",
     // Add exact domain mappings here
   }

@@ -1,14 +1,20 @@
 import { useState } from "react"
-import type { Applicant } from "@/lib/candidate/types"
 import type { StreamingEvent } from "@/lib/types/streaming"
+
+type ApplicantAuthPayload = {
+  id: string
+  nonce: string
+}
 
 export function useCreateApplicant() {
   const [isStreaming, setIsStreaming] = useState(false)
-  const [events, setEvents] = useState<StreamingEvent<Applicant>[]>([])
+  const [events, setEvents] = useState<StreamingEvent<ApplicantAuthPayload>[]>(
+    [],
+  )
 
   const createApplicant = async (
     formData: FormData,
-    onEvent?: (event: StreamingEvent<Applicant>) => void,
+    onEvent?: (event: StreamingEvent<ApplicantAuthPayload>) => void,
   ) => {
     setIsStreaming(true)
     setEvents([])
@@ -16,14 +22,14 @@ export function useCreateApplicant() {
     try {
       // Call the next.js api route, which is just a proxy for the GMT API route
       // This is done to allow for streaming responses from the GMT API
-      const response = await fetch("/api/candidate/create", {
+      const response = await fetch("/api/applicant/create", {
         method: "POST",
         body: formData,
       })
 
       if (!response.ok) {
         const error = await response.json()
-        const errorEvent: StreamingEvent<Applicant> = {
+        const errorEvent: StreamingEvent<ApplicantAuthPayload> = {
           type: "error",
           message: error.error || "Failed to submit application",
         }
@@ -34,7 +40,7 @@ export function useCreateApplicant() {
       }
 
       if (!response.body) {
-        const errorEvent: StreamingEvent<Applicant> = {
+        const errorEvent: StreamingEvent<ApplicantAuthPayload> = {
           type: "error",
           message: "No response body",
         }
@@ -48,8 +54,8 @@ export function useCreateApplicant() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
-      const receivedEvents: StreamingEvent<Applicant>[] = []
-      let applicantData: Applicant | null = null
+      const receivedEvents: StreamingEvent<ApplicantAuthPayload>[] = []
+      let authData: ApplicantAuthPayload | null = null
 
       while (true) {
         const { done, value } = await reader.read()
@@ -81,24 +87,24 @@ export function useCreateApplicant() {
                     ? Math.max(0, Math.min(100, data.progress))
                     : undefined
 
-                const streamEvent: StreamingEvent<Applicant> = {
-                  type: currentEvent as StreamingEvent<Applicant>["type"],
+                const streamEvent: StreamingEvent<ApplicantAuthPayload> = {
+                  type: currentEvent as StreamingEvent<ApplicantAuthPayload>["type"],
                   message: data.message || currentData,
                   progress: progressValue,
                   data: data.data,
                 }
 
-                // Capture applicant data from success event
+                // Capture auth payload from success event
                 if (currentEvent === "success" && data.data) {
-                  applicantData = data.data as Applicant
+                  authData = data.data as ApplicantAuthPayload
                 }
 
                 receivedEvents.push(streamEvent)
                 setEvents((prev) => [...prev, streamEvent])
                 onEvent?.(streamEvent)
               } catch {
-                const streamEvent: StreamingEvent<Applicant> = {
-                  type: currentEvent as StreamingEvent<Applicant>["type"],
+                const streamEvent: StreamingEvent<ApplicantAuthPayload> = {
+                  type: currentEvent as StreamingEvent<ApplicantAuthPayload>["type"],
                   message: currentData,
                 }
                 receivedEvents.push(streamEvent)
@@ -119,10 +125,10 @@ export function useCreateApplicant() {
       return {
         success: !hasError,
         events: receivedEvents,
-        applicant: applicantData,
+        auth: authData,
       }
     } catch (error) {
-      const errorEvent: StreamingEvent<Applicant> = {
+      const errorEvent: StreamingEvent<ApplicantAuthPayload> = {
         type: "error",
         message: error instanceof Error ? error.message : "Unknown error",
       }
