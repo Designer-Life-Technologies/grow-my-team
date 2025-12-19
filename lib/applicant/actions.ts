@@ -2,7 +2,12 @@
 
 import { callGetMeApi } from "@/lib/api"
 import { logger } from "@/lib/utils/logger"
-import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
+import type {
+  Applicant,
+  ApplicantPublic,
+  DISCProfileTestStatementGroup,
+  ScreeningAnswer,
+} from "./types"
 
 /**
  * Candidate Actions
@@ -37,6 +42,24 @@ export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
   } catch (error) {
     logger.error("Error fetching open positions:", error)
     return []
+  }
+}
+
+export async function getApplicantProfileTest(): Promise<
+  DISCProfileTestStatementGroup[]
+> {
+  try {
+    const data = await callGetMeApi<DISCProfileTestStatementGroup[]>(
+      "/applicant/profile-test",
+      {
+        method: "GET",
+      },
+    )
+
+    return data
+  } catch (error) {
+    logger.error("Error fetching applicant profile test:", error)
+    throw error
   }
 }
 

@@ -7,6 +7,7 @@
 export {
   createApplication,
   findApplication,
+  getApplicantProfileTest,
   getOpenPositions,
   getPositionById,
   submitScreeningAnswers,
@@ -15,6 +16,11 @@ export {
 export type {
   Applicant,
   ApplicantPublic,
+  DISCProfileTestAnswer,
+  DISCProfileTestAnswerCategory,
+  DISCProfileTestAnswerSet,
+  DISCProfileTestStatement,
+  DISCProfileTestStatementGroup,
   ScreeningAnswer,
   ScreeningQuestionsData,
 } from "./types"

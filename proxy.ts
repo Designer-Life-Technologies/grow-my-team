@@ -8,6 +8,21 @@ export default withAuth(
     const { pathname } = request.nextUrl
     const { token } = request.nextauth
 
+    // If a nonce bootstrap is present, always go through the auth callback.
+    // This avoids stale sessions (staff/applicant) preventing the exchange flow.
+    if (pathname === "/profile/test") {
+      const { searchParams } = request.nextUrl
+      const nonce = searchParams.get("n")
+      const applicantId = searchParams.get("applicantId")
+      const email = searchParams.get("email")
+
+      if (nonce && (applicantId || email)) {
+        const callbackUrl = request.nextUrl.clone()
+        callbackUrl.pathname = "/auth/callback"
+        return NextResponse.redirect(callbackUrl)
+      }
+    }
+
     // If user is logged in and trying to access login page,
     // redirect to employer dashboard
     if (token && pathname === "/login") {
@@ -32,7 +47,9 @@ export default withAuth(
         const email = searchParams.get("email")
 
         if (nonce && (applicantId || email)) {
-          return NextResponse.next()
+          const callbackUrl = request.nextUrl.clone()
+          callbackUrl.pathname = "/auth/callback"
+          return NextResponse.redirect(callbackUrl)
         }
       }
 

@@ -74,3 +74,35 @@ export namespace ApplicantPublic {
     created: string
   }
 }
+
+export type DISCProfileTestCategory = "D" | "I" | "S" | "C" | "X"
+
+export type DISCProfileTestStatement = {
+  statement: string
+  category: DISCProfileTestCategory
+}
+
+export type DISCProfileTestStatementGroup = {
+  id: number
+  statements: DISCProfileTestStatement[]
+}
+export type DISCProfileTestStatementGroupByCategory = {
+  id: number
+  statementsByCategory: Partial<
+    Record<DISCProfileTestCategory, DISCProfileTestStatement>
+  >
+}
+
+export type DISCProfileTestAnswerCategory = DISCProfileTestCategory
+
+export type DISCProfileTestAnswer = {
+  id: number
+  most: DISCProfileTestAnswerCategory
+  least: DISCProfileTestAnswerCategory
+}
+
+export type DISCProfileTestAnswerSet = {
+  startedAt: Date
+  completedAt: Date
+  answers: DISCProfileTestAnswer[]
+}
