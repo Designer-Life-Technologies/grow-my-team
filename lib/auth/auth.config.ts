@@ -46,7 +46,7 @@ export const authConfig: NextAuthOptions = {
         token.lastname = user.lastname
         token.accessToken = user.accessToken
         token.expiresIn = user.expiresIn
-        token.userType = user.userType || "staff"
+        token.userType = user.userType || "employer"
 
         // Add expiration time to the token
         if (user.expiresIn) {
@@ -59,7 +59,7 @@ export const authConfig: NextAuthOptions = {
           token.linkedInUrl = user.linkedInUrl
         }
 
-        // Add organisation data to the token (for staff users)
+        // Add organisation data to the token (for employer users)
         // Current the first organisation will be added, this can be replaced
         // with user selection in the future
         if (user.organisations && user.organisations.length > 0) {

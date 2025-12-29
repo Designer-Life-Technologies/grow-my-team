@@ -1,6 +1,7 @@
 "use client"
 
-import { IconLogout, IconUser } from "@tabler/icons-react"
+import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react"
+import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -17,8 +18,9 @@ import { useApplicantSession } from "@/hooks/use-applicant-session"
 /**
  * ApplicantUserMenu Component
  *
- * Displays a user menu for applicants showing their name, email,
- * and logout option. Only visible when an applicant is logged in.
+ * Displays applicant authentication controls in the header.
+ * - When an applicant is logged in, shows avatar dropdown with logout option.
+ * - When no applicant session exists, shows a login link that points to the applicant login page.
  *
  * Features:
  * - Avatar with initials
@@ -29,9 +31,16 @@ import { useApplicantSession } from "@/hooks/use-applicant-session"
 export function ApplicantUserMenu() {
   const { isApplicant, user } = useApplicantSession()
 
-  // Don't show menu if not an applicant
   if (!isApplicant || !user) {
-    return null
+    return (
+      <Link
+        href="/applicant/login"
+        className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+      >
+        <IconLogin className="h-4 w-4" />
+        Login
+      </Link>
+    )
   }
 
   // Generate user initials for avatar fallback

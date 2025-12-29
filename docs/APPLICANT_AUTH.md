@@ -6,7 +6,7 @@ This document describes the applicant authentication system integrated with Next
 
 The application supports two types of users:
 
-1. **Staff Users** - Employees who manage positions and applicants
+1. **Employer Users** - Employees who manage positions and applicants
 2. **Applicant Users** - Applicants who apply for positions
 
 Both user types use the same Next-Auth session system but are distinguished by the `userType` field.
@@ -20,14 +20,14 @@ The session types are extended in `types/next-auth.d.ts` to support applicant us
 ```typescript
 interface User {
   // ... standard fields
-  userType?: "staff" | "applicant";
+  userType?: "employer" | "applicant";
   applicant?: Applicant;
 }
 
 interface Session {
   user: {
     // ... standard fields
-    userType?: "staff" | "applicant";
+    userType?: "employer" | "applicant";
   };
   applicant?: Applicant;
 }
@@ -39,9 +39,9 @@ Two Next-Auth providers are configured:
 
 1. **Credentials Provider** (`lib/auth/providers/credentials.ts`)
 
-   - For staff users
+   - For employer users
    - Authenticates against GetMe.video API
-   - Returns `userType: "staff"`
+   - Returns `userType: "employer"`
 
 2. **Applicant Provider** (`lib/auth/providers/applicant.ts`)
    - For applicant users
@@ -292,11 +292,11 @@ export const config = {
 
 ## Route Protection
 
-### Staff-Only Routes
+### Employer-Only Routes
 
 ```typescript
 // middleware.ts or page.tsx
-if (session?.user?.userType !== "staff") {
+if (session?.user?.userType !== "employer") {
   redirect("/applicant/dashboard");
 }
 ```

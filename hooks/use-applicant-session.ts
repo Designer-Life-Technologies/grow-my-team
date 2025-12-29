@@ -11,7 +11,7 @@ export interface ApplicantUser {
   firstname?: string
   lastname?: string
   image?: string | null
-  userType?: "staff" | "applicant"
+  userType?: "employer" | "applicant"
   mobile?: Phone
   linkedInUrl?: string
 }
@@ -41,7 +41,7 @@ export function useApplicantSession() {
     status,
     /** Whether the session is loading */
     isLoading: status === "loading",
-    /** Whether the user is authenticated (staff or applicant) */
+    /** Whether the user is authenticated (employer or applicant) */
     isAuthenticated: status === "authenticated",
   }
 }

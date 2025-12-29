@@ -5,7 +5,7 @@ import type { Applicant } from "@/lib/applicant/types"
  *
  * This function signs in the applicant user by creating a NextAuth session
  * with the applicant data. The session will be marked as userType: "applicant"
- * to distinguish it from staff users.
+ * to distinguish it from employer users.
  *
  * @param applicant - The applicant data received from the API
  * @returns Promise that resolves when sign-in is complete

@@ -24,7 +24,7 @@ React hooks are functions that let you "hook into" React state and lifecycle fea
 **What it does**:
 
 - Wraps Next-Auth's `useSession` hook with applicant-specific logic
-- Determines if the current user is an applicant (vs. staff user)
+- Determines if the current user is an applicant (vs. employer user)
 - Provides type-safe access to applicant-specific fields (mobile, linkedInUrl)
 - Exposes authentication status and loading states
 

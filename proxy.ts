@@ -9,7 +9,7 @@ export default withAuth(
     const { token } = request.nextauth
 
     // If a nonce bootstrap is present, always go through the auth callback.
-    // This avoids stale sessions (staff/applicant) preventing the exchange flow.
+    // This avoids stale sessions (employer/applicant) preventing the exchange flow.
     if (pathname === "/profile/test") {
       const { searchParams } = request.nextUrl
       const nonce = searchParams.get("n")
@@ -29,7 +29,7 @@ export default withAuth(
       return NextResponse.redirect(new URL("/employer/dashboard", request.url))
     }
 
-    // Employer routes require staff authentication.
+    // Employer routes require employer authentication.
     if (!token && pathname.startsWith("/employer/")) {
       return NextResponse.redirect(new URL("/login", request.url))
     }

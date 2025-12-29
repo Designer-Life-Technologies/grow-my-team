@@ -1,7 +1,8 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { IconArrowLeft } from "@tabler/icons-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useState } from "react"
 
 import { ClientLogo } from "@/components/layout"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils"
 
 export default function ApplicantLoginPage() {
   const { currentTheme } = useTheme()
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const redirectError = searchParams.get("error")
@@ -21,6 +23,15 @@ export default function ApplicantLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+
+  const handleBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+      return
+    }
+
+    router.replace("/dashboard")
+  }, [router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -113,6 +124,14 @@ export default function ApplicantLoginPage() {
             )}
           </CardContent>
         </Card>
+        <button
+          type="button"
+          onClick={handleBack}
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+        >
+          <IconArrowLeft className="h-4 w-4" />
+          Back
+        </button>
       </div>
     </div>
   )
