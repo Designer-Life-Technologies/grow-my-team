@@ -1,4 +1,5 @@
 import type { Applicant } from "@/lib/applicant/types"
+import { logger } from "@/lib/utils/logger"
 
 /**
  * Creates an applicant session after successful application submission
@@ -23,7 +24,7 @@ export async function signInApplicant(applicant: Applicant) {
 
   // TODO: Implement proper NextAuth session creation for applicants
   // This might require a custom provider or server-side session manipulation
-  console.log("Applicant session created:", applicant)
+  logger.info("Applicant session created:", applicant)
 }
 
 /**

@@ -1,18 +1,7 @@
 import Credentials from "next-auth/providers/credentials"
 import type { Applicant } from "@/lib/applicant/types"
-
-type TokenResponse = {
-  access_token: string
-  token_type: "Bearer" | string
-  expires_in: number
-  scope: string
-}
-
-function maskSecret(value: string | undefined, visiblePrefix = 4) {
-  if (!value) return value
-  if (value.length <= visiblePrefix) return "***"
-  return `${value.slice(0, visiblePrefix)}***`
-}
+import { logger } from "@/lib/utils/logger"
+import { maskSecret, type TokenResponse } from "./shared"
 
 /**
  * Applicant Credentials Provider
@@ -49,9 +38,8 @@ export const applicantProvider = Credentials({
     const applicantId = credentials?.id
     const email = credentials?.email
     const nonce = credentials?.nonce
-
     if (!process.env.GETME_API_URL) {
-      console.error("GETME_API_URL is not set")
+      logger.error("GETME_API_URL is not set")
       return null
     }
 
@@ -68,28 +56,25 @@ export const applicantProvider = Credentials({
         nonce,
       }
 
-      console.log("[nextauth][applicant] POST /applicant/auth/token request", {
-        url: `${process.env.GETME_API_URL}/applicant/auth/token`,
+      logger.info("[nextauth][applicant] POST /v1/auth/token request", {
+        url: `${process.env.GETME_API_URL}/auth/token`,
         body: {
           ...tokenRequestBody,
           nonce: maskSecret(nonce, 6),
         },
       })
 
-      const tokenRes = await fetch(
-        `${process.env.GETME_API_URL}/applicant/auth/token`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(tokenRequestBody),
+      const tokenRes = await fetch(`${process.env.GETME_API_URL}/auth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      )
+        body: JSON.stringify(tokenRequestBody),
+      })
 
       if (!tokenRes.ok) {
         const text = await tokenRes.text().catch(() => "")
-        console.error("Applicant token exchange failed", {
+        logger.error("Applicant token exchange failed", {
           status: tokenRes.status,
           body: text || undefined,
         })
@@ -107,7 +92,7 @@ export const applicantProvider = Credentials({
         }
       })()
 
-      console.log("[nextauth][applicant] POST /applicant/auth/token response", {
+      logger.info("[nextauth][applicant] POST /v1/auth/token response", {
         status: tokenRes.status,
         ok: tokenRes.ok,
         body:
@@ -144,7 +129,7 @@ export const applicantProvider = Credentials({
 
       if (!applicantRes.ok) {
         const text = await applicantRes.text().catch(() => "")
-        console.error("Applicant profile fetch failed", {
+        logger.error("Applicant profile fetch failed", {
           status: applicantRes.status,
           body: text || undefined,
         })
@@ -153,8 +138,6 @@ export const applicantProvider = Credentials({
 
       const applicantData = (await applicantRes.json()) as Applicant
 
-      // Return user object with applicant type
-      // Flatten applicant data into user object to avoid duplication
       return {
         id: applicantData.id,
         email:
@@ -173,7 +156,7 @@ export const applicantProvider = Credentials({
         linkedInUrl: applicantData.linkedInUrl,
       }
     } catch (error) {
-      console.error("Error authenticating applicant:", error)
+      logger.error("Error authenticating applicant:", error)
       return null
     }
   },

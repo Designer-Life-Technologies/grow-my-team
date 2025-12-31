@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { StreamingEvent } from "@/lib/types/streaming"
+import { logger } from "@/lib/utils/logger"
 
 type ApplicantAuthPayload = {
   id: string
@@ -80,7 +81,7 @@ export function useCreateApplicant() {
             if (currentData) {
               try {
                 const data = JSON.parse(currentData)
-                console.log("📦 SSE Data received:", data)
+                logger.info("📦 SSE Data received:", data)
 
                 const progressValue =
                   typeof data.progress === "number"

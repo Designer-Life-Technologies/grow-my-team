@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import type { DISCProfileTestStatementGroup } from "@/lib/applicant"
+import type { DISCProfileTestStatementGroup } from "@/lib/profiletest/types"
 
 function formatElapsed(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)

@@ -2,140 +2,96 @@
 
 // Client-side UI for the applicant personality profile test.
 
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Loader2 } from "lucide-react"
 import type { ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { getDISC, submitDISCAnswers } from "@/lib/profiletest/DISC/actions"
 import type {
-  DISCProfileTestAnswer,
-  DISCProfileTestAnswerSet,
-  DISCProfileTestStatementGroup,
-} from "@/lib/applicant"
+  DISCAnswer,
+  DISCAnswerSet,
+  DISCQuestionnaire as DISCQuestionnaireType,
+} from "@/lib/profiletest/types"
 import { TestSequenceClient } from "./TestSequenceClient"
 
+// Internal state type for tracking answers per group.
 type GroupAnswer = {
   mostIndex: number | null
   leastIndex: number | null
 }
 
-type PersistedAnswerSet = {
-  startedAt: string
-  completedAt: string
-  answers: DISCProfileTestAnswer[]
-}
-
-export function ProfileTestClient({
+export function DISCQuestionnaire({
+  applicationId,
   instructions,
   profileTest,
 }: {
+  applicationId: string
   instructions: ReactNode
-  profileTest: DISCProfileTestStatementGroup[]
+  profileTest: DISCQuestionnaireType
 }) {
-  const storageKey = "applicantProfileTestProgress"
-
+  const [isLoading, setIsLoading] = useState(true)
   const [hasStarted, setHasStarted] = useState(false)
   const [groupIndex, setGroupIndex] = useState(0)
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [answers, setAnswers] = useState<Record<string, GroupAnswer>>({})
   const [completedAt, setCompletedAt] = useState<number | null>(null)
-  const [hydratedAnswerSetAnswers, setHydratedAnswerSetAnswers] = useState<
-    DISCProfileTestAnswer[] | null
-  >(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Fetch initial state from server
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as {
-        hasStarted?: boolean
-        groupIndex?: number
-        startedAt?: number
-        answers?: Record<string, GroupAnswer>
-        completedAt?: number
-        answerSet?: PersistedAnswerSet
-      }
-
-      if (parsed.hasStarted) {
-        setHasStarted(true)
-      }
-
-      if (typeof parsed.groupIndex === "number" && parsed.groupIndex >= 0) {
-        setGroupIndex(parsed.groupIndex)
-      }
-
-      if (typeof parsed.startedAt === "number" && parsed.startedAt > 0) {
-        setStartedAt(parsed.startedAt)
-      }
-
-      if (typeof parsed.completedAt === "number" && parsed.completedAt > 0) {
-        setCompletedAt(parsed.completedAt)
-      }
-
-      if (
-        parsed.answerSet?.startedAt &&
-        typeof parsed.answerSet.startedAt === "string"
-      ) {
-        const revivedStartedAt = Date.parse(parsed.answerSet.startedAt)
-        if (!Number.isNaN(revivedStartedAt)) {
-          setStartedAt((existing) => existing ?? revivedStartedAt)
+    async function loadStatus() {
+      try {
+        const status = await getDISC(applicationId)
+        if (status.startedAt) {
+          setHasStarted(true)
+          setStartedAt(new Date(status.startedAt).getTime())
         }
-      }
-
-      if (
-        parsed.answerSet?.completedAt &&
-        typeof parsed.answerSet.completedAt === "string"
-      ) {
-        const revivedCompletedAt = Date.parse(parsed.answerSet.completedAt)
-        if (!Number.isNaN(revivedCompletedAt)) {
-          setCompletedAt((existing) => existing ?? revivedCompletedAt)
+        if (status.completedAt) {
+          setCompletedAt(new Date(status.completedAt).getTime())
         }
-      }
+        if (status.answers && status.answers.length > 0) {
+          const next: Record<string, GroupAnswer> = {}
+          for (const answer of status.answers) {
+            const group = profileTest.find((g) => g.id === answer.id)
+            if (!group) continue
 
-      if (
-        parsed.answerSet?.answers &&
-        Array.isArray(parsed.answerSet.answers)
-      ) {
-        setHydratedAnswerSetAnswers(parsed.answerSet.answers)
-      }
+            const mostIndex = group.statements.findIndex(
+              (s) => s.category === answer.most,
+            )
+            const leastIndex = group.statements.findIndex(
+              (s) => s.category === answer.least,
+            )
 
-      if (parsed.answers && typeof parsed.answers === "object") {
-        setAnswers(parsed.answers)
-      }
-    } catch {
-      // Ignore malformed localStorage entries.
-    }
-  }, [])
+            next[String(group.id)] = {
+              mostIndex: mostIndex >= 0 ? mostIndex : null,
+              leastIndex: leastIndex >= 0 ? leastIndex : null,
+            }
+          }
+          setAnswers(next)
 
-  useEffect(() => {
-    if (!hydratedAnswerSetAnswers) return
-    if (!profileTest.length) return
-
-    const next: Record<string, GroupAnswer> = {}
-
-    for (const answer of hydratedAnswerSetAnswers) {
-      const group = profileTest.find((g) => g.id === answer.id)
-      if (!group) continue
-
-      const mostIndex = group.statements.findIndex(
-        (s) => s.category === answer.most,
-      )
-      const leastIndex = group.statements.findIndex(
-        (s) => s.category === answer.least,
-      )
-
-      next[String(group.id)] = {
-        mostIndex: mostIndex >= 0 ? mostIndex : null,
-        leastIndex: leastIndex >= 0 ? leastIndex : null,
+          // Set group index to the first unanswered group
+          const firstUnanswered = profileTest.findIndex(
+            (g) => !next[String(g.id)] || next[String(g.id)].mostIndex === null,
+          )
+          if (firstUnanswered !== -1) {
+            setGroupIndex(firstUnanswered)
+          } else if (status.completedAt) {
+            setGroupIndex(profileTest.length - 1)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load DISC status:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
+    loadStatus()
+  }, [applicationId, profileTest])
 
-    setAnswers(next)
-  }, [hydratedAnswerSetAnswers, profileTest])
-
-  const answerSet = useMemo(() => {
+  const currentAnswerSet = useMemo(() => {
     if (!startedAt) return null
 
-    const out: DISCProfileTestAnswer[] = []
+    const out: DISCAnswer[] = []
 
     for (const group of profileTest) {
       const key = String(group.id)
@@ -151,46 +107,32 @@ export function ProfileTestClient({
       out.push({ id: group.id, most, least })
     }
 
-    const completed = completedAt ?? Date.now()
-    const set: DISCProfileTestAnswerSet = {
+    const completed = completedAt ?? null
+    const set: DISCAnswerSet = {
       startedAt: new Date(startedAt),
-      completedAt: new Date(completed),
+      completedAt: completed ? new Date(completed) : undefined,
       answers: out,
     }
 
     return set
   }, [answers, completedAt, profileTest, startedAt])
 
-  useEffect(() => {
-    try {
-      const persistedAnswerSet: PersistedAnswerSet | null = answerSet
-        ? {
-            startedAt: answerSet.startedAt.toISOString(),
-            completedAt: answerSet.completedAt.toISOString(),
-            answers: answerSet.answers,
-          }
-        : null
+  const persistAnswers = useCallback(
+    async (overrideSet?: DISCAnswerSet) => {
+      const setToPersist = overrideSet ?? currentAnswerSet
+      if (!setToPersist) return
 
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          hasStarted,
-          groupIndex,
-          startedAt,
-          completedAt,
-          answerSet: persistedAnswerSet,
-        }),
-      )
-    } catch {
-      // Ignore write failures (e.g., storage disabled).
-    }
-  }, [answerSet, completedAt, groupIndex, hasStarted, startedAt])
-
-  useEffect(() => {
-    if (!hasStarted) return
-    if (startedAt !== null) return
-    setStartedAt(Date.now())
-  }, [hasStarted, startedAt])
+      setIsSubmitting(true)
+      try {
+        await submitDISCAnswers(applicationId, setToPersist)
+      } catch (error) {
+        console.error("Failed to persist DISC answers:", error)
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [applicationId, currentAnswerSet],
+  )
 
   const totalGroups = profileTest.length
 
@@ -219,23 +161,38 @@ export function ProfileTestClient({
     currentGroupAnswer.leastIndex !== null &&
     currentGroupAnswer.mostIndex !== currentGroupAnswer.leastIndex
 
-  function handleStart() {
+  async function handleStart() {
     if (hasStarted) return
+    const now = Date.now()
     setHasStarted(true)
-    if (!startedAt) {
-      setStartedAt(Date.now())
-    }
+    setStartedAt(now)
+
+    await persistAnswers({
+      startedAt: new Date(now),
+      answers: [],
+    })
   }
 
-  function handleNextGroup() {
+  async function handleNextGroup() {
     if (!canGoNext) return
-    setGroupIndex((prev) => {
-      if (prev >= totalGroups - 1) {
-        setCompletedAt((existing) => existing ?? Date.now())
-        return prev
+
+    const isLastGroup = groupIndex >= totalGroups - 1
+    const newCompletedAt = isLastGroup ? Date.now() : null
+
+    if (isLastGroup) {
+      setCompletedAt(newCompletedAt)
+    } else {
+      setGroupIndex((prev) => prev + 1)
+    }
+
+    // Persist to server
+    if (currentAnswerSet) {
+      const setToPersist = {
+        ...currentAnswerSet,
+        completedAt: newCompletedAt ? new Date(newCompletedAt) : undefined,
       }
-      return prev + 1
-    })
+      await persistAnswers(setToPersist)
+    }
   }
 
   function setMostIndex(groupId: number, mostIndex: number | null) {
@@ -268,6 +225,17 @@ export function ProfileTestClient({
     })
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-sm text-muted-foreground">
+          Loading your progress...
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {!hasStarted ? (
@@ -275,7 +243,14 @@ export function ProfileTestClient({
           <div className="mt-2 space-y-6 text-sm text-muted-foreground">
             {instructions}
             <div className="flex justify-end pt-2">
-              <Button type="button" onClick={handleStart}>
+              <Button
+                type="button"
+                onClick={handleStart}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 Start
               </Button>
             </div>
@@ -308,11 +283,10 @@ export function ProfileTestClient({
                   <span>You may be contacted if your profile is a match</span>
                 </li>
               </ul>
+              <p className="mt-6 text-xs text-muted-foreground">
+                We appreciate your time.
+              </p>
             </div>
-
-            <p className="mt-6 text-xs text-muted-foreground">
-              We appreciate your time.
-            </p>
           </div>
         </div>
       ) : (
@@ -323,7 +297,7 @@ export function ProfileTestClient({
           startedAt={startedAt}
           mostIndex={currentGroupAnswer.mostIndex}
           leastIndex={currentGroupAnswer.leastIndex}
-          canGoNext={canGoNext}
+          canGoNext={canGoNext && !isSubmitting}
           onSelectMost={(index: number) => {
             if (!currentGroup) return
             setMostIndex(currentGroup.id, index)

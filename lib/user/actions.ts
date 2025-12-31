@@ -1,6 +1,7 @@
 "use server"
 
 import { callGetMeApi } from "@/lib/api"
+import { logger } from "@/lib/utils/logger"
 import type { RegisterUserResult, UserProfile } from "./types"
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
@@ -8,7 +9,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile> {
     const user = await callGetMeApi<UserProfile>(`/user`)
     return user
   } catch (error) {
-    console.error("Error fetching user profile:", error)
+    logger.error("Error fetching user profile:", error)
     throw error
   }
 }
@@ -18,7 +19,7 @@ export async function getUserProfileById(id: string): Promise<UserProfile> {
     const user = await callGetMeApi<UserProfile>(`/user/${id}`)
     return user
   } catch (error) {
-    console.error("Error fetching user profile:", error)
+    logger.error("Error fetching user profile:", error)
     throw error
   }
 }

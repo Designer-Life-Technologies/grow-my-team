@@ -25,10 +25,12 @@ declare module "next-auth" {
     refreshToken?: string
     expiresIn?: number
     // User type discriminator
-    userType?: "employer" | "applicant"
+    userType?: "employer" | "applicant" | "application"
     // Applicant-specific fields (only what's not already in User)
     mobile?: Phone
     linkedInUrl?: string
+    applicationId?: string
+    vacancyId?: string
   }
 
   /**
@@ -41,10 +43,12 @@ declare module "next-auth" {
       email?: string | null
       firstname?: string
       lastname?: string
-      userType?: "employer" | "applicant"
+      userType?: "employer" | "applicant" | "application"
       // Applicant-specific fields available in session
       mobile?: Phone
       linkedInUrl?: string
+      applicationId?: string
+      vacancyId?: string
     } & DefaultSession["user"]
     organisation?: {
       id: string
@@ -74,9 +78,11 @@ declare module "next-auth/jwt" {
       roles: string[]
     }
     // User type discriminator
-    userType?: "employer" | "applicant"
+    userType?: "employer" | "applicant" | "application"
     // Applicant-specific fields
     mobile?: Phone
     linkedInUrl?: string
+    applicationId?: string
+    vacancyId?: string
   }
 }

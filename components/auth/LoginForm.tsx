@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+import { logger } from "@/lib/utils/logger"
 import { ClientLogo } from "../layout"
 
 export function LoginForm({
@@ -32,7 +33,9 @@ export function LoginForm({
     setError(null)
 
     try {
-      console.log("Login: ", formData)
+      logger.info("Login attempt", {
+        username: formData.username,
+      })
       const result = await signIn("credentials", {
         username: formData.username,
         password: formData.password,
@@ -47,7 +50,7 @@ export function LoginForm({
         router.refresh()
       }
     } catch (error) {
-      console.error("Login error:", error)
+      logger.error("Login error:", error)
       setError("An error occurred. Please try again.")
       setIsLoading(false)
     }

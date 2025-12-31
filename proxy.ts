@@ -8,21 +8,6 @@ export default withAuth(
     const { pathname } = request.nextUrl
     const { token } = request.nextauth
 
-    // If a nonce bootstrap is present, always go through the auth callback.
-    // This avoids stale sessions (employer/applicant) preventing the exchange flow.
-    if (pathname === "/profile/test") {
-      const { searchParams } = request.nextUrl
-      const nonce = searchParams.get("n")
-      const applicantId = searchParams.get("applicantId")
-      const email = searchParams.get("email")
-
-      if (nonce && (applicantId || email)) {
-        const callbackUrl = request.nextUrl.clone()
-        callbackUrl.pathname = "/auth/callback"
-        return NextResponse.redirect(callbackUrl)
-      }
-    }
-
     // If user is logged in and trying to access login page,
     // redirect to employer dashboard
     if (token && pathname === "/login") {
@@ -34,26 +19,49 @@ export default withAuth(
       return NextResponse.redirect(new URL("/login", request.url))
     }
 
-    // Applicant protected routes should use the applicant login page.
-    if (
-      !token &&
-      (pathname.startsWith("/profile/") || pathname.startsWith("/dashboard/"))
-    ) {
-      // Allow the nonce bootstrap flow for the test page so it can redirect to /auth/callback.
-      if (pathname === "/profile/test") {
-        const { searchParams } = request.nextUrl
-        const nonce = searchParams.get("n")
-        const applicantId = searchParams.get("applicantId")
-        const email = searchParams.get("email")
+    // Application-scope users only have access to /application/[id]/* routes.
+    if (token?.userType === "application") {
+      if (!pathname.startsWith("/application/")) {
+        return NextResponse.redirect(new URL("/", request.url))
+      }
+      return NextResponse.next()
+    }
 
-        if (nonce && (applicantId || email)) {
-          const callbackUrl = request.nextUrl.clone()
-          callbackUrl.pathname = "/auth/callback"
-          return NextResponse.redirect(callbackUrl)
-        }
+    // Applicant protected routes.
+    if (!token) {
+      if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+        return NextResponse.redirect(new URL("/", request.url))
       }
 
-      return NextResponse.redirect(new URL("/applicant/login", request.url))
+      if (pathname.startsWith("/application/")) {
+        const pathParts = pathname.split("/")
+        const id = pathParts.length >= 3 ? pathParts[2] : null
+        const isPinPage = pathParts.length >= 4 && pathParts[3] === "pin"
+        if (!id) {
+          return NextResponse.redirect(new URL("/", request.url))
+        }
+        if (isPinPage) {
+          return NextResponse.next()
+        }
+        const pinUrl = new URL(`/application/${id}/pin`, request.url)
+        pinUrl.searchParams.set("next", pathname)
+        return NextResponse.redirect(pinUrl)
+      }
+    } else if (token.userType === "applicant") {
+      // Applicants are redirected to PIN entry if they try to access /application/[id]/*
+      if (pathname.startsWith("/application/")) {
+        const pathParts = pathname.split("/")
+        if (pathParts.length >= 3) {
+          const id = pathParts[2]
+          const isPinPage = pathParts.length >= 4 && pathParts[3] === "pin"
+          if (isPinPage) {
+            return NextResponse.next()
+          }
+          const pinUrl = new URL(`/application/${id}/pin`, request.url)
+          pinUrl.searchParams.set("next", pathname)
+          return NextResponse.redirect(pinUrl)
+        }
+      }
     }
 
     return NextResponse.next()
@@ -76,7 +84,7 @@ export default withAuth(
 export const config = {
   matcher: [
     "/employer/:path*", // All employer routes (dashboard, positions, candidates, settings)
-    "/profile/:path*", // Applicant authenticated routes
+    "/application/:path*", // Applicant application routes
     "/dashboard/:path*", // Applicant authenticated routes
   ],
 }

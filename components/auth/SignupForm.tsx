@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
 import { registerUser } from "@/lib/user/actions"
 import { cn } from "@/lib/utils"
+import { logger } from "@/lib/utils/logger"
 
 import { ClientLogo } from "../layout"
 
@@ -64,7 +65,7 @@ export function SignupForm({
         setIsLoading(false)
       }
     } catch (err) {
-      console.error("Signup error:", err)
+      logger.error("Signup error:", err)
       setError("An error occurred. Please try again.")
       setIsLoading(false)
     }

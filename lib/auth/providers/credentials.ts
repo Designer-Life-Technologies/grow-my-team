@@ -1,5 +1,7 @@
 import Credentials from "next-auth/providers/credentials"
 
+import { logger } from "@/lib/utils/logger"
+
 export const credentialsProvider = Credentials({
   name: "Credentials",
   credentials: {
@@ -28,8 +30,8 @@ export const credentialsProvider = Credentials({
 
     try {
       // Make a request to the GetMe.video API token endpoint
-      console.log("Attempting to authorize with GetMe.video API...")
-      console.log(`API URL: ${process.env.GETME_API_URL}/auth/token`)
+      logger.info("Attempting to authorize with GetMe.video API...")
+      logger.info(`API URL: ${process.env.GETME_API_URL}/auth/token`)
 
       const response = await fetch(`${process.env.GETME_API_URL}/auth/token`, {
         method: "POST",
@@ -45,13 +47,13 @@ export const credentialsProvider = Credentials({
 
       if (!response.ok) {
         const errorBody = await response.text()
-        console.error(`API Error: ${response.status} ${response.statusText}`)
-        console.error("API Response Body:", errorBody)
+        logger.error(`API Error: ${response.status} ${response.statusText}`)
+        logger.error("API Response Body:", errorBody)
         return null
       }
 
       const data = await response.json()
-      console.log("Token request successful: ", data)
+      logger.info("Token request successful: ", data)
 
       // Get user info from the API
       const userResponse = await fetch(`${process.env.GETME_API_URL}/user`, {
@@ -64,15 +66,15 @@ export const credentialsProvider = Credentials({
 
       if (!userResponse.ok) {
         const errorBody = await userResponse.text()
-        console.error(
+        logger.error(
           `API Error: ${userResponse.status} ${userResponse.statusText}`,
         )
-        console.error("API Response Body:", errorBody)
+        logger.error("API Response Body:", errorBody)
         return null
       }
 
       const userData = await userResponse.json()
-      console.log("User info request successful: ", userData)
+      logger.info("User info request successful: ", userData)
 
       // Attach the access token to the user object
       return {
@@ -86,7 +88,7 @@ export const credentialsProvider = Credentials({
         expiresIn: data.expires_in,
       }
     } catch (error) {
-      console.error("Network or other error during authorization:", error)
+      logger.error("Network or other error during authorization:", error)
       return null
     }
   },

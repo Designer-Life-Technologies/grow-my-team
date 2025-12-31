@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test"
 
+import { logger } from "@/lib/utils/logger"
+
 test("should navigate to the theme showcase page", async ({ page }) => {
   // Go directly to the theme showcase page under dev routes
   await page.goto("/dev/theme-showcase")
@@ -60,7 +62,7 @@ test("theme selector changes theme", async ({ page }) => {
   )
   if (optionsCount <= 1) {
     // Skip test if only one theme is available
-    console.log("Skipping theme selector test - only one theme available")
+    logger.info("Skipping theme selector test - only one theme available")
     return
   }
 
@@ -83,7 +85,7 @@ test("theme selector changes theme", async ({ page }) => {
   )
 
   if (differentOptionIndex === -1) {
-    console.log(
+    logger.info(
       "Skipping theme selector test - could not find a different theme",
     )
     return

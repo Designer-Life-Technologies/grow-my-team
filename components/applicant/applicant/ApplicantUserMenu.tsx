@@ -29,7 +29,12 @@ import { useApplicantSession } from "@/hooks/use-applicant-session"
  * - Dropdown menu interface
  */
 export function ApplicantUserMenu() {
-  const { isApplicant, user } = useApplicantSession()
+  const { isApplicant, isApplicationUser, user } = useApplicantSession()
+
+  // Application-scoped users should not see the applicant menu at all
+  if (isApplicationUser) {
+    return null
+  }
 
   if (!isApplicant || !user) {
     return (
