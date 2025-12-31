@@ -6,6 +6,8 @@ import type { ApiOptions } from "./types"
 
 const BASE_URL = process.env.GETME_API_URL
 
+type GetMeApiError = Error & { status?: number }
+
 async function callGetMeApi<T>(
   path: string,
   options: ApiOptions = {},
@@ -19,7 +21,11 @@ async function callGetMeApi<T>(
     cookieStore.get("__Secure-next-auth.session-token")?.value
 
   if (!sessionToken) {
-    throw new Error("Not authenticated - no session token found")
+    const error = new Error(
+      "Not authenticated - no session token found",
+    ) as GetMeApiError
+    error.status = 401
+    throw error
   }
 
   // Decode the JWT token to get the access token
@@ -34,7 +40,9 @@ async function callGetMeApi<T>(
 
   const accessToken = token?.accessToken
   if (!accessToken) {
-    throw new Error("Not authenticated")
+    const error = new Error("Not authenticated") as GetMeApiError
+    error.status = 401
+    throw error
   }
 
   const { method = "GET", body, headers = {}, ...rest } = options
@@ -57,11 +65,14 @@ async function callGetMeApi<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(
+    const message =
       errorData.error?.error_message ||
-        errorData.detail ||
-        `HTTP error! status: ${response.status}`,
-    )
+      errorData.detail ||
+      `HTTP error! status: ${response.status}`
+
+    const error = new Error(message) as GetMeApiError
+    error.status = response.status
+    throw error
   }
 
   return response.json() as Promise<T>

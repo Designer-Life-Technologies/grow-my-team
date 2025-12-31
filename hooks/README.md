@@ -22,38 +22,42 @@ React hooks are functions that let you "hook into" React state and lifecycle fea
 **Purpose**: Provides easy access to applicant-specific session data and authentication state.
 
 **What it does**:
+
 - Wraps Next-Auth's `useSession` hook with applicant-specific logic
-- Determines if the current user is an applicant (vs. staff user)
+- Determines if the current user is an applicant (vs. employer user)
 - Provides type-safe access to applicant-specific fields (mobile, linkedInUrl)
 - Exposes authentication status and loading states
 
 **Returns**:
+
 ```typescript
 {
-  isApplicant: boolean          // True if user type is "applicant"
-  user: ApplicantUser | null    // Applicant user data (null if not applicant)
-  session: Session | null       // Full Next-Auth session object
-  status: string                // Session status: "loading" | "authenticated" | "unauthenticated"
-  isLoading: boolean            // True while session is loading
-  isAuthenticated: boolean      // True if any user is authenticated
+  isApplicant: boolean; // True if user type is "applicant"
+  user: ApplicantUser | null; // Applicant user data (null if not applicant)
+  session: Session | null; // Full Next-Auth session object
+  status: string; // Session status: "loading" | "authenticated" | "unauthenticated"
+  isLoading: boolean; // True while session is loading
+  isAuthenticated: boolean; // True if any user is authenticated
 }
 ```
 
 **Usage Example**:
+
 ```typescript
-import { useApplicantSession } from "@/hooks/use-applicant-session"
+import { useApplicantSession } from "@/hooks/use-applicant-session";
 
 function MyComponent() {
-  const { isApplicant, user, isLoading } = useApplicantSession()
+  const { isApplicant, user, isLoading } = useApplicantSession();
 
-  if (isLoading) return <div>Loading...</div>
-  if (!isApplicant) return <div>Access denied</div>
+  if (isLoading) return <div>Loading...</div>;
+  if (!isApplicant) return <div>Access denied</div>;
 
-  return <div>Welcome, {user?.firstname}!</div>
+  return <div>Welcome, {user?.firstname}!</div>;
 }
 ```
 
 **When to use**:
+
 - In applicant-facing components that need to check authentication
 - When you need access to applicant-specific data (mobile, linkedInUrl)
 - To conditionally render UI based on user type
@@ -67,14 +71,16 @@ function MyComponent() {
 **Purpose**: Manages the applicant creation process with real-time streaming updates during job application submission.
 
 **What it does**:
-- Handles form submission to the `/api/candidate/create` endpoint
-- Creates a new applicant (candidate) record in GetMe.video
+
+- Handles form submission to the `/api/applicant/create` endpoint
+- Creates a new applicant record in GetMe.video
 - Processes Server-Sent Events (SSE) for real-time progress updates
 - Manages streaming state and event collection
 - Extracts applicant data from successful responses
 - Provides error handling and recovery
 
 **Returns**:
+
 ```typescript
 {
   createApplicant: (formData: FormData, onEvent?: (event: StreamingEvent) => void) => Promise<{
@@ -88,37 +94,40 @@ function MyComponent() {
 ```
 
 **Usage Example**:
+
 ```typescript
-import { useCreateApplicant } from "@/hooks/use-create-applicant"
+import { useCreateApplicant } from "@/hooks/use-create-applicant";
 
 function ApplicationForm() {
-  const { createApplicant, isStreaming } = useCreateApplicant()
+  const { createApplicant, isStreaming } = useCreateApplicant();
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    const formData = new FormData()
-    formData.append("resume", file)
-    formData.append("vacancyId", positionId)
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("resume", file);
+    formData.append("vacancyId", positionId);
 
     const result = await createApplicant(formData, (event) => {
-      console.log("Progress:", event.message)
-    })
+      console.log("Progress:", event.message);
+    });
 
     if (result.success) {
-      console.log("Applicant created:", result.applicant)
+      console.log("Applicant created:", result.applicant);
     }
-  }
+  };
 
-  return <button disabled={isStreaming}>Submit</button>
+  return <button disabled={isStreaming}>Submit</button>;
 }
 ```
 
 **When to use**:
+
 - When submitting job applications with resume uploads
 - When you need real-time feedback during long-running operations
 - To display progress updates to users during AI processing
 
 **Event Types**:
+
 - `info`: Informational messages about progress
 - `success`: Operation completed successfully
 - `error`: An error occurred
@@ -133,36 +142,32 @@ function ApplicationForm() {
 **Purpose**: Detects whether the current viewport is mobile-sized and responds to window resize events.
 
 **What it does**:
+
 - Monitors window width using the `matchMedia` API
 - Updates state when viewport crosses the mobile breakpoint (768px)
 - Handles cleanup to prevent memory leaks
 - Returns `undefined` during SSR, then updates on client
 
 **Returns**:
+
 ```typescript
-boolean  // True if viewport width < 768px
+boolean; // True if viewport width < 768px
 ```
 
 **Usage Example**:
+
 ```typescript
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile";
 
 function ResponsiveComponent() {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
 
-  return (
-    <div>
-      {isMobile ? (
-        <MobileMenu />
-      ) : (
-        <DesktopMenu />
-      )}
-    </div>
-  )
+  return <div>{isMobile ? <MobileMenu /> : <DesktopMenu />}</div>;
 }
 ```
 
 **When to use**:
+
 - To conditionally render mobile vs. desktop UI
 - When you need to adjust behavior based on screen size
 - For responsive navigation, sidebars, or modals

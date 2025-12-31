@@ -1,6 +1,14 @@
 import type { NextAuthOptions } from "next-auth"
 import { applicantProvider } from "./providers/applicant"
 import { credentialsProvider } from "./providers/credentials"
+import { pinProvider } from "./providers/pin"
+
+// Validate that NEXTAUTH_SECRET is defined
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    "NEXTAUTH_SECRET environment variable is not defined. Please add it to your .env.local file.",
+  )
+}
 
 export const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -21,11 +29,15 @@ export const authConfig: NextAuthOptions = {
         if (session.user.email !== undefined) {
           token.email = session.user.email
         }
-        if (session.user.mobile !== undefined) {
-          token.mobile = session.user.mobile
-        }
-        if (session.user.linkedInUrl !== undefined) {
-          token.linkedInUrl = session.user.linkedInUrl
+        // Handle applicant/application users - flatten specific fields
+        if (
+          session.user.userType === "applicant" ||
+          session.user.userType === "application"
+        ) {
+          if (session.user.mobile !== undefined)
+            token.mobile = session.user.mobile
+          if (session.user.linkedInUrl !== undefined)
+            token.linkedInUrl = session.user.linkedInUrl
         }
         return token
       }
@@ -39,20 +51,22 @@ export const authConfig: NextAuthOptions = {
         token.lastname = user.lastname
         token.accessToken = user.accessToken
         token.expiresIn = user.expiresIn
-        token.userType = user.userType || "staff"
+        token.userType = user.userType || "employer"
+        token.applicationId = user.applicationId
+        token.vacancyId = user.vacancyId
 
         // Add expiration time to the token
         if (user.expiresIn) {
           token.expires = Math.floor(Date.now() / 1000) + user.expiresIn
         }
 
-        // Handle applicant users - flatten applicant-specific fields
-        if (user.userType === "applicant") {
+        // Handle applicant/application users - flatten specific fields
+        if (user.userType === "applicant" || user.userType === "application") {
           token.mobile = user.mobile
           token.linkedInUrl = user.linkedInUrl
         }
 
-        // Add organisation data to the token (for staff users)
+        // Add organisation data to the token (for employer users)
         // Current the first organisation will be added, this can be replaced
         // with user selection in the future
         if (user.organisations && user.organisations.length > 0) {
@@ -97,10 +111,15 @@ export const authConfig: NextAuthOptions = {
         user.firstname = token.firstname
         user.lastname = token.lastname
 
-        // Add applicant-specific fields to session user (for applicant users)
-        if (token.userType === "applicant") {
+        // Add applicant/application fields to session user
+        if (
+          token.userType === "applicant" ||
+          token.userType === "application"
+        ) {
           user.mobile = token.mobile
           user.linkedInUrl = token.linkedInUrl
+          user.applicationId = token.applicationId
+          user.vacancyId = token.vacancyId
         }
       }
 
@@ -116,5 +135,5 @@ export const authConfig: NextAuthOptions = {
       return session
     },
   },
-  providers: [credentialsProvider, applicantProvider],
+  providers: [credentialsProvider, applicantProvider, pinProvider],
 }

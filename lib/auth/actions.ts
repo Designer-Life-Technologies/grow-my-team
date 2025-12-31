@@ -2,7 +2,8 @@
 
 import { getServerSession } from "next-auth"
 import type { ApplicantUser } from "@/hooks/use-applicant-session"
-import type { Applicant } from "@/lib/candidate/types"
+import type { Applicant } from "@/lib/applicant/types"
+import { logger } from "@/lib/utils/logger"
 import { authConfig } from "./auth.config"
 
 /**
@@ -33,7 +34,7 @@ export async function createApplicantSession(applicant: Applicant) {
       message: "Applicant data ready for session creation",
     }
   } catch (error) {
-    console.error("Error creating applicant session:", error)
+    logger.error("Error creating applicant session:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -56,15 +57,17 @@ export async function getApplicantSessionServer() {
 
     const user = session.user as ApplicantUser | undefined
     const isApplicant = user?.userType === "applicant"
+    const isApplicationUser = user?.userType === "application"
 
     return {
       isApplicant,
+      isApplicationUser,
       session,
-      // Return user data if applicant (includes mobile, linkedInUrl)
-      user: isApplicant ? user : null,
+      // Return user data if applicant or application user (includes mobile, linkedInUrl)
+      user: isApplicant || isApplicationUser ? user : null,
     }
   } catch (error) {
-    console.error("Error getting applicant session:", error)
+    logger.error("Error getting applicant session:", error)
     return { isApplicant: false, session: null }
   }
 }

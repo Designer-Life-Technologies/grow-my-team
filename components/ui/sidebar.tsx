@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { logger } from "@/lib/utils/logger"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -96,7 +97,7 @@ function SidebarProvider({
           )
         } catch (error) {
           // Silently handle cookie setting errors
-          console.warn("Failed to set sidebar state cookie:", error)
+          logger.warn("Failed to set sidebar state cookie:", error)
         }
       }
     },

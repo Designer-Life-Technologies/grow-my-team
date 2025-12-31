@@ -42,7 +42,6 @@ The following routes are protected and require authentication:
 - `/` (Home page)
 - `/dashboard/*`
 - `/positions/*`
-- `/candidates/*`
 - `/settings/*`
 
 ## Server-Side API Integration
@@ -54,21 +53,22 @@ The authentication system provides secure server-side access to the GetMe.video 
 A utility function `callGetMeApi` is available at `lib/api/index.ts` for making authenticated requests to the GetMe.video API:
 
 ```typescript
-import { callGetMeApi } from '@/lib/api'
+import { callGetMeApi } from "@/lib/api";
 
 // Example usage in server actions or API routes
 export async function getUserProfile() {
   try {
-    const profile = await callGetMeApi<UserProfile>('/users/me')
-    return profile
+    const profile = await callGetMeApi<UserProfile>("/users/me");
+    return profile;
   } catch (error) {
-    console.error('Failed to fetch user profile:', error)
-    throw error
+    console.error("Failed to fetch user profile:", error);
+    throw error;
   }
 }
 ```
 
 This function automatically:
+
 - Retrieves the JWT token from server-side cookies
 - Extracts the access token from the JWT (server-side only)
 - Includes the Authorization header with the Bearer token
@@ -87,11 +87,13 @@ The authentication system connects to the GetMe.video API token endpoint to vali
 The application implements a secure session pattern with the following characteristics:
 
 1. **JWT Storage (Server-side only)**:
+
    - Access tokens are stored only in the JWT, which is encrypted and stored as an HTTP-only cookie
    - The JWT is only accessible on the server side
    - The JWT contains sensitive information like access tokens needed for API calls
 
 2. **Client Session (Browser-side)**:
+
    - The client session object only contains safe user information (id, name, email)
    - Access tokens are explicitly excluded from the client session
    - This prevents accidental exposure of tokens in client-side code
@@ -107,12 +109,12 @@ To enable the `useSession` hook throughout the application, the `SessionProvider
 
 ```tsx
 // components/auth/AuthProvider.tsx
-"use client"
+"use client";
 
-import { SessionProvider } from "next-auth/react"
+import { SessionProvider } from "next-auth/react";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>
+  return <SessionProvider>{children}</SessionProvider>;
 }
 
 // app/layout.tsx
@@ -128,7 +130,7 @@ export default function RootLayout({ children }) {
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -138,14 +140,14 @@ To access the authenticated user and perform authentication actions in your comp
 
 ```tsx
 // Import authentication hooks and functions
-import { signIn, signOut } from "@/app/(auth)/auth"
-import { useSession } from "next-auth/react"
+import { signIn, signOut } from "@/app/(auth)/auth";
+import { useSession } from "next-auth/react";
 
 // In your component
-const { data: session } = useSession()
+const { data: session } = useSession();
 
 // Access user information (safe data only)
-const user = session?.user
+const user = session?.user;
 // Note: accessToken is NOT available client-side
 
 // Sign in
@@ -153,10 +155,10 @@ await signIn("credentials", {
   username: "username",
   password: "password",
   redirect: true, // Will redirect to the page the user was trying to access
-})
+});
 
 // Sign out
-await signOut()
+await signOut();
 ```
 
 ## Making Authenticated API Requests
@@ -167,20 +169,22 @@ Use the provided `callGetMeApi` utility function for all authenticated API reque
 
 ```tsx
 // lib/user/actions.ts
-"use server"
+"use server";
 
-import { callGetMeApi } from '@/lib/api'
-import type { UserProfile } from './types'
+import { callGetMeApi } from "@/lib/api";
+import type { UserProfile } from "./types";
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
-  return await callGetMeApi<UserProfile>('/users/me')
+  return await callGetMeApi<UserProfile>("/users/me");
 }
 
-export async function updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile> {
-  return await callGetMeApi<UserProfile>('/users/me', {
-    method: 'PUT',
-    body: data
-  })
+export async function updateUserProfile(
+  data: Partial<UserProfile>
+): Promise<UserProfile> {
+  return await callGetMeApi<UserProfile>("/users/me", {
+    method: "PUT",
+    body: data,
+  });
 }
 ```
 
@@ -195,28 +199,31 @@ The `callGetMeApi` function handles authentication automatically by:
 
 ```typescript
 // lib/api/index.ts implementation
-"use server"
+"use server";
 
-import { getToken } from "next-auth/jwt"
-import { cookies } from "next/headers"
+import { getToken } from "next-auth/jwt";
+import { cookies } from "next/headers";
 
-async function callGetMeApi<T>(path: string, options: ApiOptions = {}): Promise<T> {
+async function callGetMeApi<T>(
+  path: string,
+  options: ApiOptions = {}
+): Promise<T> {
   // Get JWT token directly from cookies (server-side only)
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
   const token = await getToken({
     req: {
       cookies: Object.fromEntries(
-        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value]),
+        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])
       ),
     } as unknown as Request,
     secret: process.env.NEXTAUTH_SECRET,
-  })
-  
-  const accessToken = token?.accessToken
+  });
+
+  const accessToken = token?.accessToken;
   if (!accessToken) {
-    throw new Error("Not authenticated")
+    throw new Error("Not authenticated");
   }
-  
+
   // Make authenticated request...
 }
 ```
@@ -227,17 +234,17 @@ Call server actions from client components:
 
 ```tsx
 // components/auth/ProfileDisplay.tsx
-import { getCurrentUserProfile } from '@/lib/user/actions'
+import { getCurrentUserProfile } from "@/lib/user/actions";
 
 export async function ProfileDisplay() {
-  const user = await getCurrentUserProfile()
-  
+  const user = await getCurrentUserProfile();
+
   return (
     <div>
       <h2>Welcome, {user.firstname}!</h2>
       <p>Email: {user.email}</p>
     </div>
-  )
+  );
 }
 ```
 

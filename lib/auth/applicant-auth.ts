@@ -1,11 +1,12 @@
-import type { Applicant } from "@/lib/candidate/types"
+import type { Applicant } from "@/lib/applicant/types"
+import { logger } from "@/lib/utils/logger"
 
 /**
  * Creates an applicant session after successful application submission
  *
  * This function signs in the applicant user by creating a NextAuth session
  * with the applicant data. The session will be marked as userType: "applicant"
- * to distinguish it from staff users.
+ * to distinguish it from employer users.
  *
  * @param applicant - The applicant data received from the API
  * @returns Promise that resolves when sign-in is complete
@@ -23,7 +24,7 @@ export async function signInApplicant(applicant: Applicant) {
 
   // TODO: Implement proper NextAuth session creation for applicants
   // This might require a custom provider or server-side session manipulation
-  console.log("Applicant session created:", applicant)
+  logger.info("Applicant session created:", applicant)
 }
 
 /**

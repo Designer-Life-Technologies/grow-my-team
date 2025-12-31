@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+import { logger } from "@/lib/utils/logger"
 import { ClientLogo } from "../layout"
 
 // A simple Set Password form shown after signup.
@@ -41,7 +42,7 @@ export function SetPasswordForm({
       }
 
       // TODO: Call your backend to set the password
-      console.log("Set password:", { length: formData.password.length })
+      logger.info("Set password request", { length: formData.password.length })
 
       setSuccess("Your password has been set. You can now sign in.")
       setIsLoading(false)
@@ -51,7 +52,7 @@ export function SetPasswordForm({
         router.push("/login")
       }, 800)
     } catch (err) {
-      console.error("Set password error:", err)
+      logger.error("Set password error:", err)
       setError("An error occurred. Please try again.")
       setIsLoading(false)
     }

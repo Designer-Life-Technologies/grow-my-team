@@ -1,5 +1,7 @@
 import Credentials from "next-auth/providers/credentials"
-import type { Applicant } from "@/lib/candidate/types"
+import type { Applicant } from "@/lib/applicant/types"
+import { logger } from "@/lib/utils/logger"
+import { maskSecret, type TokenResponse } from "./shared"
 
 /**
  * Applicant Credentials Provider
@@ -18,8 +20,9 @@ export const applicantProvider = Credentials({
   id: "applicant",
   name: "Applicant",
   credentials: {
-    applicantId: { label: "Applicant ID", type: "text" },
-    applicantData: { label: "Applicant Data", type: "text" },
+    id: { label: "Applicant ID", type: "text" },
+    email: { label: "Applicant Email", type: "text" },
+    nonce: { label: "Nonce", type: "text" },
   },
 
   /**
@@ -32,22 +35,109 @@ export const applicantProvider = Credentials({
    * @returns User object with applicant data or null
    */
   async authorize(credentials) {
-    if (!credentials?.applicantId || !credentials?.applicantData) {
+    const applicantId = credentials?.id
+    const email = credentials?.email
+    const nonce = credentials?.nonce
+    if (!process.env.GETME_API_URL) {
+      logger.error("GETME_API_URL is not set")
       return null
     }
 
-    try {
-      // Parse the applicant data
-      const applicantData: Applicant = JSON.parse(credentials.applicantData)
+    if (!nonce) return null
+    if (!applicantId && !email) return null
 
-      // Verify the applicant ID matches
-      if (applicantData.id !== credentials.applicantId) {
-        console.error("Applicant ID mismatch")
+    try {
+      const tokenRequestBody = {
+        grant_type: "custom:nonce",
+        // Some backends use applicantId, others use id. Send both.
+        applicantId,
+        id: applicantId,
+        email,
+        nonce,
+      }
+
+      logger.info("[nextauth][applicant] POST /v1/auth/token request", {
+        url: `${process.env.GETME_API_URL}/auth/token`,
+        body: {
+          ...tokenRequestBody,
+          nonce: maskSecret(nonce, 6),
+        },
+      })
+
+      const tokenRes = await fetch(`${process.env.GETME_API_URL}/auth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tokenRequestBody),
+      })
+
+      if (!tokenRes.ok) {
+        const text = await tokenRes.text().catch(() => "")
+        logger.error("Applicant token exchange failed", {
+          status: tokenRes.status,
+          body: text || undefined,
+        })
         return null
       }
 
-      // Return user object with applicant type
-      // Flatten applicant data into user object to avoid duplication
+      const tokenText = await tokenRes.text().catch(() => "")
+      const parsed = (() => {
+        try {
+          return tokenText
+            ? (JSON.parse(tokenText) as Record<string, unknown>)
+            : null
+        } catch {
+          return null
+        }
+      })()
+
+      logger.info("[nextauth][applicant] POST /v1/auth/token response", {
+        status: tokenRes.status,
+        ok: tokenRes.ok,
+        body:
+          parsed && typeof parsed === "object"
+            ? {
+                ...parsed,
+                access_token:
+                  typeof parsed.access_token === "string"
+                    ? maskSecret(parsed.access_token, 10)
+                    : parsed.access_token,
+              }
+            : tokenText
+              ? tokenText.slice(0, 2000)
+              : undefined,
+      })
+
+      const token =
+        parsed as TokenResponse | null satisfies TokenResponse | null
+
+      if (!token?.access_token) {
+        return null
+      }
+
+      const applicantRes = await fetch(
+        `${process.env.GETME_API_URL}/applicant`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.access_token}`,
+          },
+        },
+      )
+
+      if (!applicantRes.ok) {
+        const text = await applicantRes.text().catch(() => "")
+        logger.error("Applicant profile fetch failed", {
+          status: applicantRes.status,
+          body: text || undefined,
+        })
+        return null
+      }
+
+      const applicantData = (await applicantRes.json()) as Applicant
+
       return {
         id: applicantData.id,
         email:
@@ -57,6 +147,8 @@ export const applicantProvider = Credentials({
         firstname: applicantData.firstname,
         lastname: applicantData.lastname,
         userType: "applicant" as const,
+        accessToken: token.access_token,
+        expiresIn: token.expires_in,
         mobile:
           typeof applicantData.mobile === "string"
             ? undefined
@@ -64,7 +156,7 @@ export const applicantProvider = Credentials({
         linkedInUrl: applicantData.linkedInUrl,
       }
     } catch (error) {
-      console.error("Error authenticating applicant:", error)
+      logger.error("Error authenticating applicant:", error)
       return null
     }
   },
