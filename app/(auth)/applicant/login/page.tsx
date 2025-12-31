@@ -2,7 +2,7 @@
 
 import { IconArrowLeft } from "@tabler/icons-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useState } from "react"
+import { Suspense, useCallback, useState } from "react"
 
 import { ClientLogo } from "@/components/layout"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
-export default function ApplicantLoginPage() {
+function ApplicantLoginContent() {
   const { currentTheme } = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -134,5 +134,19 @@ export default function ApplicantLoginPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function ApplicantLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+          <div className="w-full max-w-sm text-center">Loading login...</div>
+        </div>
+      }
+    >
+      <ApplicantLoginContent />
+    </Suspense>
   )
 }

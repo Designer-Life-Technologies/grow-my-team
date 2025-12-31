@@ -12,12 +12,19 @@ import type {
   DISCAnswerSet,
   DISCQuestionnaire as DISCQuestionnaireType,
 } from "@/lib/profiletest/types"
-import { TestSequenceClient } from "./TestSequenceClient"
 
 // Internal state type for tracking answers per group.
 type GroupAnswer = {
   mostIndex: number | null
   leastIndex: number | null
+}
+
+function formatElapsed(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  const mm = String(minutes).padStart(2, "0")
+  const ss = String(seconds).padStart(2, "0")
+  return `${mm}:${ss}`
 }
 
 export function DISCQuestionnaire({
@@ -36,6 +43,31 @@ export function DISCQuestionnaire({
   const [answers, setAnswers] = useState<Record<string, GroupAnswer>>({})
   const [completedAt, setCompletedAt] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
+
+  // Timer for elapsed time
+  useEffect(() => {
+    if (!hasStarted || completedAt) return
+    const id = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [hasStarted, completedAt])
+
+  const elapsedSeconds = useMemo(() => {
+    if (!startedAt) return 0
+    const end = completedAt || now
+    return Math.max(0, Math.floor((end - startedAt) / 1000))
+  }, [now, startedAt, completedAt])
+
+  const elapsedLabel = useMemo(() => {
+    if (!startedAt) return "00:00"
+    return formatElapsed(elapsedSeconds)
+  }, [elapsedSeconds, startedAt])
+
+  const elapsedClassName = useMemo(() => {
+    if (elapsedSeconds >= 10 * 60) return "text-destructive"
+    if (elapsedSeconds >= 7 * 60) return "text-amber-500 dark:text-amber-400"
+    return "text-primary"
+  }, [elapsedSeconds])
 
   // Fetch initial state from server
   useEffect(() => {
@@ -290,24 +322,128 @@ export function DISCQuestionnaire({
           </div>
         </div>
       ) : (
-        <TestSequenceClient
-          currentGroup={currentGroup}
-          groupIndex={groupIndex}
-          totalGroups={totalGroups}
-          startedAt={startedAt}
-          mostIndex={currentGroupAnswer.mostIndex}
-          leastIndex={currentGroupAnswer.leastIndex}
-          canGoNext={canGoNext && !isSubmitting}
-          onSelectMost={(index: number) => {
-            if (!currentGroup) return
-            setMostIndex(currentGroup.id, index)
-          }}
-          onSelectLeast={(index: number) => {
-            if (!currentGroup) return
-            setLeastIndex(currentGroup.id, index)
-          }}
-          onNext={handleNextGroup}
-        />
+        <div className="space-y-6">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="text-sm text-muted-foreground">
+                <div className="font-medium text-foreground">
+                  Quick reminder
+                </div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  Read each statement carefully, then select one statement as{" "}
+                  <strong>MOST</strong> and one as <strong>LEAST</strong> to
+                  continue.
+                </div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-xs font-medium text-muted-foreground">
+                  Elapsed Time
+                </div>
+                <div
+                  className={`text-3xl font-semibold tabular-nums leading-none mt-1 ${elapsedClassName}`}
+                >
+                  {elapsedLabel}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-6">
+            <div className="space-y-6">
+              <div
+                className="h-2 w-full overflow-hidden rounded-full bg-muted/70 ring-1 ring-border"
+                aria-label="Test progress"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(
+                  (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                    Math.max(totalGroups, 1)) *
+                    100,
+                )}
+              >
+                <div
+                  className="h-full bg-primary transition-[width] duration-300"
+                  style={{
+                    width: `${
+                      (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                        Math.max(totalGroups, 1)) *
+                      100
+                    }%`,
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                {currentGroup?.statements?.length ? (
+                  <ul className="space-y-2">
+                    {currentGroup.statements.map((s, idx) => {
+                      const isMost = currentGroupAnswer.mostIndex === idx
+                      const isLeast = currentGroupAnswer.leastIndex === idx
+
+                      return (
+                        <li
+                          key={`${currentGroup.id}-${idx}`}
+                          className="rounded-md border border-border p-3"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="text-foreground">{s.statement}</div>
+
+                            <div className="flex shrink-0 items-center gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={isMost ? "default" : "outline"}
+                                onClick={() => {
+                                  if (!currentGroup) return
+                                  setMostIndex(currentGroup.id, idx)
+                                }}
+                                aria-pressed={isMost}
+                              >
+                                Most
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={isLeast ? "default" : "outline"}
+                                onClick={() => {
+                                  if (!currentGroup) return
+                                  setLeastIndex(currentGroup.id, idx)
+                                }}
+                                aria-pressed={isLeast}
+                              >
+                                Least
+                              </Button>
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    No statements available.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleNextGroup}
+                  disabled={!canGoNext || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  {groupIndex >= totalGroups - 1 ? "Finish" : "Next"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
