@@ -6,8 +6,8 @@ import type { RegisterUserResult, UserProfile } from "./types"
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
   try {
-    const user = await callGetMeApi<UserProfile>(`/user`)
-    return user
+    const response = await callGetMeApi<UserProfile>(`/user`)
+    return response.data
   } catch (error) {
     logger.error("Error fetching user profile:", error)
     throw error
@@ -16,8 +16,8 @@ export async function getCurrentUserProfile(): Promise<UserProfile> {
 
 export async function getUserProfileById(id: string): Promise<UserProfile> {
   try {
-    const user = await callGetMeApi<UserProfile>(`/user/${id}`)
-    return user
+    const response = await callGetMeApi<UserProfile>(`/user/${id}`)
+    return response.data
   } catch (error) {
     logger.error("Error fetching user profile:", error)
     throw error

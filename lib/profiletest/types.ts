@@ -33,7 +33,8 @@ export type DISCAnswer = {
 
 export type DISCAnswerSet = {
   id?: string // Profile Test ID
-  startedAt: Date
-  completedAt?: Date
+  startedAt?: string | Date
+  completedAt?: string | Date
   answers: DISCAnswer[]
+  serverNow?: string // Added to synchronize client clock
 }
