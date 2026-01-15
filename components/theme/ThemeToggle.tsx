@@ -48,6 +48,7 @@ export function ThemeSelector() {
   const availableThemes = [
     { id: "default", name: "Grow My Team" },
     { id: "team-puzzle", name: "Team Puzzle" },
+    { id: "placement-partner", name: "Placement Partner" },
   ]
 
   return (

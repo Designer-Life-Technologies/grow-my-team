@@ -350,8 +350,7 @@ export function DISCQuestionnaire({
 
             <h2 className="text-2xl font-bold">Thank you!</h2>
             <p className="mt-3 text-muted-foreground">
-              Your responses have been recorded. You’ll receive feedback
-              shortly.
+              Your responses have been recorded.
             </p>
 
             <div className="mt-6 rounded-lg bg-muted/50 p-6 text-left">
@@ -365,12 +364,12 @@ export function DISCQuestionnaire({
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
-                  <span>You may be contacted if your profile is a match</span>
+                  <span>
+                    We will be in touch shortly with further information and
+                    instructions.
+                  </span>
                 </li>
               </ul>
-              <p className="mt-6 text-xs text-muted-foreground">
-                We appreciate your time.
-              </p>
             </div>
           </div>
         </div>
@@ -404,28 +403,35 @@ export function DISCQuestionnaire({
 
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="space-y-6">
-              <div
-                className="h-2 w-full overflow-hidden rounded-full bg-muted/70 ring-1 ring-border"
-                aria-label="Test progress"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(
-                  (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
-                    Math.max(totalGroups, 1)) *
-                    100,
-                )}
-              >
+              <div className="space-y-2">
+                <div className="flex items-center justify-end text-xs font-medium text-muted-foreground">
+                  <span>
+                    {groupIndex + 1} of {totalGroups}
+                  </span>
+                </div>
                 <div
-                  className="h-full bg-primary transition-[width] duration-300"
-                  style={{
-                    width: `${
-                      (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
-                        Math.max(totalGroups, 1)) *
-                      100
-                    }%`,
-                  }}
-                />
+                  className="h-2 w-full overflow-hidden rounded-full bg-muted/70 ring-1 ring-border"
+                  aria-label="Test progress"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(
+                    (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                      Math.max(totalGroups, 1)) *
+                      100,
+                  )}
+                >
+                  <div
+                    className="h-full bg-primary transition-[width] duration-300"
+                    style={{
+                      width: `${
+                        (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                          Math.max(totalGroups, 1)) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

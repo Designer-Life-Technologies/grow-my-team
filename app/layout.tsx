@@ -30,7 +30,9 @@
  */
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import { headers } from "next/headers"
 import { ThemeProvider } from "@/components/theme"
+import { getThemeFromDomain } from "@/lib/theme/config"
 import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
@@ -73,18 +75,23 @@ export async function generateMetadata({
  * 2. AuthProvider - Wraps Next-Auth's SessionProvider to enable authentication throughout the app
  * 3. Suspense - Used selectively for components that may trigger suspense
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Detect theme server-side to prevent hydration flash
+  const headersList = await headers()
+  const host = headersList.get("host") || ""
+  const detectedThemeId = getThemeFromDomain(host)
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* ThemeProvider: Manages theme state and provides theme context */}
-        <ThemeProvider>
+        <ThemeProvider defaultTheme={detectedThemeId}>
           {/* AuthProvider: Provides authentication session to all components */}
           <AuthProvider>
             {/* StreamingModalProvider: Provides global access to streaming modal for long-running operations */}

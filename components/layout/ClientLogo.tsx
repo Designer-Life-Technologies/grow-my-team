@@ -55,10 +55,11 @@ export function ClientLogo({
   showCompanyName = false,
   size = "md",
 }: ClientLogoProps) {
-  const { currentTheme, isDark } = useTheme()
+  const { currentTheme, isDark, mounted } = useTheme()
 
-  // Use size variant dimensions if width/height not explicitly provided
-  const logoWidth = width || sizeVariants[size].width
+  // Use theme-defined width if available, otherwise use size variant or prop
+  const themeLogoWidth = currentTheme.branding.logo?.width
+  const logoWidth = width || themeLogoWidth || sizeVariants[size].width
   const logoHeight = height || sizeVariants[size].height
 
   // Select appropriate logo based on theme mode
@@ -71,10 +72,28 @@ export function ClientLogo({
   // Use company name as fallback alt text
   const logoAlt = alt || `${currentTheme.branding.companyName} logo`
 
+  // Prevent hydration flash by returning an invisible placeholder of the same dimensions
+  if (!mounted) {
+    return (
+      <div
+        className={cn("flex items-center gap-3", className)}
+        style={{
+          width: showCompanyName ? "auto" : logoWidth,
+          height: logoHeight,
+        }}
+      />
+    )
+  }
+
   // If no logo is defined, show only the company name
   if (!logoSrc) {
     return (
-      <div className={cn("flex items-center", className)}>
+      <div
+        className={cn(
+          "flex items-center animate-in fade-in duration-500",
+          className,
+        )}
+      >
         <span className="text-lg font-semibold text-foreground">
           {currentTheme.branding.companyName}
         </span>
@@ -83,7 +102,12 @@ export function ClientLogo({
   }
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-3 animate-in fade-in duration-500",
+        className,
+      )}
+    >
       <Image
         src={logoSrc}
         alt={logoAlt}
