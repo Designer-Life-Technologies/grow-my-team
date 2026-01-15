@@ -22,7 +22,8 @@ export default async function ApplicantPersonalityProfileTestPage({
 
   // Check that the user is an applicant or application user
   if (!isApplicant && !isApplicationUser) {
-    redirect("/applicant/login")
+    const nextParam = encodeURIComponent(`/application/${id}/profiletest`)
+    redirect(`/application/${id}/pin?next=${nextParam}`)
   }
 
   // Get vacancy details for this application (from public API endpoint)
@@ -68,7 +69,10 @@ async function ProfileTestSection({
         error instanceof Error &&
         (error as { status?: number }).status === 401
       ) {
-        redirect("/applicant/login")
+        const nextParam = encodeURIComponent(
+          `/application/${applicationId}/profiletest`,
+        )
+        redirect(`/application/${applicationId}/pin?next=${nextParam}`)
       }
       throw error
     },

@@ -84,7 +84,7 @@ export async function updateApplicant(
 ): Promise<{ success: boolean; applicant?: Applicant; error?: string }> {
   try {
     data.id = applicantId
-    const applicant = await callGetMeApi<Applicant>(
+    const response = await callGetMeApi<Applicant>(
       `/applicant/${applicantId}`,
       {
         method: "PUT",
@@ -94,7 +94,7 @@ export async function updateApplicant(
 
     return {
       success: true,
-      applicant,
+      applicant: response.data,
     }
   } catch (error) {
     logger.error("Error updating applicant:", error)
@@ -123,7 +123,7 @@ export async function createApplication(
   positionId: string,
 ): Promise<{ success: boolean; applicationId?: string; error?: string }> {
   try {
-    const data = await callGetMeApi<{ id: string }>(
+    const response = await callGetMeApi<{ id: string }>(
       `/applicant/${applicantId}/application`,
       {
         method: "POST",
@@ -136,7 +136,7 @@ export async function createApplication(
 
     return {
       success: true,
-      applicationId: data.id,
+      applicationId: response.data.id,
     }
   } catch (error) {
     logger.error("Error creating application:", error)
@@ -165,7 +165,7 @@ export async function findApplication(
 ): Promise<{ success: boolean; applicationId?: string; error?: string }> {
   try {
     // callGetMeApi throws on non-2xx; treat "not found" as empty result.
-    const data = await callGetMeApi<{ id: string }>(
+    const response = await callGetMeApi<{ id: string }>(
       `/applicant/${applicantId}/application/search?vacancyId=${positionId}`,
       {
         method: "GET",
@@ -180,7 +180,7 @@ export async function findApplication(
       throw error
     })
 
-    if (!data) {
+    if (!response || !response.data) {
       return {
         success: true,
         applicationId: undefined,
@@ -189,7 +189,7 @@ export async function findApplication(
 
     return {
       success: true,
-      applicationId: data.id,
+      applicationId: response.data.id,
     }
   } catch (error) {
     logger.error("Error finding application:", error)

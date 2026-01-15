@@ -25,6 +25,7 @@ export interface Theme {
     logo?: {
       light: string
       dark: string
+      width?: number
     }
     favicon?: string
     description?: string
@@ -45,4 +46,5 @@ export interface ThemeContextType {
   setTheme: (themeId: string) => void
   setMode: (mode: ThemeMode) => void
   isDark: boolean
+  mounted: boolean
 }

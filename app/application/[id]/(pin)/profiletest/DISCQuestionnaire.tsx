@@ -43,6 +43,7 @@ export function DISCQuestionnaire({
   const [answers, setAnswers] = useState<Record<string, GroupAnswer>>({})
   const [completedAt, setCompletedAt] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [clockOffset, setClockOffset] = useState(0)
   const [now, setNow] = useState(() => Date.now())
 
   // Timer for elapsed time
@@ -54,9 +55,11 @@ export function DISCQuestionnaire({
 
   const elapsedSeconds = useMemo(() => {
     if (!startedAt) return 0
-    const end = completedAt || now
+    // end and start are both in local time (or offset-adjusted local time)
+    const currentAdjustedTime = now + clockOffset
+    const end = completedAt ? completedAt : currentAdjustedTime
     return Math.max(0, Math.floor((end - startedAt) / 1000))
-  }, [now, startedAt, completedAt])
+  }, [now, clockOffset, startedAt, completedAt])
 
   const elapsedLabel = useMemo(() => {
     if (!startedAt) return "00:00"
@@ -73,46 +76,77 @@ export function DISCQuestionnaire({
   useEffect(() => {
     async function loadStatus() {
       try {
-        const status = await getDISC(applicationId)
-        if (status.startedAt) {
-          setHasStarted(true)
-          setStartedAt(new Date(status.startedAt).getTime())
-        }
-        if (status.completedAt) {
-          setCompletedAt(new Date(status.completedAt).getTime())
-        }
-        if (status.answers && status.answers.length > 0) {
+        try {
+          const status = await getDISC(applicationId)
+
+          if (!status) {
+            setHasStarted(false)
+            setIsLoading(false)
+            return
+          }
+
+          // If we got a status, it might be an empty/initialized test or an in-progress one
+          if (status.serverNow) {
+            const serverTime = new Date(status.serverNow).getTime()
+            const offset = serverTime - Date.now()
+            setClockOffset(offset)
+          }
+
+          if (status.startedAt) {
+            const startTime = new Date(status.startedAt).getTime()
+            setStartedAt(startTime)
+            setHasStarted(true)
+          } else if (status.answers && status.answers.length > 0) {
+            setHasStarted(true)
+          } else {
+            setHasStarted(false)
+          }
+
+          if (status.completedAt) {
+            setCompletedAt(new Date(status.completedAt).getTime())
+          }
+
           const next: Record<string, GroupAnswer> = {}
-          for (const answer of status.answers) {
-            const group = profileTest.find((g) => g.id === answer.id)
-            if (!group) continue
+          if (status.answers && status.answers.length > 0) {
+            for (const answer of status.answers) {
+              const group = profileTest.find((g) => g.id === answer.id)
+              if (!group) continue
 
-            const mostIndex = group.statements.findIndex(
-              (s) => s.category === answer.most,
-            )
-            const leastIndex = group.statements.findIndex(
-              (s) => s.category === answer.least,
-            )
+              const mostIndex = group.statements.findIndex(
+                (s) => s.category === answer.most,
+              )
+              const leastIndex = group.statements.findIndex(
+                (s) => s.category === answer.least,
+              )
 
-            next[String(group.id)] = {
-              mostIndex: mostIndex >= 0 ? mostIndex : null,
-              leastIndex: leastIndex >= 0 ? leastIndex : null,
+              next[String(group.id)] = {
+                mostIndex: mostIndex >= 0 ? mostIndex : null,
+                leastIndex: leastIndex >= 0 ? leastIndex : null,
+              }
+            }
+            setAnswers(next)
+          }
+
+          if (
+            status.startedAt ||
+            (status.answers && status.answers.length > 0)
+          ) {
+            // Set group index to the first unanswered group
+            const firstUnanswered = profileTest.findIndex(
+              (g) =>
+                !next[String(g.id)] || next[String(g.id)].mostIndex === null,
+            )
+            if (firstUnanswered !== -1) {
+              setGroupIndex(firstUnanswered)
+            } else if (status.completedAt) {
+              setGroupIndex(profileTest.length - 1)
             }
           }
-          setAnswers(next)
-
-          // Set group index to the first unanswered group
-          const firstUnanswered = profileTest.findIndex(
-            (g) => !next[String(g.id)] || next[String(g.id)].mostIndex === null,
-          )
-          if (firstUnanswered !== -1) {
-            setGroupIndex(firstUnanswered)
-          } else if (status.completedAt) {
-            setGroupIndex(profileTest.length - 1)
-          }
+        } catch {
+          // Inner error handled silently
         }
-      } catch (error) {
-        console.error("Failed to load DISC status:", error)
+      } catch {
+        // Outer error handled silently
       } finally {
         setIsLoading(false)
       }
@@ -121,8 +155,8 @@ export function DISCQuestionnaire({
   }, [applicationId, profileTest])
 
   const currentAnswerSet = useMemo(() => {
-    if (!startedAt) return null
-
+    // We don't block the memo on startedAt anymore because the server will provide it
+    // But we still need answers and profileTest to build the payload
     const out: DISCAnswer[] = []
 
     for (const group of profileTest) {
@@ -139,31 +173,48 @@ export function DISCQuestionnaire({
       out.push({ id: group.id, most, least })
     }
 
-    const completed = completedAt ?? null
-    const set: DISCAnswerSet = {
-      startedAt: new Date(startedAt),
-      completedAt: completed ? new Date(completed) : undefined,
+    const started = startedAt ?? null
+    const set: Partial<DISCAnswerSet> = {
+      startedAt: started ? new Date(started) : undefined,
       answers: out,
     }
 
     return set
-  }, [answers, completedAt, profileTest, startedAt])
+  }, [answers, startedAt, profileTest])
 
   const persistAnswers = useCallback(
-    async (overrideSet?: DISCAnswerSet) => {
-      const setToPersist = overrideSet ?? currentAnswerSet
-      if (!setToPersist) return
+    async (overrideSet?: Partial<DISCAnswerSet>) => {
+      // If we haven't started and no override is provided, don't persist
+      if (!hasStarted && !overrideSet) {
+        return
+      }
+
+      const setToPersist = (overrideSet ?? currentAnswerSet) as DISCAnswerSet
+      if (!setToPersist) {
+        return
+      }
 
       setIsSubmitting(true)
       try {
-        await submitDISCAnswers(applicationId, setToPersist)
-      } catch (error) {
-        console.error("Failed to persist DISC answers:", error)
+        const result = await submitDISCAnswers(applicationId, setToPersist)
+
+        if (result.serverNow) {
+          const serverTime = new Date(result.serverNow).getTime()
+          setClockOffset(serverTime - Date.now())
+        }
+        if (result.startedAt) {
+          setStartedAt(new Date(result.startedAt).getTime())
+        }
+        if (result.completedAt) {
+          setCompletedAt(new Date(result.completedAt).getTime())
+        }
+      } catch {
+        // Error handled silently
       } finally {
         setIsSubmitting(false)
       }
     },
-    [applicationId, currentAnswerSet],
+    [applicationId, currentAnswerSet, hasStarted],
   )
 
   const totalGroups = profileTest.length
@@ -195,35 +246,37 @@ export function DISCQuestionnaire({
 
   async function handleStart() {
     if (hasStarted) return
-    const now = Date.now()
-    setHasStarted(true)
-    setStartedAt(now)
+    const nowLocal = Date.now()
+    const startTime = nowLocal + clockOffset
 
-    await persistAnswers({
-      startedAt: new Date(now),
-      answers: [],
-    })
+    setIsSubmitting(true)
+    try {
+      await persistAnswers({
+        startedAt: new Date(startTime),
+        answers: [],
+      })
+
+      setHasStarted(true)
+      setStartedAt(startTime)
+    } catch {
+      // Optionally show an error toast here
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   async function handleNextGroup() {
     if (!canGoNext) return
 
     const isLastGroup = groupIndex >= totalGroups - 1
-    const newCompletedAt = isLastGroup ? Date.now() : null
 
-    if (isLastGroup) {
-      setCompletedAt(newCompletedAt)
-    } else {
+    if (!isLastGroup) {
       setGroupIndex((prev) => prev + 1)
     }
 
     // Persist to server
     if (currentAnswerSet) {
-      const setToPersist = {
-        ...currentAnswerSet,
-        completedAt: newCompletedAt ? new Date(newCompletedAt) : undefined,
-      }
-      await persistAnswers(setToPersist)
+      await persistAnswers(currentAnswerSet as DISCAnswerSet)
     }
   }
 
@@ -297,8 +350,7 @@ export function DISCQuestionnaire({
 
             <h2 className="text-2xl font-bold">Thank you!</h2>
             <p className="mt-3 text-muted-foreground">
-              Your responses have been recorded. You’ll receive feedback
-              shortly.
+              Your responses have been recorded.
             </p>
 
             <div className="mt-6 rounded-lg bg-muted/50 p-6 text-left">
@@ -312,12 +364,12 @@ export function DISCQuestionnaire({
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
-                  <span>You may be contacted if your profile is a match</span>
+                  <span>
+                    We will be in touch shortly with further information and
+                    instructions.
+                  </span>
                 </li>
               </ul>
-              <p className="mt-6 text-xs text-muted-foreground">
-                We appreciate your time.
-              </p>
             </div>
           </div>
         </div>
@@ -351,28 +403,35 @@ export function DISCQuestionnaire({
 
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="space-y-6">
-              <div
-                className="h-2 w-full overflow-hidden rounded-full bg-muted/70 ring-1 ring-border"
-                aria-label="Test progress"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(
-                  (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
-                    Math.max(totalGroups, 1)) *
-                    100,
-                )}
-              >
+              <div className="space-y-2">
+                <div className="flex items-center justify-end text-xs font-medium text-muted-foreground">
+                  <span>
+                    {groupIndex + 1} of {totalGroups}
+                  </span>
+                </div>
                 <div
-                  className="h-full bg-primary transition-[width] duration-300"
-                  style={{
-                    width: `${
-                      (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
-                        Math.max(totalGroups, 1)) *
-                      100
-                    }%`,
-                  }}
-                />
+                  className="h-2 w-full overflow-hidden rounded-full bg-muted/70 ring-1 ring-border"
+                  aria-label="Test progress"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(
+                    (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                      Math.max(totalGroups, 1)) *
+                      100,
+                  )}
+                >
+                  <div
+                    className="h-full bg-primary transition-[width] duration-300"
+                    style={{
+                      width: `${
+                        (Math.min(groupIndex + 1, Math.max(totalGroups, 1)) /
+                          Math.max(totalGroups, 1)) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

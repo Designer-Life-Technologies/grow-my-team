@@ -36,6 +36,7 @@ export const teamPuzzleTheme: Theme = {
     logo: {
       light: "/themes/team-puzzle/logo.png",
       dark: "/themes/team-puzzle/logo.png",
+      width: 200,
     },
     favicon: "/themes/team-puzzle/favicon.ico",
   },

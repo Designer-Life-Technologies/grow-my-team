@@ -26,15 +26,13 @@ export async function getApplicationProfileTest(
       throw new Error("Missing application ID for profile test request")
     }
 
-    // Currently the API will simply return the DISCQuestionnaire
-    // in the response body. Later it might return a more complex
-    // response object for different types of tests.
-    const data = await callGetMeApi<DISCQuestionnaire>(
-      `/applicant/application/${applicationId}/profile-test`,
+    // The API returns the DISC questionnaire for this application
+    const response = await callGetMeApi<DISCQuestionnaire>(
+      `/applicant/application/${applicationId}/profile-test/disc/questionnaire`,
       { method: "GET" },
     )
 
-    return data
+    return response.data
   } catch (error) {
     logger.error("Error fetching application profile test:", error)
     throw error

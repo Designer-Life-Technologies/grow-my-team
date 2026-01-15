@@ -19,6 +19,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
   )
   const [mode, setMode] = useState<ThemeMode>("system")
   const [isDark, setIsDark] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   // Initialize theme from various sources
   useEffect(() => {
@@ -37,6 +38,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     // Set initial theme and mode
     setCurrentTheme(getTheme(themeId || defaultTheme))
     setMode(savedMode || "system")
+    setMounted(true)
   }, [defaultTheme])
 
   // Handle system theme changes and mode updates
@@ -88,6 +90,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     setTheme,
     setMode: setThemeMode,
     isDark,
+    mounted,
   }
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
