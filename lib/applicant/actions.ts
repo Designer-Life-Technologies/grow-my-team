@@ -1,6 +1,6 @@
 "use server"
 
-import { callGetMeApi } from "@/lib/api"
+import { callGetMeApi, safeCallGetMeApi } from "@/lib/api"
 import { logger } from "@/lib/utils/logger"
 import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
 
@@ -18,26 +18,20 @@ import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
  * @returns Promise<ApplicantPublic.Position[]> - Array of open positions
  */
 export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
-  try {
-    const response = await fetch(
-      `${process.env.GETME_API_URL}/public/vacancy`,
-      {
-        // Add cache revalidation to ensure fresh data
-        next: { revalidate: 60 }, // Revalidate every 60 seconds
-      },
-    )
+  const result = await safeCallGetMeApi<ApplicantPublic.Position[]>(
+    "/public/vacancy",
+    {
+      public: true,
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    },
+  )
 
-    if (!response.ok) {
-      logger.error(`Failed to fetch positions: ${response.status}`)
-      return []
-    }
-
-    const positions = (await response.json()) as ApplicantPublic.Position[]
-    return positions
-  } catch (error) {
-    logger.error("Error fetching open positions:", error)
+  if (!result.success) {
+    // Errors are already logged by the API client
     return []
   }
+
+  return result.data
 }
 
 /**
@@ -46,22 +40,27 @@ export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
  * Returns full details of a specific job position from the public API.
  *
  * @param positionId - The ID of the position to fetch
- * @returns Promise<Candidate.Position | null> - Position details or null if not found
+ * @returns Promise<ApplicantPublic.Position | null> - Position details or null if not found
  */
 export async function getPositionById(
   positionId: string,
 ): Promise<ApplicantPublic.Position | null> {
-  try {
-    const response = await fetch(
-      `${process.env.GETME_API_URL}/public/vacancy/${positionId}`,
-    )
-    const position = (await response.json()) as ApplicantPublic.Position
+  const result = await safeCallGetMeApi<ApplicantPublic.Position>(
+    `/public/vacancy/${positionId}`,
+    {
+      public: true,
+    },
+  )
 
-    return position
-  } catch (error) {
-    logger.error("Error fetching position details:", error)
-    return null
+  if (!result.success) {
+    if (result.status === 404) {
+      return null
+    }
+    // For other errors (e.g. 500), throw so the global error boundary catches it
+    throw new Error(result.error)
   }
+
+  return result.data
 }
 
 /**

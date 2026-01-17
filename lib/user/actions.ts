@@ -1,27 +1,18 @@
 "use server"
 
-import { callGetMeApi } from "@/lib/api"
-import { logger } from "@/lib/utils/logger"
+import { safeCallGetMeApi } from "@/lib/api"
 import type { RegisterUserResult, UserProfile } from "./types"
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
-  try {
-    const response = await callGetMeApi<UserProfile>(`/user`)
-    return response.data
-  } catch (error) {
-    logger.error("Error fetching user profile:", error)
-    throw error
-  }
+  const result = await safeCallGetMeApi<UserProfile>(`/user`)
+  if (!result.success) throw new Error(result.error)
+  return result.data
 }
 
 export async function getUserProfileById(id: string): Promise<UserProfile> {
-  try {
-    const response = await callGetMeApi<UserProfile>(`/user/${id}`)
-    return response.data
-  } catch (error) {
-    logger.error("Error fetching user profile:", error)
-    throw error
-  }
+  const result = await safeCallGetMeApi<UserProfile>(`/user/${id}`)
+  if (!result.success) throw new Error(result.error)
+  return result.data
 }
 
 /**
@@ -32,39 +23,19 @@ export async function getUserProfileById(id: string): Promise<UserProfile> {
 export async function registerUser(
   input: UserProfile,
 ): Promise<RegisterUserResult> {
-  try {
-    const baseUrl = process.env.GETME_API_URL
+  const result = await safeCallGetMeApi<unknown>("/public/user", {
+    method: "POST",
+    body: input as unknown as Record<string, unknown>,
+    public: true,
+  })
 
-    const response = await fetch(`${baseUrl}/v1/public/user`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    })
+  if (result.success) {
+    return { success: true }
+  }
 
-    if (response.ok) {
-      return { success: true }
-    }
-
-    // Attempt to parse structured error from API
-    const data = (await response.json().catch(() => ({}))) as {
-      error?: string
-      error_message?: string
-      detail?: string
-    }
-
-    return {
-      success: false,
-      error: data.error || `http_${response.status}`,
-      errorMessage: data.error_message || data.detail || "Registration failed",
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return {
-      success: false,
-      error: "network_error",
-      errorMessage: message,
-    }
+  return {
+    success: false,
+    error: result.error || "registration_failed",
+    errorMessage: result.error || "Registration failed",
   }
 }
