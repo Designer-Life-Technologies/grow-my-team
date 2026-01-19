@@ -116,7 +116,7 @@ export function StreamingModal({
       >
         {isProcessing && (
           <div className="h-1 bg-muted overflow-hidden">
-            <div className="h-full bg-primary animate-[progress_1.5s_ease-in-out_infinite]" />
+            <div className="h-full bg-primary animate-progress" />
           </div>
         )}
 
