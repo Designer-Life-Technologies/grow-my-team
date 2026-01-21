@@ -49,6 +49,7 @@ export function ThemeSelector() {
     { id: "default", name: "Grow My Team" },
     { id: "team-puzzle", name: "Team Puzzle" },
     { id: "placement-partner", name: "Placement Partner" },
+    { id: "demo", name: "Demo" },
   ]
 
   return (
