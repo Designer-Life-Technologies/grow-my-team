@@ -3,7 +3,12 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getSession, signIn } from "next-auth/react"
-import { type ChangeEvent, type FormEvent, useState } from "react"
+import {
+  type ChangeEvent,
+  type FocusEvent,
+  type FormEvent,
+  useState,
+} from "react"
 import { Button } from "@/components/ui/button"
 import { useStreamingModal } from "@/components/ui/StreamingModalProvider"
 import { useCreateApplicant } from "@/hooks/use-create-applicant"
@@ -14,6 +19,11 @@ import {
 } from "@/lib/applicant"
 import type { Applicant } from "@/lib/applicant/types"
 import { logger } from "@/lib/utils/logger"
+import {
+  ensureValidEmail,
+  ensureValidPhone,
+  FormValidationError,
+} from "@/lib/validation/contact"
 import { ApplicationForm } from "./ApplicationForm"
 import { ApplicationSuccess } from "./ApplicationSuccess"
 import { ResumeDropzone } from "./ResumeDropzone"
@@ -91,13 +101,39 @@ export function PositionApply({
   const [_applicantData, setApplicantData] = useState<Applicant | null>(null)
   // Store application ID to prevent duplicate application creation
   const [applicationId, setApplicationId] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
+  type PersonalDetailsFormData = {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    linkedInUrl: string
+  }
+
+  const handleFormBlur = (e: FocusEvent<HTMLInputElement>) => {
+    const fieldName = e.target.name as keyof PersonalDetailsFormData
+    const { errors } = validatePersonalDetails(formData)
+    setFormErrors((prev) => {
+      const next = { ...prev }
+      const message = errors[fieldName]
+      if (message) {
+        next[fieldName] = message
+      } else {
+        delete next[fieldName]
+      }
+      return next
+    })
+  }
+
+  const [formData, setFormData] = useState<PersonalDetailsFormData>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     linkedInUrl: "",
   })
+  const [formErrors, setFormErrors] = useState<
+    Partial<Record<keyof PersonalDetailsFormData, string>>
+  >({})
   const [screeningData, setScreeningData] = useState({
     q1: "",
     q2: "",
@@ -105,6 +141,46 @@ export function PositionApply({
     q4: "",
     q5: "",
   })
+
+  const validatePersonalDetails = (
+    data: PersonalDetailsFormData,
+  ): {
+    errors: Partial<Record<keyof PersonalDetailsFormData, string>>
+    normalizedEmail: string | null
+    normalizedPhone: string | null
+  } => {
+    const errors: Partial<Record<keyof PersonalDetailsFormData, string>> = {}
+    let normalizedEmail: string | null = null
+    let normalizedPhone: string | null = null
+
+    if (!data.firstName.trim()) {
+      errors.firstName = "First name is required."
+    }
+
+    try {
+      normalizedEmail = ensureValidEmail(data.email, { required: true })
+    } catch (validationError) {
+      const message =
+        validationError instanceof FormValidationError
+          ? validationError.message
+          : "Please enter a valid email address."
+      errors.email = message
+    }
+
+    if (data.phone.trim()) {
+      try {
+        normalizedPhone = ensureValidPhone(data.phone)
+      } catch (validationError) {
+        const message =
+          validationError instanceof FormValidationError
+            ? validationError.message
+            : "Please enter a valid phone number."
+        errors.phone = message
+      }
+    }
+
+    return { errors, normalizedEmail, normalizedPhone }
+  }
 
   /**
    * Handle file selection from dropzone
@@ -241,6 +317,7 @@ export function PositionApply({
             : applicant.mobile?.localNumber || "",
         linkedInUrl: applicant.linkedInUrl || "",
       })
+      setFormErrors({})
 
       completeStreaming()
       setShowApplicationForm(true)
@@ -259,10 +336,24 @@ export function PositionApply({
    */
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    const fieldName = name as keyof PersonalDetailsFormData
+    const updatedData = {
+      ...formData,
+      [fieldName]: value,
+    }
+    const { errors } = validatePersonalDetails(updatedData)
+
+    setFormData(updatedData)
+    setFormErrors((prev) => {
+      const next = { ...prev }
+      const message = errors[fieldName]
+      if (message) {
+        next[fieldName] = message
+      } else {
+        delete next[fieldName]
+      }
+      return next
+    })
   }
 
   /**
@@ -270,8 +361,17 @@ export function PositionApply({
    */
   const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsUpdatingApplicant(true)
     setError(null)
+    const { errors, normalizedEmail, normalizedPhone } =
+      validatePersonalDetails(formData)
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+
+    setFormErrors({})
+    setIsUpdatingApplicant(true)
 
     try {
       // Get applicant ID from stored applicant data
@@ -284,30 +384,25 @@ export function PositionApply({
 
       const applicantId = _applicantData.id
 
-      // Prepare update data
       const updateData: Parameters<typeof updateApplicant>[1] = {
-        firstname: formData.firstName,
-        lastname: formData.lastName,
+        firstname: formData.firstName.trim(),
+        lastname: formData.lastName.trim(),
       }
 
-      // Include email if provided
-      if (formData.email) {
-        updateData.email = formData.email
+      if (normalizedEmail) {
+        updateData.email = normalizedEmail
       }
 
-      // Include phone if provided
-      if (formData.phone) {
-        updateData.mobile = formData.phone
+      if (normalizedPhone) {
+        updateData.mobile = normalizedPhone
       }
 
-      // Include LinkedIn URL if provided
-      if (formData.linkedInUrl) {
-        updateData.linkedInUrl = formData.linkedInUrl
+      if (formData.linkedInUrl.trim()) {
+        updateData.linkedInUrl = formData.linkedInUrl.trim()
       }
 
       logger.log("Updating applicant:", { applicantId, updateData })
 
-      // Update applicant
       const result = await updateApplicant(applicantId, updateData)
 
       if (!result.success) {
@@ -317,12 +412,10 @@ export function PositionApply({
 
       logger.log("✅ Applicant updated successfully:", result.applicant)
 
-      // Update stored applicant data with the latest information
       if (result.applicant) {
         setApplicantData(result.applicant)
       }
 
-      // Create application only if it doesn't exist yet
       if (!applicationId) {
         logger.log("Creating application:", {
           applicantId,
@@ -347,7 +440,6 @@ export function PositionApply({
           applicationResult.applicationId,
         )
 
-        // Store the application ID to prevent duplicate creation
         setApplicationId(applicationResult.applicationId || null)
 
         logger.log("✅ Application created - guest application flow (no login)")
@@ -358,7 +450,6 @@ export function PositionApply({
         )
       }
 
-      // Show screening questions form
       setShowApplicationForm(false)
       setShowScreeningQuestions(true)
     } catch (err) {
@@ -555,9 +646,11 @@ export function PositionApply({
           <ApplicationForm
             formData={formData}
             onChange={handleFormChange}
+            onBlur={handleFormBlur}
             onSubmit={handleFormSubmit}
             onBack={() => setShowApplicationForm(false)}
             isSubmitting={isUpdatingApplicant}
+            errors={formErrors}
           />
           {error && (
             <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3">

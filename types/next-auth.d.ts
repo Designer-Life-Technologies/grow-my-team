@@ -31,6 +31,7 @@ declare module "next-auth" {
     linkedInUrl?: string
     applicationId?: string
     vacancyId?: string
+    pinAction?: string
   }
 
   /**
@@ -49,6 +50,7 @@ declare module "next-auth" {
       linkedInUrl?: string
       applicationId?: string
       vacancyId?: string
+      pinAction?: string
     } & DefaultSession["user"]
     organisation?: {
       id: string
@@ -84,5 +86,6 @@ declare module "next-auth/jwt" {
     linkedInUrl?: string
     applicationId?: string
     vacancyId?: string
+    pinAction?: string
   }
 }

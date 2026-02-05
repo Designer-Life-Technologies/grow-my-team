@@ -29,6 +29,9 @@ export const authConfig: NextAuthOptions = {
         if (session.user.email !== undefined) {
           token.email = session.user.email
         }
+        if (session.user.pinAction !== undefined) {
+          token.pinAction = session.user.pinAction
+        }
         // Handle applicant/application users - flatten specific fields
         if (
           session.user.userType === "applicant" ||
@@ -54,6 +57,7 @@ export const authConfig: NextAuthOptions = {
         token.userType = user.userType || "employer"
         token.applicationId = user.applicationId
         token.vacancyId = user.vacancyId
+        token.pinAction = user.pinAction
 
         // Add expiration time to the token
         if (user.expiresIn) {
@@ -121,6 +125,7 @@ export const authConfig: NextAuthOptions = {
           user.applicationId = token.applicationId
           user.vacancyId = token.vacancyId
         }
+        user.pinAction = token.pinAction
       }
 
       // Add organisation data to session (for staff users)

@@ -2,7 +2,19 @@
 
 import { callGetMeApi, safeCallGetMeApi } from "@/lib/api"
 import { logger } from "@/lib/utils/logger"
-import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
+import {
+  ensureValidEmail,
+  ensureValidPhone,
+  FormValidationError,
+  normalizeContactInput,
+} from "@/lib/validation/contact"
+import type {
+  Applicant,
+  ApplicantPublic,
+  Resume,
+  ResumeReference,
+  ScreeningAnswer,
+} from "./types"
 
 /**
  * Candidate Actions
@@ -29,6 +41,112 @@ export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
   if (!result.success) {
     // Errors are already logged by the API client
     return []
+  }
+
+  return result.data
+}
+
+function buildReferencePayload(reference: ResumeReference): ResumeReference {
+  const normalizedName = normalizeContactInput(reference.name) || ""
+
+  if (normalizedName.length < 2) {
+    throw new FormValidationError(
+      "Reference name must be at least 2 characters long.",
+      "name",
+    )
+  }
+
+  const email = ensureValidEmail(reference.email)
+  const phone = ensureValidPhone(reference.phone)
+
+  if (!email && !phone) {
+    throw new FormValidationError(
+      "Provide at least an email or phone number for the reference.",
+      "contact",
+    )
+  }
+
+  return {
+    ...reference,
+    name: normalizedName,
+    email,
+    phone,
+    position: normalizeContactInput(reference.position),
+    company: normalizeContactInput(reference.company),
+    relationship: normalizeContactInput(reference.relationship),
+    applicantPosition: normalizeContactInput(
+      reference.applicantPosition !== null &&
+        reference.applicantPosition !== undefined
+        ? reference.applicantPosition.toString()
+        : null,
+    ),
+  }
+}
+
+export async function addApplicationResumeReference(
+  applicationId: string,
+  reference: ResumeReference,
+): Promise<ResumeReference> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for resume reference")
+  }
+
+  const payload = buildReferencePayload(reference)
+
+  const response = await callGetMeApi<ResumeReference>(
+    `/applicant/application/${applicationId}/resume/reference`,
+    {
+      method: "POST",
+      body: payload as unknown as Record<string, unknown>,
+    },
+  )
+
+  return response.data
+}
+
+export async function updateApplicationResumeReference(
+  applicationId: string,
+  referenceId: string,
+  reference: ResumeReference,
+): Promise<ResumeReference> {
+  if (!applicationId || !referenceId) {
+    throw new Error("Missing identifiers for resume reference update")
+  }
+
+  const payload = buildReferencePayload(reference)
+
+  const response = await callGetMeApi<ResumeReference>(
+    `/applicant/application/${applicationId}/resume/reference/${referenceId}`,
+    {
+      method: "PUT",
+      body: payload as unknown as Record<string, unknown>,
+    },
+  )
+
+  return response.data
+}
+
+/**
+ * Retrieve the resume associated with an application
+ *
+ * @param applicationId - The ID of the application whose resume we need
+ * @returns Promise<Resume>
+ */
+export async function getApplicationResume(
+  applicationId: string,
+): Promise<Resume> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for resume request")
+  }
+
+  const result = await safeCallGetMeApi<Resume>(
+    `/applicant/application/${applicationId}/resume`,
+  )
+
+  if (!result.success) {
+    const error = new Error(result.error) as Error & { status?: number }
+    error.status = result.status
+    throw error
   }
 
   return result.data
@@ -82,6 +200,19 @@ export async function updateApplicant(
   >,
 ): Promise<{ success: boolean; applicant?: Applicant; error?: string }> {
   try {
+    if (data.email) {
+      const emailValue =
+        typeof data.email === "string" ? data.email : data.email.address
+      data.email = ensureValidEmail(emailValue, { required: true }) || undefined
+    }
+
+    if (data.mobile) {
+      const phoneValue =
+        typeof data.mobile === "string" ? data.mobile : data.mobile.localNumber
+      data.mobile =
+        ensureValidPhone(phoneValue, { required: true }) || undefined
+    }
+
     data.id = applicantId
     const response = await callGetMeApi<Applicant>(
       `/applicant/${applicantId}`,
