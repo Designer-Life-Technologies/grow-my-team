@@ -10,9 +10,10 @@ import {
 } from "@/lib/validation/contact"
 import type {
   Applicant,
+  ApplicantApplication,
   ApplicantPublic,
   Resume,
-  ResumeReference,
+  ResumeReferee,
   ScreeningAnswer,
 } from "./types"
 
@@ -46,55 +47,69 @@ export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
   return result.data
 }
 
-function buildReferencePayload(reference: ResumeReference): ResumeReference {
-  const normalizedName = normalizeContactInput(reference.name) || ""
+export async function getApplicantApplication(
+  applicationId: string,
+): Promise<ApplicantApplication> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for application request")
+  }
+
+  const response = await callGetMeApi<ApplicantApplication>(
+    `/applicant/application/${applicationId}`,
+  )
+
+  return response.data
+}
+
+function buildRefereePayload(referee: ResumeReferee): ResumeReferee {
+  const normalizedName = normalizeContactInput(referee.name) || ""
 
   if (normalizedName.length < 2) {
     throw new FormValidationError(
-      "Reference name must be at least 2 characters long.",
+      "Referee name must be at least 2 characters long.",
       "name",
     )
   }
 
-  const email = ensureValidEmail(reference.email)
-  const phone = ensureValidPhone(reference.phone)
+  const email = ensureValidEmail(referee.email)
+  const phone = ensureValidPhone(referee.phone)
 
   if (!email && !phone) {
     throw new FormValidationError(
-      "Provide at least an email or phone number for the reference.",
+      "Provide at least an email or phone number for the referee.",
       "contact",
     )
   }
 
   return {
-    ...reference,
+    ...referee,
     name: normalizedName,
     email,
     phone,
-    position: normalizeContactInput(reference.position),
-    company: normalizeContactInput(reference.company),
-    relationship: normalizeContactInput(reference.relationship),
+    position: normalizeContactInput(referee.position),
+    company: normalizeContactInput(referee.company),
+    relationship: normalizeContactInput(referee.relationship),
     applicantPosition: normalizeContactInput(
-      reference.applicantPosition !== null &&
-        reference.applicantPosition !== undefined
-        ? reference.applicantPosition.toString()
+      referee.applicantPosition !== null &&
+        referee.applicantPosition !== undefined
+        ? referee.applicantPosition.toString()
         : null,
     ),
   }
 }
 
-export async function addApplicationResumeReference(
+export async function addApplicationResumeReferee(
   applicationId: string,
-  reference: ResumeReference,
-): Promise<ResumeReference> {
+  referee: ResumeReferee,
+): Promise<ResumeReferee> {
   if (!applicationId) {
-    throw new Error("Missing application ID for resume reference")
+    throw new Error("Missing application ID for resume referee")
   }
 
-  const payload = buildReferencePayload(reference)
+  const payload = buildRefereePayload(referee)
 
-  const response = await callGetMeApi<ResumeReference>(
-    `/applicant/application/${applicationId}/resume/reference`,
+  const response = await callGetMeApi<ResumeReferee>(
+    `/applicant/application/${applicationId}/resume/referee`,
     {
       method: "POST",
       body: payload as unknown as Record<string, unknown>,
@@ -104,19 +119,50 @@ export async function addApplicationResumeReference(
   return response.data
 }
 
-export async function updateApplicationResumeReference(
+export async function deleteApplicationResumeReferee(
   applicationId: string,
-  referenceId: string,
-  reference: ResumeReference,
-): Promise<ResumeReference> {
-  if (!applicationId || !referenceId) {
-    throw new Error("Missing identifiers for resume reference update")
+  refereeId: string,
+): Promise<void> {
+  if (!applicationId || !refereeId) {
+    throw new Error("Missing identifiers for resume referee deletion")
   }
 
-  const payload = buildReferencePayload(reference)
+  await callGetMeApi(
+    `/applicant/application/${applicationId}/resume/referee/${refereeId}`,
+    {
+      method: "DELETE",
+    },
+  )
+}
 
-  const response = await callGetMeApi<ResumeReference>(
-    `/applicant/application/${applicationId}/resume/reference/${referenceId}`,
+export async function completeApplicationReferees(
+  applicationId: string,
+): Promise<void> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for referee completion")
+  }
+
+  await callGetMeApi(
+    `/applicant/application/${applicationId}/referees/complete`,
+    {
+      method: "PUT",
+    },
+  )
+}
+
+export async function updateApplicationResumeReferee(
+  applicationId: string,
+  refereeId: string,
+  referee: ResumeReferee,
+): Promise<ResumeReferee> {
+  if (!applicationId || !refereeId) {
+    throw new Error("Missing identifiers for resume referee update")
+  }
+
+  const payload = buildRefereePayload(referee)
+
+  const response = await callGetMeApi<ResumeReferee>(
+    `/applicant/application/${applicationId}/resume/referee/${refereeId}`,
     {
       method: "PUT",
       body: payload as unknown as Record<string, unknown>,

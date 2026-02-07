@@ -32,8 +32,8 @@ export default withAuth(
       const isProfileTestPage = pathname.startsWith(
         `/application/${applicationId}/profiletest`,
       )
-      const isReferencesPage = pathname.startsWith(
-        `/application/${applicationId}/references`,
+      const isRefereesPage = pathname.startsWith(
+        `/application/${applicationId}/referees`,
       )
 
       if (token.pinAction === "PROFILING") {
@@ -48,8 +48,8 @@ export default withAuth(
           pinUrl.searchParams.set("next", pathname)
           return NextResponse.redirect(pinUrl)
         }
-      } else if (token.pinAction === "REFERENCES") {
-        if (!isPinPage && !isReferencesPage && !isBaseRoute) {
+      } else if (token.pinAction === "REFEREES") {
+        if (!isPinPage && !isRefereesPage && !isBaseRoute) {
           if (!applicationId) {
             return NextResponse.redirect(new URL("/", request.url))
           }

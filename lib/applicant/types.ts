@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type {
   Advert,
   Email,
@@ -79,9 +80,46 @@ export namespace ApplicantPublic {
  * Minimal shape for an applicant's application record returned by GetMe.video.
  * Fields are intentionally optional to accommodate evolving API responses.
  */
+export const APPLICATION_STATUSES = [
+  "DRAFT",
+  "SCREENING_QUESTIONS_COMPLETED",
+  "PROFILING_PENDING",
+  "PROFILING_COMPLETED",
+  "INTERVIEW_PENDING",
+  "INTERVIEW_COMPLETED",
+  "REFEREES_REQUESTED",
+  "REFEREES_COMPLETED",
+  "REFERECES_PENDING",
+  "REFERECES_RECEIVED",
+  "SHORTLISTED",
+  "OFFER_EXTENDED",
+  "OFFER_ACCEPTED",
+  "OFFER_REJECTED",
+  "DECLINED",
+] as const
+
+export const ApplicationStatusSchema = z.enum(APPLICATION_STATUSES)
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
+
+export const ApplicationStatusHistorySchema = z.object({
+  status: ApplicationStatusSchema,
+  date: z.string().describe("ISO 8601 date string"),
+})
+
+export type ApplicationStatusHistory = z.infer<
+  typeof ApplicationStatusHistorySchema
+>
+
+export interface ApplicationStatusEntry {
+  status: ApplicationStatus
+  changedAt?: string
+}
+
 export interface ApplicantApplication {
   id: string
-  status?: string
+  status?: ApplicationStatus
+  statusHistory?: ApplicationStatusEntry[]
   vacancy?: string
   applicant?: {
     id?: string
@@ -94,9 +132,9 @@ export interface ApplicantApplication {
 }
 
 /**
- * Reference entry extracted from an applicant's resume.
+ * Referee entry extracted from an applicant's resume.
  */
-export interface ResumeReference {
+export interface ResumeReferee {
   id?: string
   name: string
   email?: string | null
@@ -129,6 +167,7 @@ export interface ResumePositionDate {
 }
 
 export interface ResumePosition {
+  id?: string | number | null
   title: string
   company: ResumePositionCompany
   startDate: ResumePositionDate
@@ -148,5 +187,5 @@ export interface Resume {
   file?: string
   status?: ResumeStatus
   positions?: ResumePosition[]
-  references?: ResumeReference[]
+  referees?: ResumeReferee[]
 }

@@ -40,7 +40,9 @@ export default async function ApplicantPersonalityProfileTestPage({
           <h1 className="text-3xl font-bold tracking-tight">
             Personality Profile Questionnaire
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{positionTitle}</p>
+          <p className="mt-2 text-base font-semibold text-foreground">
+            {positionTitle}
+          </p>
         </header>
 
         <div className="mt-8 grid gap-6">

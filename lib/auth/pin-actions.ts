@@ -1,4 +1,4 @@
-export type PinAction = "PROFILING" | "REFERENCES"
+export type PinAction = "PROFILING" | "REFEREES"
 
 const PIN_ACTION_MATCHERS: Array<{
   action: PinAction
@@ -9,8 +9,8 @@ const PIN_ACTION_MATCHERS: Array<{
     test: (path) => /\/profiletest(?:\/|$)/.test(path),
   },
   {
-    action: "REFERENCES",
-    test: (path) => /\/references(?:\/|$)/.test(path),
+    action: "REFEREES",
+    test: (path) => /\/referees(?:\/|$)/.test(path),
   },
 ]
 

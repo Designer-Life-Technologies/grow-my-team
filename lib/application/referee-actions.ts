@@ -1,4 +1,4 @@
-export type ReferenceActionState = {
+export type RefereeActionState = {
   error?: string
   success?: boolean
 }

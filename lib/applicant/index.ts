@@ -1,20 +1,25 @@
 export {
-  addApplicationResumeReference,
+  addApplicationResumeReferee,
+  completeApplicationReferees,
   createApplication,
+  deleteApplicationResumeReferee,
   findApplication,
+  getApplicantApplication,
   getApplicationResume,
   getOpenPositions,
   getPositionById,
   submitScreeningAnswers,
   updateApplicant,
-  updateApplicationResumeReference,
+  updateApplicationResumeReferee,
 } from "./actions"
 export type {
   Applicant,
   ApplicantApplication,
   ApplicantPublic,
+  ApplicationStatusEntry,
   Resume,
-  ResumeReference,
+  ResumePosition,
+  ResumeReferee,
   ScreeningAnswer,
   ScreeningQuestionsData,
 } from "./types"

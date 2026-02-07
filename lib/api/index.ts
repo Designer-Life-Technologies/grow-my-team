@@ -60,6 +60,7 @@ async function callGetMeApi<T>(
     method = "GET",
     body,
     headers = {},
+    cache,
     public: _public,
     ...rest
   } = options
@@ -96,7 +97,7 @@ async function callGetMeApi<T>(
   const config: RequestInit = {
     method,
     headers: apiHeaders,
-    cache: "no-store", // Prevent stale GET responses on reload
+    cache: cache ?? "no-store", // Prevent stale GET responses unless overridden
     ...rest,
   }
 
