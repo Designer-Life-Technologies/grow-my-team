@@ -72,7 +72,7 @@ export function DeleteRefereeButton({
           type="button"
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-destructive"
+          className="text-muted-foreground hover:text-red-500 focus-visible:text-red-500"
           aria-label="Delete referee"
         >
           <Trash2 className="size-4" />

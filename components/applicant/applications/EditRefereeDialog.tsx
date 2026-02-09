@@ -1,7 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { useState } from "react"
+import { Pencil } from "lucide-react"
+import { type ReactNode, useState } from "react"
 import { RefereeForm } from "@/components/applicant/applications/RefereeForm"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import type { Resume, ResumeReferee } from "@/lib/applicant"
 import type { RefereeActionState } from "@/lib/application/referee-actions"
+import { cn } from "@/lib/utils"
 
 interface EditRefereeDialogProps {
   referee: ResumeReferee
@@ -24,6 +25,9 @@ interface EditRefereeDialogProps {
     formData: FormData,
   ) => Promise<RefereeActionState>
   resumePositions?: Resume["positions"]
+  triggerVariant?: "text" | "icon"
+  triggerLabel?: string
+  triggerClassName?: string
   trigger?: ReactNode
 }
 
@@ -33,6 +37,9 @@ export function EditRefereeDialog({
   redirectPath,
   formAction,
   resumePositions,
+  triggerVariant = "text",
+  triggerLabel,
+  triggerClassName,
   trigger,
 }: EditRefereeDialogProps) {
   const [open, setOpen] = useState(false)
@@ -50,15 +57,45 @@ export function EditRefereeDialog({
     setResetKey((prev) => prev + 1)
   }
 
+  const triggerButtonLabel = triggerLabel ?? "Edit"
+
+  const renderTrigger = () => {
+    if (trigger) {
+      return trigger
+    }
+
+    if (triggerVariant === "icon") {
+      return (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "text-muted-foreground hover:text-foreground",
+            triggerClassName,
+          )}
+          aria-label={triggerButtonLabel}
+        >
+          <Pencil className="size-4" aria-hidden="true" />
+        </Button>
+      )
+    }
+
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        className={cn("min-w-24", triggerClassName)}
+        aria-label={triggerButtonLabel}
+      >
+        {triggerButtonLabel}
+      </Button>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline" className="min-w-24">
-            Edit
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit referee</DialogTitle>

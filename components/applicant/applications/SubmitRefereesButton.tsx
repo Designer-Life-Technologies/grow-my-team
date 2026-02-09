@@ -61,7 +61,7 @@ export function SubmitRefereesButton({
       if (result.success) {
         setOpen(false)
         toast.success("Referees submitted", {
-          description: "Thanks! Well reach out to them shortly.",
+          description: "",
           position: "top-center",
           duration: 2500,
         })
@@ -80,7 +80,7 @@ export function SubmitRefereesButton({
         </DialogTrigger>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Submit your referees</DialogTitle>
+            <DialogTitle>Submit Your Referees</DialogTitle>
             <DialogDescription>
               Once submitted, our team will begin contacting your referees.
             </DialogDescription>
@@ -97,7 +97,7 @@ export function SubmitRefereesButton({
               </p>
             ) : null}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-3 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
               type="button"
@@ -107,7 +107,7 @@ export function SubmitRefereesButton({
               Cancel
             </Button>
             <Button type="button" onClick={handleConfirm} disabled={isPending}>
-              {isPending ? "Submitting..." : "Yes, submit referees"}
+              {isPending ? "Submitting..." : "Submit Referees"}
             </Button>
           </DialogFooter>
         </DialogContent>

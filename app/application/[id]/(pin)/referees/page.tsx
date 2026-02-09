@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react"
+import { LayoutGroup } from "framer-motion"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import ApplicantPublicLayout from "@/app/(applicant)/(public)/layout"
@@ -6,7 +6,6 @@ import { AddRefereeDialog } from "@/components/applicant/applications/AddReferee
 import { DeleteRefereeButton } from "@/components/applicant/applications/DeleteRefereeButton"
 import { EditRefereeDialog } from "@/components/applicant/applications/EditRefereeDialog"
 import { SubmitRefereesButton } from "@/components/applicant/applications/SubmitRefereesButton"
-import { Button } from "@/components/ui/button"
 import type {
   ApplicantApplication,
   ApplicationStatusEntry,
@@ -284,17 +283,19 @@ export default async function ApplicationRefereesPage({
               No referees added yet.
             </div>
           ) : (
-            <div className="mt-6 space-y-6">
-              {referees.map((referee: ResumeReferee) => (
-                <RefereeCard
-                  key={referee.id || referee.name}
-                  referee={referee}
-                  applicationId={id}
-                  redirectPath={refereesPath}
-                  resumePositions={resumePositions}
-                />
-              ))}
-            </div>
+            <LayoutGroup>
+              <div className="mt-6 space-y-6">
+                {referees.map((referee: ResumeReferee) => (
+                  <RefereeCard
+                    key={referee.id || referee.name}
+                    referee={referee}
+                    applicationId={id}
+                    redirectPath={refereesPath}
+                    resumePositions={resumePositions}
+                  />
+                ))}
+              </div>
+            </LayoutGroup>
           )}
         </div>
 
@@ -340,55 +341,68 @@ function RefereeCard({
   redirectPath: string
   resumePositions: Resume["positions"]
 }) {
+  const isEditable = Boolean(referee?.id)
+
   return (
-    <div className="rounded-xl border border-border bg-card/60 p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-lg font-semibold text-foreground">
-            {referee.name}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {referee.position || "Role unknown"} ·{" "}
-            {referee.company || "Company unknown"}
-          </p>
-        </div>
-        {referee?.id ? (
-          <div className="flex items-center gap-1.5">
-            <EditRefereeDialog
-              referee={referee}
-              applicationId={applicationId}
-              redirectPath={redirectPath}
-              formAction={updateResumeRefereeAction}
-              resumePositions={resumePositions}
-              trigger={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-foreground"
-                  aria-label={`Edit ${referee.name}`}
-                >
-                  <Pencil className="size-4" />
-                </Button>
-              }
+    <div className="group relative">
+      {isEditable ? (
+        <EditRefereeDialog
+          referee={referee}
+          applicationId={applicationId}
+          redirectPath={redirectPath}
+          formAction={updateResumeRefereeAction}
+          resumePositions={resumePositions}
+          trigger={
+            <button
+              type="button"
+              aria-label={`Edit ${referee.name}`}
+              className="absolute inset-0 z-10 w-full rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary cursor-pointer"
             />
-            <DeleteRefereeButton
-              applicationId={applicationId}
-              refereeId={referee.id}
-              redirectPath={redirectPath}
-              refereeName={referee.name}
-              formAction={deleteRefereeAction}
-            />
+          }
+        />
+      ) : null}
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6 shadow-sm transition-colors group-hover:border-primary/70">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-foreground">
+              {referee.name}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {referee.position || "Role unknown"} ·{" "}
+              {referee.company || "Company unknown"}
+            </p>
           </div>
+          {isEditable ? (
+            <div className="relative z-20 flex items-center gap-1.5">
+              <EditRefereeDialog
+                referee={referee}
+                applicationId={applicationId}
+                redirectPath={redirectPath}
+                formAction={updateResumeRefereeAction}
+                resumePositions={resumePositions}
+                triggerVariant="icon"
+                triggerLabel={`Edit ${referee.name}`}
+                triggerClassName="text-muted-foreground hover:text-white focus-visible:text-white"
+              />
+              <DeleteRefereeButton
+                applicationId={applicationId}
+                refereeId={referee.id as string}
+                redirectPath={redirectPath}
+                refereeName={referee.name}
+                formAction={deleteRefereeAction}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {!isEditable ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            This referee came from your resume and can’t be edited yet because
+            no unique identifier was provided.
+          </p>
         ) : null}
       </div>
-
-      {!referee?.id ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          This referee came from your resume and can’t be edited yet because no
-          unique identifier was provided.
-        </p>
-      ) : null}
     </div>
   )
 }

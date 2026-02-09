@@ -211,10 +211,15 @@ export function RefereeForm({
         )
       : undefined
     const matchingCompany = matchingPosition?.company?.name?.trim()
+    const shouldClearCompany = !normalizedValue
     setValues((prev) => ({
       ...prev,
       applicantPosition: normalizedValue,
-      ...(matchingCompany ? { company: matchingCompany } : {}),
+      ...(shouldClearCompany
+        ? { company: "" }
+        : matchingCompany
+          ? { company: matchingCompany }
+          : {}),
     }))
     setErrors((prev) => {
       if (!prev.applicantPosition) {
@@ -283,7 +288,7 @@ export function RefereeForm({
       setServerState(result)
       if (result.success) {
         toast.success(referee ? "Referee updated" : "Referee saved", {
-          description: "We'll reach out to them shortly.",
+          description: "",
           position: "top-center",
           duration: 2000,
           className:
