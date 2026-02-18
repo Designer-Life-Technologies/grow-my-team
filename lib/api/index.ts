@@ -14,52 +14,65 @@ async function callGetMeApi<T>(
 ): Promise<ApiResponse<T>> {
   // Get JWT token directly from cookies (server-side only)
   const cookieStore = await cookies()
+  let accessToken: string | undefined
 
-  // Get the session token from cookies
-  const sessionToken =
-    cookieStore.get("next-auth.session-token")?.value ||
-    cookieStore.get("__Secure-next-auth.session-token")?.value
+  if (!options.public) {
+    // Get the session token from cookies
+    const sessionToken =
+      cookieStore.get("next-auth.session-token")?.value ||
+      cookieStore.get("__Secure-next-auth.session-token")?.value
 
-  if (!sessionToken) {
-    const error = new Error(
-      "Not authenticated - no session token found",
-    ) as GetMeApiError
-    error.status = 401
-    throw error
+    if (!sessionToken) {
+      const error = new Error(
+        "Not authenticated - no session token found",
+      ) as GetMeApiError
+      error.status = 401
+      throw error
+    }
+
+    // Decode the JWT token to get the access token
+    const secret = process.env.NEXTAUTH_SECRET
+    if (!secret) {
+      throw new Error("NEXTAUTH_SECRET environment variable is not configured")
+    }
+    const token = await decode({
+      token: sessionToken,
+      secret,
+    })
+
+    if (!token) {
+      const error = new Error("Invalid session") as GetMeApiError
+      error.status = 401
+      throw error
+    }
+
+    accessToken = token.accessToken as string | undefined
+
+    if (!accessToken) {
+      console.warn(`[callGetMeApi] No access token found for path: ${path}`)
+      const error = new Error("Not authenticated") as GetMeApiError
+      error.status = 401
+      throw error
+    }
   }
 
-  // Decode the JWT token to get the access token
-  const secret = process.env.NEXTAUTH_SECRET
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET environment variable is not configured")
-  }
-  const token = await decode({
-    token: sessionToken,
-    secret,
-  })
-
-  if (!token) {
-    const error = new Error("Invalid session") as GetMeApiError
-    error.status = 401
-    throw error
-  }
-
-  const accessToken = token.accessToken as string | undefined
-
-  if (!accessToken) {
-    console.warn(`[callGetMeApi] No access token found for path: ${path}`)
-    const error = new Error("Not authenticated") as GetMeApiError
-    error.status = 401
-    throw error
-  }
-
-  const { method = "GET", body, headers = {}, ...rest } = options
+  const {
+    method = "GET",
+    body,
+    headers = {},
+    cache,
+    public: _public,
+    ...rest
+  } = options
 
   // Prepare headers
   const apiHeaders: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "access-token": accessToken,
+  }
+
+  if (accessToken) {
+    apiHeaders.Authorization = `Bearer ${accessToken}`
+    apiHeaders["access-token"] = accessToken
   }
 
   // Safely merge existing headers from options
@@ -84,7 +97,7 @@ async function callGetMeApi<T>(
   const config: RequestInit = {
     method,
     headers: apiHeaders,
-    cache: "no-store", // Prevent stale GET responses on reload
+    cache: cache ?? "no-store", // Prevent stale GET responses unless overridden
     ...rest,
   }
 
@@ -133,6 +146,41 @@ async function callGetMeApi<T>(
   return {
     data,
     serverNow: serverNow ? new Date(serverNow).toISOString() : undefined,
+  }
+}
+
+import type { SafeApiResult } from "./types"
+
+/**
+ * Safe wrapper for callGetMeApi that uses the Result pattern.
+ * Returns { success: true, data } or { success: false, error }.
+ * Never throws.
+ */
+export async function safeCallGetMeApi<T>(
+  path: string,
+  options: ApiOptions = {},
+): Promise<SafeApiResult<T>> {
+  try {
+    const response = await callGetMeApi<T>(path, options)
+    return {
+      success: true,
+      data: response.data,
+      serverNow: response.serverNow,
+    }
+  } catch (error) {
+    // Log is handled in callGetMeApi for API errors, or here for other errors
+    const status = (error as GetMeApiError).status
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred"
+
+    // If it's a 404, we might not want to log it as an error in some cases,
+    // but the inner call already logged it.
+
+    return {
+      success: false,
+      error: message,
+      status,
+    }
   }
 }
 

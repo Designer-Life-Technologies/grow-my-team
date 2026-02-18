@@ -1,9 +1,10 @@
 "use client"
 
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent, FocusEvent, FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 /**
  * ApplicationForm Component
@@ -34,11 +35,15 @@ interface ApplicationFormProps {
    */
   formData: ApplicationFormData
   /**
-   * Callback when form data changes
+   * Callback when a form field changes
    */
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
   /**
-   * Callback when form is submitted
+   * Optional callback when a form field loses focus
+   */
+  onBlur?: (e: FocusEvent<HTMLInputElement>) => void
+  /**
+   * Callback when the form is submitted
    */
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   /**
@@ -49,18 +54,25 @@ interface ApplicationFormProps {
    * Whether the form is currently submitting
    */
   isSubmitting?: boolean
+  /**
+   * Optional field-level validation errors
+   */
+  errors?: Partial<Record<keyof ApplicationFormData, string>>
 }
 
 export function ApplicationForm({
   formData,
   onChange,
+  onBlur,
   onSubmit,
   onBack,
   isSubmitting = false,
+  errors,
 }: ApplicationFormProps) {
   // Validate that required fields are filled
   const isFormValid =
     formData.firstName.trim() !== "" && formData.email.trim() !== ""
+  const hasErrors = Boolean(errors && Object.keys(errors).length)
 
   return (
     <div className="mt-8 animate-in fade-in duration-500">
@@ -82,9 +94,23 @@ export function ApplicationForm({
                 type="text"
                 value={formData.firstName}
                 onChange={onChange}
+                onBlur={onBlur}
                 placeholder="John"
+                className={cn(
+                  errors?.firstName &&
+                    "border-destructive focus-visible:ring-destructive",
+                )}
+                aria-invalid={Boolean(errors?.firstName)}
+                aria-describedby={
+                  errors?.firstName ? "firstName-error" : undefined
+                }
                 required
               />
+              {errors?.firstName ? (
+                <p id="firstName-error" className="text-sm text-destructive">
+                  {errors.firstName}
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -95,6 +121,7 @@ export function ApplicationForm({
                 type="text"
                 value={formData.lastName}
                 onChange={onChange}
+                onBlur={onBlur}
                 placeholder="Doe"
               />
             </div>
@@ -110,9 +137,21 @@ export function ApplicationForm({
               type="email"
               value={formData.email}
               onChange={onChange}
+              onBlur={onBlur}
               placeholder="john.doe@example.com"
+              className={cn(
+                errors?.email &&
+                  "border-destructive focus-visible:ring-destructive",
+              )}
+              aria-invalid={Boolean(errors?.email)}
+              aria-describedby={errors?.email ? "email-error" : undefined}
               required
             />
+            {errors?.email ? (
+              <p id="email-error" className="text-sm text-destructive">
+                {errors.email}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -123,8 +162,20 @@ export function ApplicationForm({
               type="tel"
               value={formData.phone}
               onChange={onChange}
+              onBlur={onBlur}
               placeholder="+1 (555) 123-4567"
+              className={cn(
+                errors?.phone &&
+                  "border-destructive focus-visible:ring-destructive",
+              )}
+              aria-invalid={Boolean(errors?.phone)}
+              aria-describedby={errors?.phone ? "phone-error" : undefined}
             />
+            {errors?.phone ? (
+              <p id="phone-error" className="text-sm text-destructive">
+                {errors.phone}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -135,8 +186,22 @@ export function ApplicationForm({
               type="url"
               value={formData.linkedInUrl}
               onChange={onChange}
+              onBlur={onBlur}
               placeholder="https://www.linkedin.com/in/your-profile"
+              className={cn(
+                errors?.linkedInUrl &&
+                  "border-destructive focus-visible:ring-destructive",
+              )}
+              aria-invalid={Boolean(errors?.linkedInUrl)}
+              aria-describedby={
+                errors?.linkedInUrl ? "linkedInUrl-error" : undefined
+              }
             />
+            {errors?.linkedInUrl ? (
+              <p id="linkedInUrl-error" className="text-sm text-destructive">
+                {errors.linkedInUrl}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -148,7 +213,10 @@ export function ApplicationForm({
             >
               Back
             </Button>
-            <Button type="submit" disabled={!isFormValid || isSubmitting}>
+            <Button
+              type="submit"
+              disabled={!isFormValid || hasErrors || isSubmitting}
+            >
               {isSubmitting ? "Updating..." : "Next"}
             </Button>
           </div>

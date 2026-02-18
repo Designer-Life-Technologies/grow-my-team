@@ -1,4 +1,5 @@
 import { defaultTheme } from "./themes/default"
+import { demoTheme } from "./themes/demo"
 import { placementPartnerTheme } from "./themes/placement-partner"
 import { teamPuzzleTheme } from "./themes/team-puzzle"
 import type { Theme } from "./types"
@@ -7,6 +8,7 @@ const themes: Record<string, Theme> = {
   default: defaultTheme,
   "team-puzzle": teamPuzzleTheme,
   "placement-partner": placementPartnerTheme,
+  demo: demoTheme,
   // Add more themes here
 }
 
@@ -20,6 +22,7 @@ const themeAliasEntries: Record<string, string[]> = {
     "placement_partner",
     "pp",
   ],
+  demo: ["demo", "democlient", "demo-client"],
 }
 
 const normalizeAlias = (value: string) =>

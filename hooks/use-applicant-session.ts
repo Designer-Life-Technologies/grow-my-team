@@ -15,6 +15,8 @@ export interface ApplicantUser {
   mobile?: Phone
   linkedInUrl?: string
   vacancyId?: string
+  pinAction?: string
+  applicationId?: string
 }
 
 /**

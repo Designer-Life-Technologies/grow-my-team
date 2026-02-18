@@ -24,6 +24,44 @@ export default withAuth(
       if (!pathname.startsWith("/application/")) {
         return NextResponse.redirect(new URL("/", request.url))
       }
+
+      const pathParts = pathname.split("/")
+      const applicationId = pathParts[2]
+      const isPinPage = pathParts[3] === "pin"
+      const isBaseRoute = pathname === `/application/${applicationId}`
+      const isProfileTestPage = pathname.startsWith(
+        `/application/${applicationId}/profiletest`,
+      )
+      const isRefereesPage = pathname.startsWith(
+        `/application/${applicationId}/referees`,
+      )
+
+      if (token.pinAction === "PROFILING") {
+        if (!isPinPage && !isProfileTestPage && !isBaseRoute) {
+          if (!applicationId) {
+            return NextResponse.redirect(new URL("/", request.url))
+          }
+          const pinUrl = new URL(
+            `/application/${applicationId}/pin`,
+            request.url,
+          )
+          pinUrl.searchParams.set("next", pathname)
+          return NextResponse.redirect(pinUrl)
+        }
+      } else if (token.pinAction === "REFEREES") {
+        if (!isPinPage && !isRefereesPage && !isBaseRoute) {
+          if (!applicationId) {
+            return NextResponse.redirect(new URL("/", request.url))
+          }
+          const pinUrl = new URL(
+            `/application/${applicationId}/pin`,
+            request.url,
+          )
+          pinUrl.searchParams.set("next", pathname)
+          return NextResponse.redirect(pinUrl)
+        }
+      }
+
       return NextResponse.next()
     }
 

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getPinActionForPath } from "@/lib/auth/pin-actions"
 import { cn } from "@/lib/utils"
 import { logger } from "@/lib/utils/logger"
 
@@ -114,9 +115,11 @@ export default function ApplicationPinPage() {
 
     let pendingNavigation = false
     try {
+      const pinAction = getPinActionForPath(next)
       const res = await signIn("pin", {
         applicationId: id,
         pin: normalizedPin,
+        pinAction,
         redirect: false,
       })
 

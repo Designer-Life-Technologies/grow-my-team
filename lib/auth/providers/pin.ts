@@ -4,6 +4,23 @@ import type { ApplicantApplication } from "@/lib/applicant/types"
 import { logger } from "@/lib/utils/logger"
 import { maskSecret, type TokenResponse } from "./shared"
 
+const decodeJwtPayload = (token: string) => {
+  try {
+    const [, payload] = token.split(".")
+    if (!payload) return null
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/")
+    const paddedPayload = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4 || 4)) % 4),
+      "=",
+    )
+    const json = Buffer.from(paddedPayload, "base64").toString("utf8")
+    return JSON.parse(json) as Record<string, unknown>
+  } catch (error) {
+    logger.warn("Failed to decode PIN JWT payload", error)
+    return null
+  }
+}
+
 /**
  * PIN Credentials Provider
  *
@@ -16,11 +33,13 @@ export const pinProvider = Credentials({
   credentials: {
     applicationId: { label: "Application ID", type: "text" },
     pin: { label: "PIN", type: "text" },
+    pinAction: { label: "PIN Action", type: "text" },
   },
 
   async authorize(credentials) {
     const applicationId = credentials?.applicationId?.trim()
     const pin = credentials?.pin?.trim()
+    const requestedPinAction = credentials?.pinAction?.trim()?.toUpperCase()
 
     if (!process.env.GETME_API_URL) {
       logger.error("GETME_API_URL is not set")
@@ -42,6 +61,7 @@ export const pinProvider = Credentials({
         grant_type: "custom:pin",
         applicationId,
         pin,
+        ...(requestedPinAction ? { action: requestedPinAction } : {}),
       }
 
       logger.info("[nextauth][pin] POST /v1/auth/token request", {
@@ -104,6 +124,12 @@ export const pinProvider = Credentials({
         return null
       }
 
+      const decodedPayload = decodeJwtPayload(token.access_token)
+      const pinAction =
+        typeof decodedPayload?.pinAction === "string"
+          ? decodedPayload.pinAction
+          : undefined
+
       const applicationRes = await fetch(applicationUrl, {
         method: "GET",
         headers: {
@@ -149,6 +175,7 @@ export const pinProvider = Credentials({
         linkedInUrl: applicantData?.linkedInUrl,
         applicationId,
         vacancyId: applicationData.vacancy,
+        pinAction,
       }
 
       logger.info("[nextauth][pin] authorize payload", userPayload)

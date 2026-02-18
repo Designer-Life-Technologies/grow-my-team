@@ -1,7 +1,6 @@
 "use server"
 
-import { callGetMeApi } from "@/lib/api"
-import { logger } from "@/lib/utils/logger"
+import { safeCallGetMeApi } from "@/lib/api"
 import type { DISCQuestionnaire } from "."
 
 /**
@@ -21,20 +20,19 @@ import type { DISCQuestionnaire } from "."
 export async function getApplicationProfileTest(
   applicationId: string,
 ): Promise<DISCQuestionnaire> {
-  try {
-    if (!applicationId) {
-      throw new Error("Missing application ID for profile test request")
-    }
-
-    // The API returns the DISC questionnaire for this application
-    const response = await callGetMeApi<DISCQuestionnaire>(
-      `/applicant/application/${applicationId}/profile-test/disc/questionnaire`,
-      { method: "GET" },
-    )
-
-    return response.data
-  } catch (error) {
-    logger.error("Error fetching application profile test:", error)
-    throw error
+  if (!applicationId) {
+    throw new Error("Missing application ID for profile test request")
   }
+
+  // The API returns the DISC questionnaire for this application
+  const result = await safeCallGetMeApi<DISCQuestionnaire>(
+    `/applicant/application/${applicationId}/profile-test/disc/questionnaire`,
+    { method: "GET" },
+  )
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  return result.data
 }

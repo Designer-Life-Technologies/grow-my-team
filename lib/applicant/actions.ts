@@ -1,8 +1,21 @@
 "use server"
 
-import { callGetMeApi } from "@/lib/api"
+import { callGetMeApi, safeCallGetMeApi } from "@/lib/api"
 import { logger } from "@/lib/utils/logger"
-import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
+import {
+  ensureValidEmail,
+  ensureValidPhone,
+  FormValidationError,
+  normalizeContactInput,
+} from "@/lib/validation/contact"
+import type {
+  Applicant,
+  ApplicantApplication,
+  ApplicantPublic,
+  Resume,
+  ResumeReferee,
+  ScreeningAnswer,
+} from "./types"
 
 /**
  * Candidate Actions
@@ -18,26 +31,171 @@ import type { Applicant, ApplicantPublic, ScreeningAnswer } from "./types"
  * @returns Promise<ApplicantPublic.Position[]> - Array of open positions
  */
 export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
-  try {
-    const response = await fetch(
-      `${process.env.GETME_API_URL}/public/vacancy`,
-      {
-        // Add cache revalidation to ensure fresh data
-        next: { revalidate: 60 }, // Revalidate every 60 seconds
-      },
-    )
+  const result = await safeCallGetMeApi<ApplicantPublic.Position[]>(
+    "/public/vacancy",
+    {
+      public: true,
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    },
+  )
 
-    if (!response.ok) {
-      logger.error(`Failed to fetch positions: ${response.status}`)
-      return []
-    }
-
-    const positions = (await response.json()) as ApplicantPublic.Position[]
-    return positions
-  } catch (error) {
-    logger.error("Error fetching open positions:", error)
+  if (!result.success) {
+    // Errors are already logged by the API client
     return []
   }
+
+  return result.data
+}
+
+export async function getApplicantApplication(
+  applicationId: string,
+): Promise<ApplicantApplication> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for application request")
+  }
+
+  const response = await callGetMeApi<ApplicantApplication>(
+    `/applicant/application/${applicationId}`,
+  )
+
+  return response.data
+}
+
+function buildRefereePayload(referee: ResumeReferee): ResumeReferee {
+  const normalizedName = normalizeContactInput(referee.name) || ""
+
+  if (normalizedName.length < 2) {
+    throw new FormValidationError(
+      "Referee name must be at least 2 characters long.",
+      "name",
+    )
+  }
+
+  const email = ensureValidEmail(referee.email)
+  const phone = ensureValidPhone(referee.phone)
+
+  if (!email && !phone) {
+    throw new FormValidationError(
+      "Provide at least an email or phone number for the referee.",
+      "contact",
+    )
+  }
+
+  return {
+    ...referee,
+    name: normalizedName,
+    email,
+    phone,
+    position: normalizeContactInput(referee.position),
+    company: normalizeContactInput(referee.company),
+    relationship: normalizeContactInput(referee.relationship),
+    applicantPosition: normalizeContactInput(
+      referee.applicantPosition !== null &&
+        referee.applicantPosition !== undefined
+        ? referee.applicantPosition.toString()
+        : null,
+    ),
+  }
+}
+
+export async function addApplicationResumeReferee(
+  applicationId: string,
+  referee: ResumeReferee,
+): Promise<ResumeReferee> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for resume referee")
+  }
+
+  const payload = buildRefereePayload(referee)
+
+  const response = await callGetMeApi<ResumeReferee>(
+    `/applicant/application/${applicationId}/resume/referee`,
+    {
+      method: "POST",
+      body: payload as unknown as Record<string, unknown>,
+    },
+  )
+
+  return response.data
+}
+
+export async function deleteApplicationResumeReferee(
+  applicationId: string,
+  refereeId: string,
+): Promise<void> {
+  if (!applicationId || !refereeId) {
+    throw new Error("Missing identifiers for resume referee deletion")
+  }
+
+  await callGetMeApi(
+    `/applicant/application/${applicationId}/resume/referee/${refereeId}`,
+    {
+      method: "DELETE",
+    },
+  )
+}
+
+export async function completeApplicationReferees(
+  applicationId: string,
+): Promise<void> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for referee completion")
+  }
+
+  await callGetMeApi(
+    `/applicant/application/${applicationId}/referees/complete`,
+    {
+      method: "PUT",
+    },
+  )
+}
+
+export async function updateApplicationResumeReferee(
+  applicationId: string,
+  refereeId: string,
+  referee: ResumeReferee,
+): Promise<ResumeReferee> {
+  if (!applicationId || !refereeId) {
+    throw new Error("Missing identifiers for resume referee update")
+  }
+
+  const payload = buildRefereePayload(referee)
+
+  const response = await callGetMeApi<ResumeReferee>(
+    `/applicant/application/${applicationId}/resume/referee/${refereeId}`,
+    {
+      method: "PUT",
+      body: payload as unknown as Record<string, unknown>,
+    },
+  )
+
+  return response.data
+}
+
+/**
+ * Retrieve the resume associated with an application
+ *
+ * @param applicationId - The ID of the application whose resume we need
+ * @returns Promise<Resume>
+ */
+export async function getApplicationResume(
+  applicationId: string,
+): Promise<Resume> {
+  if (!applicationId) {
+    throw new Error("Missing application ID for resume request")
+  }
+
+  const result = await safeCallGetMeApi<Resume>(
+    `/applicant/application/${applicationId}/resume`,
+  )
+
+  if (!result.success) {
+    const error = new Error(result.error) as Error & { status?: number }
+    error.status = result.status
+    throw error
+  }
+
+  return result.data
 }
 
 /**
@@ -46,22 +204,27 @@ export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
  * Returns full details of a specific job position from the public API.
  *
  * @param positionId - The ID of the position to fetch
- * @returns Promise<Candidate.Position | null> - Position details or null if not found
+ * @returns Promise<ApplicantPublic.Position | null> - Position details or null if not found
  */
 export async function getPositionById(
   positionId: string,
 ): Promise<ApplicantPublic.Position | null> {
-  try {
-    const response = await fetch(
-      `${process.env.GETME_API_URL}/public/vacancy/${positionId}`,
-    )
-    const position = (await response.json()) as ApplicantPublic.Position
+  const result = await safeCallGetMeApi<ApplicantPublic.Position>(
+    `/public/vacancy/${positionId}`,
+    {
+      public: true,
+    },
+  )
 
-    return position
-  } catch (error) {
-    logger.error("Error fetching position details:", error)
-    return null
+  if (!result.success) {
+    if (result.status === 404) {
+      return null
+    }
+    // For other errors (e.g. 500), throw so the global error boundary catches it
+    throw new Error(result.error)
   }
+
+  return result.data
 }
 
 /**
@@ -83,6 +246,19 @@ export async function updateApplicant(
   >,
 ): Promise<{ success: boolean; applicant?: Applicant; error?: string }> {
   try {
+    if (data.email) {
+      const emailValue =
+        typeof data.email === "string" ? data.email : data.email.address
+      data.email = ensureValidEmail(emailValue, { required: true }) || undefined
+    }
+
+    if (data.mobile) {
+      const phoneValue =
+        typeof data.mobile === "string" ? data.mobile : data.mobile.localNumber
+      data.mobile =
+        ensureValidPhone(phoneValue, { required: true }) || undefined
+    }
+
     data.id = applicantId
     const response = await callGetMeApi<Applicant>(
       `/applicant/${applicantId}`,
