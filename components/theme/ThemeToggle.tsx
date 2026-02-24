@@ -50,6 +50,7 @@ export function ThemeSelector() {
     { id: "team-puzzle", name: "Team Puzzle" },
     { id: "placement-partner", name: "Placement Partner" },
     { id: "demo", name: "Demo" },
+    { id: "shr", name: "Strategic HR" },
   ]
 
   return (
