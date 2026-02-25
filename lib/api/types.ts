@@ -5,6 +5,11 @@ export interface ApiOptions extends Omit<RequestInit, "body"> {
    * @default false
    */
   public?: boolean
+  /**
+   * Optional host override used for tenant-aware API resolution.
+   * When omitted, the resolver infers the host from the current request context.
+   */
+  host?: string | null
 }
 
 export interface ApiResponse<T> {

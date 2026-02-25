@@ -19,11 +19,14 @@ NEXTAUTH_SECRET=your-nextauth-secret-key-here
 
 # GetMe.video API
 GETME_API_URL=https://api.getme.video
+# Optional host overrides (comma-separated host=baseUrl pairs)
+GETME_API_URL_MAP=careers.example.com=https://api.acme.getme.video,partners.example.com=https://api.beta.getme.video
 ```
 
 - `NEXTAUTH_URL`: The base URL of your application
 - `NEXTAUTH_SECRET`: A secret key for encrypting JWT tokens (generate a secure random string)
-- `GETME_API_URL`: The base URL for the GetMe.video API
+- `GETME_API_URL`: The default base URL for the GetMe.video API
+- `GETME_API_URL_MAP`: Optional host-based overrides. Provide one or more `host=baseUrl` entries separated by commas. When the app is served from a host listed here, requests use the mapped API base instead of `GETME_API_URL`.
 
 ## Authentication Flow
 
@@ -87,13 +90,11 @@ The authentication system connects to the GetMe.video API token endpoint to vali
 The application implements a secure session pattern with the following characteristics:
 
 1. **JWT Storage (Server-side only)**:
-
    - Access tokens are stored only in the JWT, which is encrypted and stored as an HTTP-only cookie
    - The JWT is only accessible on the server side
    - The JWT contains sensitive information like access tokens needed for API calls
 
 2. **Client Session (Browser-side)**:
-
    - The client session object only contains safe user information (id, name, email)
    - Access tokens are explicitly excluded from the client session
    - This prevents accidental exposure of tokens in client-side code
@@ -179,7 +180,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile> {
 }
 
 export async function updateUserProfile(
-  data: Partial<UserProfile>
+  data: Partial<UserProfile>,
 ): Promise<UserProfile> {
   return await callGetMeApi<UserProfile>("/users/me", {
     method: "PUT",
@@ -206,14 +207,14 @@ import { cookies } from "next/headers";
 
 async function callGetMeApi<T>(
   path: string,
-  options: ApiOptions = {}
+  options: ApiOptions = {},
 ): Promise<T> {
   // Get JWT token directly from cookies (server-side only)
   const cookieStore = await cookies();
   const token = await getToken({
     req: {
       cookies: Object.fromEntries(
-        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])
+        cookieStore.getAll().map((cookie) => [cookie.name, cookie.value]),
       ),
     } as unknown as Request,
     secret: process.env.NEXTAUTH_SECRET,

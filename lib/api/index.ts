@@ -2,9 +2,8 @@
 
 import { cookies } from "next/headers"
 import { decode } from "next-auth/jwt"
+import { resolveGetMeApiUrl } from "./getme-api-url"
 import type { ApiOptions, ApiResponse } from "./types"
-
-const BASE_URL = process.env.GETME_API_URL
 
 type GetMeApiError = Error & { status?: number }
 
@@ -62,6 +61,7 @@ async function callGetMeApi<T>(
     headers = {},
     cache,
     public: _public,
+    host,
     ...rest
   } = options
 
@@ -105,7 +105,8 @@ async function callGetMeApi<T>(
     config.body = JSON.stringify(body)
   }
 
-  const fullUrl = `${BASE_URL}${path}`
+  const baseUrl = await resolveGetMeApiUrl(host)
+  const fullUrl = `${baseUrl}${path}`
   console.log(`[GetMeAPI] ${method} ${fullUrl}`)
 
   const response = await fetch(fullUrl, config)

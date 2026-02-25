@@ -1,4 +1,5 @@
 import Credentials from "next-auth/providers/credentials"
+import { resolveGetMeApiUrlFromHeaders } from "@/lib/api/getme-api-url"
 import type { Applicant } from "@/lib/applicant/types"
 import { logger } from "@/lib/utils/logger"
 import { maskSecret, type TokenResponse } from "./shared"
@@ -34,19 +35,16 @@ export const applicantProvider = Credentials({
    * @param credentials The applicant ID and data
    * @returns User object with applicant data or null
    */
-  async authorize(credentials) {
+  async authorize(credentials, request) {
     const applicantId = credentials?.id
     const email = credentials?.email
     const nonce = credentials?.nonce
-    if (!process.env.GETME_API_URL) {
-      logger.error("GETME_API_URL is not set")
-      return null
-    }
 
     if (!nonce) return null
     if (!applicantId && !email) return null
 
     try {
+      const apiBase = await resolveGetMeApiUrlFromHeaders(request?.headers)
       const tokenRequestBody = {
         grant_type: "custom:nonce",
         // Some backends use applicantId, others use id. Send both.
@@ -56,15 +54,16 @@ export const applicantProvider = Credentials({
         nonce,
       }
 
+      const tokenUrl = new URL("/v1/auth/token", apiBase).toString()
       logger.info("[nextauth][applicant] POST /v1/auth/token request", {
-        url: `${process.env.GETME_API_URL}/auth/token`,
+        url: tokenUrl,
         body: {
           ...tokenRequestBody,
           nonce: maskSecret(nonce, 6),
         },
       })
 
-      const tokenRes = await fetch(`${process.env.GETME_API_URL}/auth/token`, {
+      const tokenRes = await fetch(tokenUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -116,16 +115,14 @@ export const applicantProvider = Credentials({
         return null
       }
 
-      const applicantRes = await fetch(
-        `${process.env.GETME_API_URL}/applicant`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token.access_token}`,
-          },
+      const applicantUrl = new URL("/v1/applicant", apiBase).toString()
+      const applicantRes = await fetch(applicantUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.access_token}`,
         },
-      )
+      })
 
       if (!applicantRes.ok) {
         const text = await applicantRes.text().catch(() => "")

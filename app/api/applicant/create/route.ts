@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+import { resolveGetMeApiUrlFromHeaders } from "@/lib/api/getme-api-url"
 
 /**
  * POST /api/candidate/create
@@ -35,14 +36,13 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
+    const apiBase = await resolveGetMeApiUrlFromHeaders(request.headers)
+
     // Forward request to GetMe.video API
-    const response = await fetch(
-      `${process.env.GETME_API_URL}/public/applicant`,
-      {
-        method: "POST",
-        body: formData,
-      },
-    )
+    const response = await fetch(new URL("/public/applicant", apiBase), {
+      method: "POST",
+      body: formData,
+    })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))

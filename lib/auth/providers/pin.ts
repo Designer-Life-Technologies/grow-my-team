@@ -1,5 +1,6 @@
 import Credentials from "next-auth/providers/credentials"
 
+import { resolveGetMeApiUrlFromHeaders } from "@/lib/api/getme-api-url"
 import type { ApplicantApplication } from "@/lib/applicant/types"
 import { logger } from "@/lib/utils/logger"
 import { maskSecret, type TokenResponse } from "./shared"
@@ -36,22 +37,17 @@ export const pinProvider = Credentials({
     pinAction: { label: "PIN Action", type: "text" },
   },
 
-  async authorize(credentials) {
+  async authorize(credentials, request) {
     const applicationId = credentials?.applicationId?.trim()
     const pin = credentials?.pin?.trim()
     const requestedPinAction = credentials?.pinAction?.trim()?.toUpperCase()
-
-    if (!process.env.GETME_API_URL) {
-      logger.error("GETME_API_URL is not set")
-      return null
-    }
 
     if (!applicationId || !pin) {
       return null
     }
 
     try {
-      const apiBase = process.env.GETME_API_URL
+      const apiBase = await resolveGetMeApiUrlFromHeaders(request?.headers)
       const tokenUrl = new URL("/v1/auth/token", apiBase).toString()
       const applicationUrl = new URL(
         `/v1/applicant/application/${applicationId}`,

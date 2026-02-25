@@ -1,5 +1,6 @@
 import Credentials from "next-auth/providers/credentials"
 
+import { resolveGetMeApiUrlFromHeaders } from "@/lib/api/getme-api-url"
 import { logger } from "@/lib/utils/logger"
 
 export const credentialsProvider = Credentials({
@@ -23,17 +24,19 @@ export const credentialsProvider = Credentials({
    *          On any failure (e.g., invalid credentials, API errors, network issues),
    *          it logs the error and returns `null`.
    */
-  async authorize(credentials) {
+  async authorize(credentials, request) {
     if (!credentials?.username || !credentials?.password) {
       return null
     }
 
     try {
+      const apiBase = await resolveGetMeApiUrlFromHeaders(request?.headers)
       // Make a request to the GetMe.video API token endpoint
       logger.info("Attempting to authorize with GetMe.video API...")
-      logger.info(`API URL: ${process.env.GETME_API_URL}/auth/token`)
+      const tokenUrl = new URL("/auth/token", apiBase).toString()
+      logger.info(`API URL: ${tokenUrl}`)
 
-      const response = await fetch(`${process.env.GETME_API_URL}/auth/token`, {
+      const response = await fetch(tokenUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +59,8 @@ export const credentialsProvider = Credentials({
       logger.info("Token request successful: ", data)
 
       // Get user info from the API
-      const userResponse = await fetch(`${process.env.GETME_API_URL}/user`, {
+      const userUrl = new URL("/user", apiBase).toString()
+      const userResponse = await fetch(userUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
