@@ -20,6 +20,7 @@ export interface Theme {
     dark: ColorPalette
     primary?: string // For theme color in metadata
   }
+  supportsDarkMode?: boolean
   branding: {
     companyName: string
     logo?: {
@@ -47,4 +48,5 @@ export interface ThemeContextType {
   setMode: (mode: ThemeMode) => void
   isDark: boolean
   mounted: boolean
+  supportsDarkMode: boolean
 }

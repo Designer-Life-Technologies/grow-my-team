@@ -8,6 +8,16 @@ import { applyThemeToDocument, getSystemTheme } from "@/lib/theme/utils"
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+const enforceSupportedMode = (
+  desiredMode: ThemeMode | null | undefined,
+  theme: Theme,
+): ThemeMode => {
+  if (theme.supportsDarkMode === false) {
+    return "light"
+  }
+  return desiredMode || "system"
+}
+
 interface ThemeProviderProps {
   children: React.ReactNode
   defaultTheme?: string
@@ -27,7 +37,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
 
     // Try to get theme from localStorage first
     const savedThemeId = localStorage.getItem("theme-id")
-    const savedMode = localStorage.getItem("theme-mode") as ThemeMode
+    const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
 
     // If no saved theme, try to detect from domain
     let themeId = savedThemeId
@@ -36,8 +46,9 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     }
 
     // Set initial theme and mode
-    setCurrentTheme(getTheme(themeId || defaultTheme))
-    setMode(savedMode || "system")
+    const nextTheme = getTheme(themeId || defaultTheme)
+    setCurrentTheme(nextTheme)
+    setMode(enforceSupportedMode(savedMode, nextTheme))
     setMounted(true)
   }, [defaultTheme])
 
@@ -46,8 +57,12 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     if (typeof window === "undefined") return
 
     const updateTheme = () => {
+      const supportsDarkMode = currentTheme.supportsDarkMode !== false
+      const effectiveMode = supportsDarkMode ? mode : "light"
       const systemIsDark = getSystemTheme() === "dark"
-      const shouldBeDark = mode === "system" ? systemIsDark : mode === "dark"
+      const shouldBeDark =
+        supportsDarkMode &&
+        (effectiveMode === "system" ? systemIsDark : effectiveMode === "dark")
 
       setIsDark(shouldBeDark)
       applyThemeToDocument(currentTheme, shouldBeDark)
@@ -77,12 +92,19 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     const newTheme = getTheme(themeId)
     setCurrentTheme(newTheme)
     localStorage.setItem("theme-id", themeId)
+
+    const nextMode = enforceSupportedMode(mode, newTheme)
+    setMode(nextMode)
+    localStorage.setItem("theme-mode", nextMode)
   }
 
   const setThemeMode = (newMode: ThemeMode) => {
-    setMode(newMode)
-    localStorage.setItem("theme-mode", newMode)
+    const nextMode = enforceSupportedMode(newMode, currentTheme)
+    setMode(nextMode)
+    localStorage.setItem("theme-mode", nextMode)
   }
+
+  const supportsDarkMode = currentTheme.supportsDarkMode !== false
 
   const value: ThemeContextType = {
     currentTheme,
@@ -91,6 +113,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     setMode: setThemeMode,
     isDark,
     mounted,
+    supportsDarkMode,
   }
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

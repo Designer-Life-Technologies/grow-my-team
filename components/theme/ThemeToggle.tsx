@@ -4,9 +4,10 @@
 import { useTheme } from "@/components/theme"
 
 export function ThemeModeToggle() {
-  const { mode, setMode, isDark } = useTheme()
+  const { mode, setMode, isDark, supportsDarkMode } = useTheme()
 
   const toggleMode = () => {
+    if (!supportsDarkMode) return
     if (mode === "light") {
       setMode("dark")
     } else if (mode === "dark") {
@@ -17,12 +18,14 @@ export function ThemeModeToggle() {
   }
 
   const getIcon = () => {
+    if (!supportsDarkMode) return "☀️"
     if (mode === "light") return "☀️"
     if (mode === "dark") return "🌙"
     return isDark ? "🌙" : "☀️" // System mode shows current state
   }
 
   const getLabel = () => {
+    if (!supportsDarkMode) return "Dark mode disabled for this theme"
     if (mode === "light") return "Light mode"
     if (mode === "dark") return "Dark mode"
     return `System mode (${isDark ? "dark" : "light"})`
@@ -31,12 +34,15 @@ export function ThemeModeToggle() {
   return (
     <button
       onClick={toggleMode}
+      disabled={!supportsDarkMode}
       className="flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-border)] transition-colors"
       title={getLabel()}
       type="button"
     >
       <span className="text-lg">{getIcon()}</span>
-      <span className="text-sm font-medium capitalize">{mode}</span>
+      <span className="text-sm font-medium capitalize">
+        {supportsDarkMode ? mode : "light only"}
+      </span>
     </button>
   )
 }
