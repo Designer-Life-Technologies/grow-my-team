@@ -101,14 +101,14 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
 
   return (
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <Link
           href="/"
           className="text-sm text-muted-foreground hover:underline"
         >
           ← Back to positions
         </Link>
-      </div>
+      </div> */}
 
       <header>
         <h1 className="text-3xl font-bold tracking-tight">

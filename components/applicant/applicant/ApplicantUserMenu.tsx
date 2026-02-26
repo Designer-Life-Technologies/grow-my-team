@@ -37,15 +37,17 @@ export function ApplicantUserMenu() {
   }
 
   if (!isApplicant || !user) {
-    return (
-      <Link
-        href="/applicant/login"
-        className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
-      >
-        <IconLogin className="h-4 w-4" />
-        Login
-      </Link>
-    )
+    return null
+    // Currently disabled until the applicant login page is implemented
+    // return (
+    //   <Link
+    //     href="/applicant/login"
+    //     className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+    //   >
+    //     <IconLogin className="h-4 w-4" />
+    //     Login
+    //   </Link>
+    // )
   }
 
   // Generate user initials for avatar fallback
