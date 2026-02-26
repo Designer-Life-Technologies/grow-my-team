@@ -35,18 +35,24 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
   useEffect(() => {
     if (typeof window === "undefined") return
 
-    // Try to get theme from localStorage first
     const savedThemeId = localStorage.getItem("theme-id")
     const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
 
-    // If no saved theme, try to detect from domain
-    let themeId = savedThemeId
-    if (!themeId) {
-      themeId = getThemeFromDomain(window.location.hostname)
+    const hostThemeId =
+      defaultTheme || getThemeFromDomain(window.location.hostname)
+
+    let resolvedThemeId = savedThemeId || hostThemeId
+
+    // Always prefer the host-derived theme when it differs from the saved value
+    if (hostThemeId && hostThemeId !== savedThemeId) {
+      resolvedThemeId = hostThemeId
+      localStorage.setItem("theme-id", hostThemeId)
+    } else if (!savedThemeId && resolvedThemeId) {
+      // Persist initial detection when nothing was stored previously
+      localStorage.setItem("theme-id", resolvedThemeId)
     }
 
-    // Set initial theme and mode
-    const nextTheme = getTheme(themeId || defaultTheme)
+    const nextTheme = getTheme(resolvedThemeId || defaultTheme)
     setCurrentTheme(nextTheme)
     setMode(enforceSupportedMode(savedMode, nextTheme))
     setMounted(true)
