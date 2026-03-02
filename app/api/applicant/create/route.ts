@@ -38,11 +38,19 @@ export async function POST(request: NextRequest) {
 
     const apiBase = await resolveGetMeApiUrlFromHeaders(request.headers)
 
+    const normalizedApiBase = apiBase.endsWith("/") ? apiBase : `${apiBase}/`
+
     // Forward request to GetMe.video API
-    const response = await fetch(new URL("/public/applicant", apiBase), {
-      method: "POST",
-      body: formData,
-    })
+    // NOTE: Do not start the path with "/" here, otherwise URL() will drop any
+    // existing path prefix in apiBase (e.g. https://host/v1 + /public/applicant
+    // would incorrectly become https://host/public/applicant).
+    const response = await fetch(
+      new URL("public/applicant", normalizedApiBase),
+      {
+        method: "POST",
+        body: formData,
+      },
+    )
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
