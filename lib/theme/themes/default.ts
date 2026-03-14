@@ -5,9 +5,9 @@ export const defaultTheme: Theme = {
   name: "Grow My Team",
   colors: {
     light: {
-      primary: "#7a4fa4",
-      secondary: "#693b8f",
-      accent: "#9a6cc3",
+      primary: "#5636d6",
+      secondary: "#4227a5",
+      accent: "#7a5bff",
       background: "#ffffff",
       surface: "#f7f3fb",
       text: "#120d1b",
@@ -18,9 +18,9 @@ export const defaultTheme: Theme = {
       error: "#e05666",
     },
     dark: {
-      primary: "#c9a6f0",
-      secondary: "#a57ad1",
-      accent: "#8c61b7",
+      primary: "#b6a0ff",
+      secondary: "#8f7ade",
+      accent: "#7055c4",
       background: "#120c1c",
       surface: "#1d1528",
       text: "#f4ecff",
