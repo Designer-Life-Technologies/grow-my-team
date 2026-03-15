@@ -409,7 +409,7 @@ export function RefereeForm({
 
         <div className="space-y-2">
           <Label htmlFor={referee ? `email-${referee.id}` : "email"}>
-            Email
+            Email <span className="text-destructive">*</span>
           </Label>
           <Input
             id={referee ? `email-${referee.id}` : "email"}
