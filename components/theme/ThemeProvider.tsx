@@ -41,15 +41,23 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     const hostThemeId =
       defaultTheme || getThemeFromDomain(window.location.hostname)
 
-    let resolvedThemeId = savedThemeId || hostThemeId
+    const hostIsCustom = Boolean(hostThemeId && hostThemeId !== "default")
 
-    // Always prefer the host-derived theme when it differs from the saved value
-    if (hostThemeId && hostThemeId !== savedThemeId) {
+    let resolvedThemeId: string | undefined
+
+    if (hostIsCustom) {
+      // For branded hosts we always enforce the mapped theme
       resolvedThemeId = hostThemeId
       localStorage.setItem("theme-id", hostThemeId)
-    } else if (!savedThemeId && resolvedThemeId) {
-      // Persist initial detection when nothing was stored previously
-      localStorage.setItem("theme-id", resolvedThemeId)
+    } else if (savedThemeId) {
+      // Otherwise honor the previously selected theme
+      resolvedThemeId = savedThemeId
+    } else {
+      // Final fallback: whatever the host resolved to (likely "default")
+      resolvedThemeId = hostThemeId
+      if (resolvedThemeId) {
+        localStorage.setItem("theme-id", resolvedThemeId)
+      }
     }
 
     const nextTheme = getTheme(resolvedThemeId || defaultTheme)
