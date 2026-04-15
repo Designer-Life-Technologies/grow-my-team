@@ -3,6 +3,7 @@ import { demoTheme } from "./themes/demo"
 import { placementPartnerTheme } from "./themes/placement-partner"
 import { shrTheme } from "./themes/shr"
 import { teamPuzzleTheme } from "./themes/team-puzzle"
+import { virginTheme } from "./themes/virgin"
 import type { Theme } from "./types"
 
 const themes: Record<string, Theme> = {
@@ -11,6 +12,7 @@ const themes: Record<string, Theme> = {
   "placement-partner": placementPartnerTheme,
   demo: demoTheme,
   shr: shrTheme,
+  virgin: virginTheme,
   // Add more themes here
 }
 
@@ -26,6 +28,7 @@ const themeAliasEntries: Record<string, string[]> = {
   ],
   demo: ["demo", "democlient", "demo-client"],
   shr: ["shr", "strategic", "strategic-hr", "strategic_hr"],
+  virgin: ["virgin", "virginactive", "virgin-active", "va"],
 }
 
 const normalizeAlias = (value: string) =>

@@ -28,12 +28,11 @@ description: create a new white-label theme from supplied brand imagery
 4. **Add assets**
    - Create `/public/themes/<brand-id>/`.
    - Place the provided logo(s) there and export additional sizes if needed. Always save the primary mark as `public/themes/<brand-id>/logo.png` (or `.svg`).
-   - If a favicon was not supplied but the logo file now exists inside `public/themes/<brand-id>/`, auto-generate one (after user approval) directly from that file:
+   - Copy the default favicon as a placeholder:
      ```bash
-     # Example favicon generation (uses the already-uploaded logo)
-     magick public/themes/<brand-id>/logo.png -resize 256x256 -background none -gravity center -extent 256x256 public/themes/<brand-id>/favicon.png
-     magick public/themes/<brand-id>/favicon.png -define icon:auto-resize=64,48,32,16 public/themes/<brand-id>/favicon.ico
+     cp /public/themes/favicon.ico /public/themes/<brand-id>/favicon.ico
      ```
+   - If the user wants a custom favicon later, they can manually upload it to replace the placeholder.
    - Update the theme file with the final asset filenames.
 
 5. **Register the theme**

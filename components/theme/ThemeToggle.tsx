@@ -57,6 +57,7 @@ export function ThemeSelector() {
     { id: "placement-partner", name: "Placement Partner" },
     { id: "demo", name: "Demo" },
     { id: "shr", name: "Strategic HR" },
+    { id: "virgin", name: "Virgin Active" },
   ]
 
   return (
