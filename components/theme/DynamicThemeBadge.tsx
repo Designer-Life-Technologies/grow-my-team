@@ -17,10 +17,8 @@ export function DynamicThemeBadge({ themeId, source }: DynamicThemeBadgeProps) {
   const sourceLabels: Record<ThemeSource, string> = {
     query: "Preview",
     subdomain: "Subdomain",
-    "subdomain-file": "",
     "custom-domain": "Custom Domain",
     database: "Database",
-    file: "",
   }
 
   const label = sourceLabels[source]

@@ -9,10 +9,10 @@ import { getThemeBySlug, updateTheme } from "@/lib/db/themes"
  */
 export async function PUT(
   request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
     const body = await request.json()
 
     // Validate request body
@@ -81,10 +81,10 @@ export async function PUT(
  */
 export async function DELETE(
   _request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     // Check if theme exists
     const existingTheme = await getThemeBySlug(slug)
