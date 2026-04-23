@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { getTheme, getThemeFromDomain } from "@/lib/theme"
+import { getThemeFromDomain } from "@/lib/theme/config"
+import { getCachedTheme } from "@/lib/theme/cache"
 
 type RouteParams = {
   host?: string
@@ -28,8 +29,16 @@ export async function generateDynamicMetadata(
     themeId = getThemeFromDomain(params.host)
   }
 
-  // Get the theme configuration
-  const theme = getTheme(themeId)
+  // Get the theme configuration from database
+  const theme = await getCachedTheme(themeId || "default")
+
+  if (!theme) {
+    // Fallback to default metadata if theme not found
+    return {
+      title: "Grow My Team",
+      description: "AI Recruitment Agent",
+    }
+  }
 
   // Generate metadata based on theme
   return {
@@ -53,7 +62,7 @@ export async function generateDynamicMetadata(
       apple: theme.branding.appleTouchIcon || "/apple-touch-icon.png",
     },
     // Theme color based on primary color
-    themeColor: theme.colors.primary,
+    themeColor: theme.colors.light.primary,
     // Open Graph metadata
     openGraph: {
       type: "website",

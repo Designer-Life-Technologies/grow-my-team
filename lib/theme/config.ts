@@ -1,21 +1,3 @@
-import { defaultTheme } from "./themes/default"
-import { demoTheme } from "./themes/demo"
-import { placementPartnerTheme } from "./themes/placement-partner"
-import { shrTheme } from "./themes/shr"
-import { teamPuzzleTheme } from "./themes/team-puzzle"
-import { virginTheme } from "./themes/virgin"
-import type { Theme } from "./types"
-
-const themes: Record<string, Theme> = {
-  default: defaultTheme,
-  "team-puzzle": teamPuzzleTheme,
-  "placement-partner": placementPartnerTheme,
-  demo: demoTheme,
-  shr: shrTheme,
-  virgin: virginTheme,
-  // Add more themes here
-}
-
 const themeAliasEntries: Record<string, string[]> = {
   default: ["default", "growmyteam", "gmt", "core"],
   "team-puzzle": ["team-puzzle", "teampuzzle", "puzzle", "tp"],
@@ -52,22 +34,11 @@ const resolveThemeAlias = (value?: string | null) => {
   return themeAliasMap[normalizeAlias(value)]
 }
 
-export const getTheme = (themeId?: string): Theme => {
-  // Priority:
-  // 1. Explicit themeId/alias (if not "default")
-  // 2. Environment variable (alias-aware)
-  // 3. Fallback to "default" or provided themeId
-  const envThemeAlias = resolveThemeAlias(process.env.NEXT_PUBLIC_THEME_ID)
-  const explicitThemeAlias =
-    themeId && themeId !== "default" ? resolveThemeAlias(themeId) : undefined
-
-  const resolvedThemeId =
-    explicitThemeAlias ||
-    envThemeAlias ||
-    resolveThemeAlias(themeId || "default") ||
-    "default"
-
-  return themes[resolvedThemeId] || themes.default
+// Stub for backward compatibility - throws since we're database-driven
+export const getTheme = (): never => {
+  throw new Error(
+    "getTheme() is deprecated - use database themes via getCachedTheme() instead",
+  )
 }
 
 export const getThemeFromDomain = (hostname: string): string => {
