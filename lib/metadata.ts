@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
-import { getThemeFromDomain } from "@/lib/theme/config"
 import { getCachedTheme } from "@/lib/theme/cache"
+import { getThemeFromDomain } from "@/lib/theme/config"
 
 type RouteParams = {
   host?: string

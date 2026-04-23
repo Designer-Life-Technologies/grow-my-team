@@ -7,8 +7,8 @@ import { config } from "dotenv"
 
 config({ path: ".env.development.local" })
 
-import { readFile } from "fs/promises"
-import { join } from "path"
+import { readFile } from "node:fs/promises"
+import { join } from "node:path"
 import { uploadFavicon, uploadLogo } from "../lib/blob/assets"
 import { pool } from "../lib/db/client"
 

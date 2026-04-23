@@ -1,7 +1,6 @@
 "use client"
 
-import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react"
-import Link from "next/link"
+import { IconLogout, IconUser } from "@tabler/icons-react"
 import { signOut } from "next-auth/react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"

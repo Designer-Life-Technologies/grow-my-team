@@ -17,10 +17,11 @@ import { config } from "dotenv"
 
 config({ path: ".env.development.local" })
 
-import { readFile } from "fs/promises"
-import { join } from "path"
+import { readFile } from "node:fs/promises"
+import { join } from "node:path"
 import { uploadFavicon, uploadLogo } from "../lib/blob/assets"
 import { createTheme } from "../lib/db/themes"
+import type { ColorPalette } from "../lib/theme/types"
 
 interface ThemeFile {
   id: string
@@ -275,7 +276,7 @@ async function migrateTheme(
           logoUrl = await uploadLogo(theme.id, logoBuffer, "image/png")
         }
         console.log(
-          `    ✓ Logo: ${theme.logoPath} ${dryRun ? "(dry run)" : "→ " + logoUrl}`,
+          `    ✓ Logo: ${theme.logoPath} ${dryRun ? "(dry run)" : `→ ${logoUrl}`}`,
         )
       } catch {
         console.log(`    ⚠ Logo not found: ${theme.logoPath}`)
@@ -295,7 +296,7 @@ async function migrateTheme(
           )
         }
         console.log(
-          `    ✓ Favicon: ${theme.faviconPath} ${dryRun ? "(dry run)" : "→ " + faviconUrl}`,
+          `    ✓ Favicon: ${theme.faviconPath} ${dryRun ? "(dry run)" : `→ ${faviconUrl}`}`,
         )
       } catch {
         console.log(`    ⚠ Favicon not found: ${theme.faviconPath}`)
@@ -304,8 +305,10 @@ async function migrateTheme(
 
     // Create theme in database
     if (!dryRun) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const colors = theme.colors as any
+      const colors = theme.colors as unknown as {
+        light: ColorPalette
+        dark: ColorPalette
+      }
       await createTheme({
         clientSlug: theme.id,
         name: theme.name,

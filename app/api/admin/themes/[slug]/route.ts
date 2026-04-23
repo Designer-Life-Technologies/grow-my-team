@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { getThemeBySlug, updateTheme } from "@/lib/db/themes"
-import { uploadThemeAssets } from "@/lib/blob/assets"
 import { updateThemeSchema } from "@/lib/api/admin/types"
+import { uploadThemeAssets } from "@/lib/blob/assets"
+import { getThemeBySlug, updateTheme } from "@/lib/db/themes"
 
 /**
  * PUT /api/admin/themes/[slug]

@@ -2,9 +2,9 @@ import { config } from "dotenv"
 
 config({ path: ".env.development.local" })
 
+import { readdir, readFile } from "node:fs/promises"
+import { join } from "node:path"
 import { createPool, type VercelPoolClient } from "@vercel/postgres"
-import { readdir, readFile } from "fs/promises"
-import { join } from "path"
 
 function getDatabaseUrl(): string {
   // Local development - VERCEL_ENV not set
@@ -115,7 +115,7 @@ export async function runMigrations(
     const migrationFiles = files
       .map((f) => ({ filename: f, id: parseMigrationId(f) }))
       .filter((m): m is { filename: string; id: string } => m.id !== null)
-      .sort((a, b) => parseInt(a.id) - parseInt(b.id))
+      .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10))
 
     for (const { filename, id } of migrationFiles) {
       if (appliedMigrations.has(id)) {
@@ -180,7 +180,7 @@ export async function getMigrationStatus(): Promise<{
     const migrationFiles = files
       .map((f) => ({ filename: f, id: parseMigrationId(f) }))
       .filter((m): m is { filename: string; id: string } => m.id !== null)
-      .sort((a, b) => parseInt(a.id) - parseInt(b.id))
+      .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10))
 
     return {
       applied: migrationFiles
