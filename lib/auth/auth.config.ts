@@ -15,6 +15,21 @@ export const authConfig: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".applicant.growmy.team"
+            : undefined,
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
       // Handle session updates (when update() is called)
