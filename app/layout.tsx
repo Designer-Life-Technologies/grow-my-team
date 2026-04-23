@@ -30,9 +30,9 @@
  */
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { headers } from "next/headers"
 import { ThemeProvider } from "@/components/theme"
-import { getThemeFromDomain } from "@/lib/theme/config"
+import { DynamicThemeBadge } from "@/components/theme/DynamicThemeBadge"
+import { resolveTheme } from "@/lib/theme/resolver"
 import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
@@ -80,10 +80,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Detect theme server-side to prevent hydration flash
-  const headersList = await headers()
-  const host = headersList.get("host") || ""
-  const detectedThemeId = getThemeFromDomain(host)
+  // Resolve theme server-side from database (or fallback to file)
+  const { theme, source } = await resolveTheme()
 
   return (
     <html lang="en">
@@ -91,7 +89,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* ThemeProvider: Manages theme state and provides theme context */}
-        <ThemeProvider defaultTheme={detectedThemeId}>
+        <ThemeProvider initialTheme={theme} initialSource={source}>
           {/* AuthProvider: Provides authentication session to all components */}
           <AuthProvider>
             {/* StreamingModalProvider: Provides global access to streaming modal for long-running operations */}
@@ -116,6 +114,8 @@ export default async function RootLayout({
               */}
               {children}
               <Toaster />
+              {/* Dynamic theme preview badge (shows when theme loaded from DB/query/subdomain) */}
+              <DynamicThemeBadge themeId={theme.id} source={source} />
             </StreamingModalProvider>
           </AuthProvider>
         </ThemeProvider>

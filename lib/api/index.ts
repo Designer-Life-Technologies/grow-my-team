@@ -94,10 +94,15 @@ async function callGetMeApi<T>(
     }
   }
 
+  // Check if next.revalidate is set (mutually exclusive with cache in Next.js)
+  const hasRevalidate =
+    rest.next && typeof rest.next === "object" && "revalidate" in rest.next
+
   const config: RequestInit = {
     method,
     headers: apiHeaders,
-    cache: cache ?? "no-store", // Prevent stale GET responses unless overridden
+    // Only set cache default if not using next.revalidate (they conflict)
+    ...(hasRevalidate ? {} : { cache: cache ?? "no-store" }),
     ...rest,
   }
 

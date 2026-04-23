@@ -18,10 +18,10 @@ export function ClientFavicon() {
     }
 
     // Update the href attribute with the current theme's favicon
-    if (currentTheme.branding.favicon) {
+    if (currentTheme.branding?.favicon) {
       link.setAttribute("href", currentTheme.branding.favicon)
     }
-  }, [currentTheme.branding.favicon])
+  }, [currentTheme])
 
   // This component doesn't render anything visible
   return null

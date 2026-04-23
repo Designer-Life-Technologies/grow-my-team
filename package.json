@@ -14,7 +14,13 @@
     "test:e2e:list": "playwright test --reporter=list",
     "test:e2e": "playwright test",
     "test:results": "playwright show-report test/playwright-report",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:migrate": "tsx scripts/db-migrate.ts migrate",
+    "db:migrate:status": "tsx scripts/db-migrate.ts status",
+    "migrate:themes": "tsx scripts/migrate-themes.ts",
+    "fix:assets": "tsx scripts/fix-assets.ts",
+    "fix:shr-colors": "tsx scripts/fix-shr-colors.ts",
+    "invalidate-cache": "tsx scripts/invalidate-cache.ts"
   },
   "dependencies": {
     "@biomejs/biome": "^2.3.11",
@@ -37,6 +43,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tabler/icons-react": "^3.36.1",
     "@tanstack/react-table": "^8.21.3",
+    "@vercel/blob": "^2.3.3",
+    "@vercel/postgres": "^0.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
@@ -59,9 +67,11 @@
     "@types/node": "^20.19.30",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.4.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.9.3"
   },
