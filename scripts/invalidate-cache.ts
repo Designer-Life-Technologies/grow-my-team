@@ -10,12 +10,9 @@ config({ path: ".env.development.local" })
 import { pool } from "../lib/db/client"
 
 async function invalidateCache() {
-  // Update the updated_at timestamp to invalidate cache
-  await pool.query(
-    "UPDATE client_settings SET updated_at = NOW() WHERE client_slug = $1",
-    ["shr"],
-  )
-  console.log("✅ Invalidated cache for shr theme")
+  // Update the updated_at timestamp to invalidate cache for all themes
+  await pool.query("UPDATE client_settings SET updated_at = NOW()")
+  console.log("✅ Invalidated cache for all themes")
 
   await pool.end()
 }
