@@ -22,11 +22,16 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     console.log(`[API/themes/${slug}] ✓ Returning theme`)
-    // Temporarily disable caching for development
+    // Cache headers: disabled in dev/UAT, 1 hour in production
+    const cacheHeaders =
+      process.env.NODE_ENV === "production"
+        ? {
+            "Cache-Control":
+              "public, max-age=3600, stale-while-revalidate=86400",
+          }
+        : { "Cache-Control": "no-store, no-cache, must-revalidate" }
     return NextResponse.json(theme, {
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-      },
+      headers: cacheHeaders,
     })
   } catch (error) {
     console.error(`[API/themes] Error fetching theme:`, error)
