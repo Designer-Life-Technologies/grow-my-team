@@ -31,7 +31,6 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme"
-import { DynamicThemeBadge } from "@/components/theme/DynamicThemeBadge"
 import type { Theme } from "@/lib/theme"
 import { resolveTheme, type ThemeSource } from "@/lib/theme/resolver"
 import "./globals.css"
@@ -127,8 +126,6 @@ export default async function RootLayout({
               */}
               {children}
               <Toaster />
-              {/* Dynamic theme preview badge (shows when theme loaded from DB/query/subdomain) */}
-              <DynamicThemeBadge themeId={theme.id} source={source} />
             </StreamingModalProvider>
           </AuthProvider>
         </ThemeProvider>
