@@ -90,6 +90,10 @@ export const createThemeSchema = z.object({
     .string()
     .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
     .optional(),
+  screenshotBase64: z
+    .string()
+    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .optional(),
   logoWidth: z.number().min(50).max(500).optional(),
   supportsDarkMode: z.boolean().optional(),
 })

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { extractColorsFromImages } from "@/lib/ai/color-extractor"
 import { createThemeSchema } from "@/lib/api/admin/types"
 import { uploadThemeAssets } from "@/lib/blob/assets"
 import { createTheme, listThemes } from "@/lib/db/themes"
@@ -33,6 +34,39 @@ export async function POST(request: Request) {
     // Validate request body
     const validatedData = createThemeSchema.parse(body)
 
+    // Determine colors: use provided colors or extract with AI
+    let colors: { light: ColorPalette; dark: ColorPalette }
+    if (validatedData.colors) {
+      // Use manually provided colors
+      colors = mergeWithDefaults(validatedData.colors)
+    } else if (validatedData.logoBase64) {
+      // Extract colors using AI from logo and optional favicon/screenshot
+      try {
+        console.log("[AI Theme] Extracting colors from images...")
+        const extractedColors = await extractColorsFromImages({
+          logoBase64: validatedData.logoBase64,
+          faviconBase64: validatedData.faviconBase64,
+          screenshotBase64: validatedData.screenshotBase64,
+        })
+        colors = extractedColors
+        console.log("[AI Theme] Successfully extracted colors")
+      } catch (error) {
+        console.error("[AI Theme] Failed to extract colors:", error)
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error"
+        return NextResponse.json(
+          {
+            error: "Failed to extract colors using AI",
+            details: errorMessage,
+          },
+          { status: 500 },
+        )
+      }
+    } else {
+      // Use default colors
+      colors = getDefaultColors()
+    }
+
     // Upload assets to Vercel Blob if provided
     let logoUrl: string | undefined
     let faviconUrl: string | undefined
@@ -53,9 +87,7 @@ export async function POST(request: Request) {
       name: validatedData.name,
       companyName: validatedData.companyName,
       customDomain: validatedData.customDomain,
-      colors: validatedData.colors
-        ? mergeWithDefaults(validatedData.colors)
-        : getDefaultColors(),
+      colors,
       logoUrl,
       faviconUrl,
       logoWidth: validatedData.logoWidth || 110,
