@@ -1,9 +1,6 @@
-import { unstable_cache } from "next/cache"
 import type { ClientThemeRow } from "@/lib/db/themes"
 import { getThemeBySlug, listThemes } from "@/lib/db/themes"
 import type { Theme } from "./types"
-
-const CACHE_TTL = 3600 // 1 hour
 
 /**
  * Convert database row to Theme object
@@ -32,64 +29,55 @@ function rowToTheme(row: ClientThemeRow): Theme {
 
 /**
  * Get cached theme by slug
- * Cached for 1 hour
+ * Temporarily disabled caching for development
  */
-export const getCachedTheme = unstable_cache(
-  async (slug: string): Promise<Theme | null> => {
-    try {
-      const row = await getThemeBySlug(slug)
-      if (!row) {
-        console.log(`[getCachedTheme] Theme "${slug}" not found in database`)
-        return null
-      }
-      console.log(`[getCachedTheme] ✓ Found theme "${slug}" in database`)
-      return rowToTheme(row)
-    } catch (error) {
-      // Handle missing database connection gracefully
-      if (
-        error instanceof Error &&
-        error.message.includes("missing_connection_string")
-      ) {
-        console.warn(
-          "[getCachedTheme] ⚠ Database connection not available, returning null",
-        )
-        return null
-      }
-      console.error(`[getCachedTheme] ✗ Error fetching theme "${slug}":`, error)
+export async function getCachedTheme(slug: string): Promise<Theme | null> {
+  try {
+    const row = await getThemeBySlug(slug)
+    if (!row) {
+      console.log(`[getCachedTheme] Theme "${slug}" not found in database`)
       return null
     }
-  },
-  ["theme"],
-  {
-    revalidate: CACHE_TTL,
-  },
-)
+    console.log(`[getCachedTheme] ✓ Found theme "${slug}" in database`)
+    return rowToTheme(row)
+  } catch (error) {
+    // Handle missing database connection gracefully
+    if (
+      error instanceof Error &&
+      error.message.includes("missing_connection_string")
+    ) {
+      console.warn(
+        "[getCachedTheme] ⚠ Database connection not available, returning null",
+      )
+      return null
+    }
+    console.error(`[getCachedTheme] ✗ Error fetching theme "${slug}":`, error)
+    return null
+  }
+}
 
 /**
  * Get cached list of all themes
+ * Temporarily disabled caching for development
  */
-export const getCachedThemeList = unstable_cache(
-  async (): Promise<Pick<Theme, "id" | "name">[]> => {
-    try {
-      const rows = await listThemes(false)
-      return rows.map((row) => ({
-        id: row.client_slug,
-        name: row.name,
-      }))
-    } catch (error) {
-      // Handle missing database connection gracefully
-      if (
-        error instanceof Error &&
-        error.message.includes("missing_connection_string")
-      ) {
-        console.warn("Database connection not available, returning empty list")
-        return []
-      }
-      throw error
+export async function getCachedThemeList(): Promise<
+  Pick<Theme, "id" | "name">[]
+> {
+  try {
+    const rows = await listThemes(false)
+    return rows.map((row) => ({
+      id: row.client_slug,
+      name: row.name,
+    }))
+  } catch (error) {
+    // Handle missing database connection gracefully
+    if (
+      error instanceof Error &&
+      error.message.includes("missing_connection_string")
+    ) {
+      console.warn("Database connection not available, returning empty list")
+      return []
     }
-  },
-  ["theme-list"],
-  {
-    revalidate: CACHE_TTL,
-  },
-)
+    throw error
+  }
+}
