@@ -8,6 +8,18 @@ export default withAuth(
     const { pathname } = request.nextUrl
     const { token } = request.nextauth
 
+    // Handle CORS preflight requests
+    if (request.method === "OPTIONS") {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      })
+    }
+
     // If user is logged in and trying to access login page,
     // redirect to employer dashboard
     if (token && pathname === "/login") {
