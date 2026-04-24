@@ -22,10 +22,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     console.log(`[API/themes/${slug}] ✓ Returning theme`)
-    // Add cache headers for CDN
+    // Temporarily disable caching for development
     return NextResponse.json(theme, {
       headers: {
-        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     })
   } catch (error) {
