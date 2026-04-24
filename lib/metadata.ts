@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { getCachedTheme } from "@/lib/theme/cache"
 import { getThemeFromDomain } from "@/lib/theme/config"
+import type { Theme } from "@/lib/theme/types"
 
 type RouteParams = {
   host?: string
@@ -26,11 +27,22 @@ export async function generateDynamicMetadata(
   }
   // If running on server, try to detect from hostname
   else if (typeof window === "undefined" && params?.host) {
-    themeId = await getThemeFromDomain(params.host)
+    try {
+      themeId = await getThemeFromDomain(params.host)
+    } catch (error) {
+      // Handle missing database connection gracefully
+      console.warn("Failed to get theme from domain:", error)
+    }
   }
 
   // Get the theme configuration from database
-  const theme = await getCachedTheme(themeId || "default")
+  let theme: Theme | null = null
+  try {
+    theme = await getCachedTheme(themeId || "default")
+  } catch (error) {
+    // Handle missing database connection gracefully
+    console.warn("Failed to get cached theme:", error)
+  }
 
   if (!theme) {
     // Fallback to default metadata if theme not found
