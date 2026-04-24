@@ -26,7 +26,7 @@ export async function generateDynamicMetadata(
   }
   // If running on server, try to detect from hostname
   else if (typeof window === "undefined" && params?.host) {
-    themeId = getThemeFromDomain(params.host)
+    themeId = await getThemeFromDomain(params.host)
   }
 
   // Get the theme configuration from database

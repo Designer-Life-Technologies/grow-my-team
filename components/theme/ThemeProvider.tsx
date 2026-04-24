@@ -84,47 +84,46 @@ export function ThemeProvider({
 
   // Initialize theme from various sources
   useEffect(() => {
-    if (typeof window === "undefined") return
-
-    const savedThemeId = localStorage.getItem("theme-id")
-    const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
-
-    // Priority 1: Query parameter (?theme=xxx)
-    const urlParams = new URLSearchParams(window.location.search)
-    const queryThemeId = urlParams.get("theme")
-
-    // Priority 2: Subdomain/host mapping
-    const hostThemeId = getThemeFromDomain(window.location.hostname)
-
-    const hostIsCustom = Boolean(hostThemeId && hostThemeId !== "default")
-
-    let resolvedThemeId: string | undefined
-    let resolvedSource: ThemeSource = "database"
-
-    if (queryThemeId) {
-      // Query param takes highest priority for preview
-      resolvedThemeId = queryThemeId
-      resolvedSource = "query"
-      localStorage.setItem("theme-id", queryThemeId)
-    } else if (hostIsCustom) {
-      // For branded hosts we always enforce the mapped theme
-      resolvedThemeId = hostThemeId
-      resolvedSource = "custom-domain"
-      localStorage.setItem("theme-id", hostThemeId)
-    } else if (savedThemeId) {
-      // Otherwise honor the previously selected theme
-      resolvedThemeId = savedThemeId
-      resolvedSource = initialSource
-    } else {
-      // Final fallback: whatever the host resolved to (likely "default")
-      resolvedThemeId = hostThemeId || "default"
-      if (resolvedThemeId) {
-        localStorage.setItem("theme-id", resolvedThemeId)
-      }
-    }
-
-    // Check if we need to fetch from database
     const loadTheme = async () => {
+      if (typeof window === "undefined") return
+
+      const savedThemeId = localStorage.getItem("theme-id")
+      const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
+
+      // Priority 1: Query parameter (?theme=xxx)
+      const urlParams = new URLSearchParams(window.location.search)
+      const queryThemeId = urlParams.get("theme")
+
+      // Priority 2: Subdomain/host mapping
+      const hostThemeId = await getThemeFromDomain(window.location.hostname)
+
+      const hostIsCustom = Boolean(hostThemeId && hostThemeId !== "default")
+
+      let resolvedThemeId: string | undefined
+      let resolvedSource: ThemeSource = "database"
+
+      if (queryThemeId) {
+        // Query param takes highest priority for preview
+        resolvedThemeId = queryThemeId
+        resolvedSource = "query"
+        localStorage.setItem("theme-id", queryThemeId)
+      } else if (hostIsCustom) {
+        // For branded hosts we always enforce the mapped theme
+        resolvedThemeId = hostThemeId
+        resolvedSource = "custom-domain"
+        localStorage.setItem("theme-id", hostThemeId)
+      } else if (savedThemeId) {
+        // Otherwise honor the previously selected theme
+        resolvedThemeId = savedThemeId
+        resolvedSource = initialSource
+      } else {
+        // Final fallback: whatever the host resolved to (likely "default")
+        resolvedThemeId = hostThemeId || "default"
+        if (resolvedThemeId) {
+          localStorage.setItem("theme-id", resolvedThemeId)
+        }
+      }
+
       // If we have a server-provided theme and no query override, use it
       if (
         initialTheme &&

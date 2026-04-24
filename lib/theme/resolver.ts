@@ -27,11 +27,11 @@ export async function resolveTheme(
   }
 
   // Priority 2: Subdomain/host mapping
-  const domainThemeId = getThemeFromDomain(host)
+  const domainThemeId = await getThemeFromDomain(host)
   if (domainThemeId) {
     const dbTheme = await getCachedTheme(domainThemeId)
     if (dbTheme) {
-      return { theme: dbTheme, source: "subdomain" }
+      return { theme: dbTheme, source: "custom-domain" }
     }
   }
 

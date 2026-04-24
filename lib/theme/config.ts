@@ -1,3 +1,5 @@
+import { getThemeByCustomDomain } from "@/lib/db/themes"
+
 const themeAliasEntries: Record<string, string[]> = {
   default: ["default", "growmyteam", "gmt", "core"],
   "team-puzzle": ["team-puzzle", "teampuzzle", "puzzle", "tp"],
@@ -41,11 +43,20 @@ export const getTheme = (): never => {
   )
 }
 
-export const getThemeFromDomain = (hostname: string): string => {
+/**
+ * Get theme from domain (database-driven with fallback)
+ * Checks database for custom_domain match first, then falls back to hardcoded mappings
+ */
+export async function getThemeFromDomain(hostname: string): Promise<string> {
   const normalizedHost = hostname.split(":")[0]?.toLowerCase() || ""
-  const subdomain = normalizedHost.split(".")[0] || normalizedHost
 
-  // Exact domain matches (highest priority)
+  // Priority 1: Check database for custom domain match
+  const themeFromDb = await getThemeByCustomDomain(normalizedHost)
+  if (themeFromDb) {
+    return themeFromDb.client_slug
+  }
+
+  // Priority 2: Exact domain matches (hardcoded fallback)
   const domainMap: Record<string, string> = {
     "puzzle-applicant.growmy.team": "team-puzzle",
     "client1.growmyteam.com": "default",
@@ -56,6 +67,8 @@ export const getThemeFromDomain = (hostname: string): string => {
     return domainMap[normalizedHost]
   }
 
+  // Priority 3: Subdomain aliases (hardcoded fallback)
+  const subdomain = normalizedHost.split(".")[0] || normalizedHost
   const subdomainSegments = subdomain.split(/[-_]/).filter(Boolean)
   const candidates = [normalizedHost, subdomain, ...subdomainSegments]
 
@@ -66,7 +79,7 @@ export const getThemeFromDomain = (hostname: string): string => {
     }
   }
 
-  // Fallback partial checks for legacy support
+  // Priority 4: Fallback partial checks for legacy support
   if (normalizedHost.includes("puzzle")) return "team-puzzle"
   if (normalizedHost.includes("placement")) return "placement-partner"
 
