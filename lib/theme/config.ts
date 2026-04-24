@@ -1,4 +1,4 @@
-import { getThemeByCustomDomain } from "@/lib/db/themes"
+import { getThemeByCustomDomain, getThemeBySubdomain } from "@/lib/db/themes"
 
 const themeAliasEntries: Record<string, string[]> = {
   default: ["default", "growmyteam", "gmt", "core"],
@@ -45,18 +45,27 @@ export const getTheme = (): never => {
 
 /**
  * Get theme from domain (database-driven with fallback)
- * Checks database for custom_domain match first, then falls back to hardcoded mappings
+ * Checks database for subdomain and custom_domain matches, then falls back to hardcoded mappings
  */
 export async function getThemeFromDomain(hostname: string): Promise<string> {
   const normalizedHost = hostname.split(":")[0]?.toLowerCase() || ""
 
-  // Priority 1: Check database for custom domain match
+  // Extract subdomain (first part of hostname)
+  const subdomain = normalizedHost.split(".")[0] || normalizedHost
+
+  // Priority 1: Check database for subdomain match (e.g., "shr" for shr.applicant.growmy.team)
+  const themeFromSubdomain = await getThemeBySubdomain(subdomain)
+  if (themeFromSubdomain) {
+    return themeFromSubdomain.client_slug
+  }
+
+  // Priority 2: Check database for custom domain match (e.g., "shr.applicant.growmy.team")
   const themeFromDb = await getThemeByCustomDomain(normalizedHost)
   if (themeFromDb) {
     return themeFromDb.client_slug
   }
 
-  // Priority 2: Exact domain matches (hardcoded fallback)
+  // Priority 3: Exact domain matches (hardcoded fallback)
   const domainMap: Record<string, string> = {
     "puzzle-applicant.growmy.team": "team-puzzle",
     "client1.growmyteam.com": "default",
@@ -67,8 +76,7 @@ export async function getThemeFromDomain(hostname: string): Promise<string> {
     return domainMap[normalizedHost]
   }
 
-  // Priority 3: Subdomain aliases (hardcoded fallback)
-  const subdomain = normalizedHost.split(".")[0] || normalizedHost
+  // Priority 4: Subdomain aliases (hardcoded fallback)
   const subdomainSegments = subdomain.split(/[-_]/).filter(Boolean)
   const candidates = [normalizedHost, subdomain, ...subdomainSegments]
 
@@ -79,7 +87,7 @@ export async function getThemeFromDomain(hostname: string): Promise<string> {
     }
   }
 
-  // Priority 4: Fallback partial checks for legacy support
+  // Priority 5: Fallback partial checks for legacy support
   if (normalizedHost.includes("puzzle")) return "team-puzzle"
   if (normalizedHost.includes("placement")) return "placement-partner"
 
