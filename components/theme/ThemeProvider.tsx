@@ -47,6 +47,23 @@ export function ThemeProvider({
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  // Log API endpoint on mount
+  useEffect(() => {
+    async function logApiEndpoint() {
+      try {
+        const response = await fetch("/api/config/api-endpoint")
+        if (response.ok) {
+          const data = await response.json()
+          console.log(`[API Endpoint] Host: ${data.host}`)
+          console.log(`[API Endpoint] ✓ Using: ${data.apiEndpoint}`)
+        }
+      } catch (error) {
+        console.warn("[API Endpoint] Failed to fetch endpoint info:", error)
+      }
+    }
+    logApiEndpoint()
+  }, [])
+
   // Initialize theme from various sources
   useEffect(() => {
     const loadTheme = async () => {
