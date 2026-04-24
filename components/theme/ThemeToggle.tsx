@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useTheme } from "@/components/theme"
+import { DEFAULT_THEME } from "@/lib/theme/constants"
 
 export function ThemeModeToggle() {
   const { mode, setMode, isDark, supportsDarkMode } = useTheme()
@@ -60,7 +61,12 @@ export function ThemeSelector() {
         const response = await fetch("/api/themes")
         if (response.ok) {
           const data = await response.json()
-          setAvailableThemes(data.themes || [])
+          // Add hardcoded default theme at the top
+          const themes = [
+            { id: DEFAULT_THEME.id, name: DEFAULT_THEME.name },
+            ...(data.themes || []),
+          ]
+          setAvailableThemes(themes)
         }
       } catch (error) {
         console.error("Failed to fetch themes:", error)
@@ -71,6 +77,16 @@ export function ThemeSelector() {
 
     fetchThemes()
   }, [])
+
+  const handleThemeChange = async (themeId: string) => {
+    if (themeId === DEFAULT_THEME.id) {
+      // Load hardcoded default theme
+      setTheme(DEFAULT_THEME.id)
+    } else {
+      // Load from API
+      setTheme(themeId)
+    }
+  }
 
   if (loading) {
     return (
@@ -86,7 +102,7 @@ export function ThemeSelector() {
   return (
     <select
       value={currentTheme.id}
-      onChange={(e) => setTheme(e.target.value)}
+      onChange={(e) => handleThemeChange(e.target.value)}
       className="px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     >
       {availableThemes.map((theme) => (

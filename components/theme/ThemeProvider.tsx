@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { getThemeFromDomain } from "@/lib/theme/config"
 import { DEFAULT_THEME } from "@/lib/theme/constants"
 import type { ThemeSource } from "@/lib/theme/resolver"
 import type { Theme, ThemeContextType, ThemeMode } from "@/lib/theme/types"
@@ -60,11 +59,6 @@ export function ThemeProvider({
       const urlParams = new URLSearchParams(window.location.search)
       const queryThemeId = urlParams.get("theme")
 
-      // Priority 2: Subdomain/host mapping
-      const hostThemeId = await getThemeFromDomain(window.location.hostname)
-
-      const hostIsCustom = Boolean(hostThemeId && hostThemeId !== "default")
-
       let resolvedThemeId: string | undefined
       let resolvedSource: ThemeSource = "database"
 
@@ -73,18 +67,13 @@ export function ThemeProvider({
         resolvedThemeId = queryThemeId
         resolvedSource = "query"
         localStorage.setItem("theme-id", queryThemeId)
-      } else if (hostIsCustom) {
-        // For branded hosts we always enforce the mapped theme
-        resolvedThemeId = hostThemeId
-        resolvedSource = "custom-domain"
-        localStorage.setItem("theme-id", hostThemeId)
       } else if (savedThemeId) {
-        // Otherwise honor the previously selected theme
+        // Use previously selected theme
         resolvedThemeId = savedThemeId
         resolvedSource = initialSource
       } else {
-        // Final fallback: whatever the host resolved to (likely "default")
-        resolvedThemeId = hostThemeId || "default"
+        // Use server-provided theme or default
+        resolvedThemeId = initialTheme?.id || "default"
         if (resolvedThemeId) {
           localStorage.setItem("theme-id", resolvedThemeId)
         }
@@ -100,19 +89,32 @@ export function ThemeProvider({
         setThemeSource(resolvedSource)
         setMode(enforceSupportedMode(savedMode, initialTheme))
         setMounted(true)
+        console.log("Loaded initial theme:", initialTheme)
         return
       }
 
       // Fetch from API
       try {
+        // Don't fetch from API for default theme - use hardcoded
+        if (resolvedThemeId === "default") {
+          setCurrentTheme(DEFAULT_THEME)
+          setThemeSource(resolvedSource === "query" ? "query" : "database")
+          setMode(enforceSupportedMode(savedMode, DEFAULT_THEME))
+          setMounted(true)
+          console.log("Loaded hardcoded default theme")
+          return
+        }
+
         const response = await fetch(`/api/themes/${resolvedThemeId}`)
         if (response.ok) {
           const theme = await response.json()
+          console.log("Fetched theme:", theme)
           if (!theme.error) {
             setCurrentTheme(theme)
             setThemeSource(resolvedSource === "query" ? "query" : "database")
             setMode(enforceSupportedMode(savedMode, theme))
             setMounted(true)
+            console.log("Loaded theme from API:", theme)
             return
           }
         }
@@ -126,6 +128,7 @@ export function ThemeProvider({
         const response = await fetch("/api/themes/default")
         if (response.ok) {
           const theme = await response.json()
+          console.log("Fetched default theme:", theme)
           if (!theme.error) {
             setCurrentTheme(theme)
             setThemeSource("database")
@@ -185,6 +188,19 @@ export function ThemeProvider({
   }, [currentTheme, mode])
 
   const setTheme = async (themeId: string) => {
+    // Load hardcoded default theme
+    if (themeId === DEFAULT_THEME.id) {
+      setCurrentTheme(DEFAULT_THEME)
+      setThemeSource("database")
+      localStorage.setItem("theme-id", themeId)
+
+      const nextMode = enforceSupportedMode(mode, DEFAULT_THEME)
+      setMode(nextMode)
+      localStorage.setItem("theme-mode", nextMode)
+      return
+    }
+
+    // Fetch from API for other themes
     try {
       const response = await fetch(`/api/themes/${themeId}`)
       if (response.ok) {

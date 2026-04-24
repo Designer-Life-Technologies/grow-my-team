@@ -1,5 +1,5 @@
 "use client"
-import { ClientLogo } from "@/components/layout"
+import Image from "next/image"
 import { ThemeModeToggle, ThemeSelector, useTheme } from "@/components/theme"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,26 +39,60 @@ export default function ThemeShowcase() {
         </div>
 
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-4 mb-8">
-          <h2 className="text-xl font-semibold mb-2">Current Theme</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p>
-                <strong>ID:</strong> {currentTheme.id}
-              </p>
-              <p>
-                <strong>Name:</strong> {currentTheme.name}
-              </p>
-              <p>
-                <strong>Mode:</strong> {isDark ? "Dark" : "Light"}
-              </p>
+          <h2 className="text-xl font-semibold mb-4">Current Theme</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <strong>ID:</strong>
+                <span>{currentTheme.id}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Name:</strong>
+                <span>{currentTheme.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Mode:</strong>
+                <span>{isDark ? "Dark" : "Light"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>Company:</strong>
+                <span>{currentTheme.branding.companyName}</span>
+              </div>
             </div>
-            <div>
-              <p>
-                <strong>Company:</strong> {currentTheme.branding.companyName}
-              </p>
-              <div className="mt-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
                 <strong>Logo:</strong>
-                <ClientLogo />
+                {currentTheme.branding.logo ? (
+                  <div className="relative bg-white dark:bg-gray-800 border border-[var(--color-border)] rounded p-2">
+                    <Image
+                      src={
+                        isDark
+                          ? currentTheme.branding.logo.dark
+                          : currentTheme.branding.logo.light
+                      }
+                      alt={`${currentTheme.branding.companyName} logo`}
+                      width={currentTheme.branding.logo.width || 110}
+                      height={40}
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-sm text-[var(--color-textSecondary)]">
+                    No logo
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <strong>Favicon:</strong>
+                <div className="relative bg-white dark:bg-gray-800 border border-[var(--color-border)] rounded p-1">
+                  <Image
+                    src={currentTheme.branding.favicon || "/themes/favicon.ico"}
+                    alt={`${currentTheme.branding.companyName} favicon`}
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
