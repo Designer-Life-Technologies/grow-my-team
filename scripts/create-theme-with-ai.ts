@@ -87,16 +87,22 @@ async function main() {
     process.exit(1)
   }
 
-  // Ask for theme details
-  const slug = await askQuestion("Theme slug (e.g., my-client): ")
-  const name = await askQuestion("Theme name (e.g., My Client): ")
-  const companyName = await askQuestion("Company name (e.g., My Company Inc): ")
-  const customDomain = await askQuestion(
-    "Custom domain (optional, press Enter to skip): ",
-  )
-  const website = await askQuestion(
-    "Website URL (optional, press Enter to skip): ",
-  )
+  // Check for environment variables (for automated runs)
+  const slug =
+    process.env.THEME_SLUG ||
+    (await askQuestion("Theme slug (e.g., my-client): "))
+  const name =
+    process.env.THEME_NAME ||
+    (await askQuestion("Theme name (e.g., My Client): "))
+  const companyName =
+    process.env.THEME_COMPANY ||
+    (await askQuestion("Company name (e.g., My Company Inc): "))
+  const customDomain =
+    process.env.THEME_DOMAIN ||
+    (await askQuestion("Custom domain (optional, press Enter to skip): "))
+  const website =
+    process.env.THEME_WEBSITE ||
+    (await askQuestion("Website URL (optional, press Enter to skip): "))
 
   console.log("\nCreating theme with AI color extraction...")
   console.log(`  Slug: ${slug}`)

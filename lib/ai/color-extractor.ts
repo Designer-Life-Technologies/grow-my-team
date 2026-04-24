@@ -32,14 +32,8 @@ export async function extractColorsFromImages(
 
   // Add favicon if provided
   if (faviconBase64) {
-    images.push({
-      type: "image",
-      source: {
-        type: "base64",
-        media_type: "image/png",
-        data: faviconBase64.split(",")[1] || faviconBase64,
-      },
-    })
+    // Skip favicon for now as vision API may not support ico format
+    console.log("[AI Theme] Skipping favicon (not supported by vision API)")
   }
 
   // Add screenshot if provided
@@ -110,7 +104,7 @@ Return ONLY the JSON object, no other text.`
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       messages: [
         {
