@@ -84,15 +84,15 @@ export const createThemeSchema = z.object({
   colors: colorsSchema.optional(),
   logoBase64: z
     .string()
-    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
   faviconBase64: z
     .string()
-    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
   screenshotBase64: z
     .string()
-    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
   logoWidth: z.number().min(50).max(500).optional(),
   supportsDarkMode: z.boolean().optional(),
@@ -109,11 +109,11 @@ export const updateThemeSchema = z.object({
   colors: colorsSchema.optional(),
   logoBase64: z
     .string()
-    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
   faviconBase64: z
     .string()
-    .regex(/^data:image\/[a-z]+;base64,/, "Invalid base64 image")
+    .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
   logoWidth: z.number().min(50).max(500).optional(),
   supportsDarkMode: z.boolean().optional(),
