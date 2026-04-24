@@ -32,7 +32,8 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme"
 import { DynamicThemeBadge } from "@/components/theme/DynamicThemeBadge"
-import { resolveTheme } from "@/lib/theme/resolver"
+import type { Theme } from "@/lib/theme"
+import { resolveTheme, type ThemeSource } from "@/lib/theme/resolver"
 import "./globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
@@ -81,7 +82,19 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   // Resolve theme server-side from database (or fallback to file)
-  const { theme, source } = await resolveTheme()
+  let theme: Theme | null = null
+  let source: ThemeSource = "database"
+  try {
+    const resolved = await resolveTheme()
+    theme = resolved.theme
+    source = resolved.source
+  } catch (error) {
+    // Handle missing database connection gracefully
+    console.warn("Failed to resolve theme, using default:", error)
+    const { DEFAULT_THEME } = await import("@/lib/theme/constants")
+    theme = DEFAULT_THEME
+    source = "database"
+  }
 
   return (
     <html lang="en">
