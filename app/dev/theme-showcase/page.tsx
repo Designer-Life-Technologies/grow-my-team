@@ -68,17 +68,17 @@ export default function ThemeShowcase() {
                       className="border-t border-b border-[var(--color-border)] bg-white dark:bg-gray-800 px-4 py-2 flex items-center"
                       style={{ height: "56px" }}
                     >
-                      <Image
+                      <img
                         src={
                           isDark
                             ? currentTheme.branding.logo.dark
                             : currentTheme.branding.logo.light
                         }
                         alt={`${currentTheme.branding.companyName} logo`}
-                        width={250}
-                        height={50 * (currentTheme.branding.logo.scale || 1.0)}
-                        className="object-contain"
-                        style={{ width: "auto" }}
+                        style={{
+                          height: `${50 * (currentTheme.branding.logo.scale || 1.0)}px`,
+                          width: "auto",
+                        }}
                       />
                     </div>
                     <div className="flex gap-4 text-xs text-[var(--color-textSecondary)]">
