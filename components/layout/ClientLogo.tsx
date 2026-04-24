@@ -129,7 +129,7 @@ export function ClientLogo({
         height={logoHeight}
         priority={priority}
         className="object-contain"
-        style={logoWidth ? { height: "auto" } : { width: "auto" }}
+        style={logoHeight ? { width: "auto" } : { height: "auto" }}
       />
       {showCompanyName && (
         <span className="text-lg font-semibold text-foreground">
