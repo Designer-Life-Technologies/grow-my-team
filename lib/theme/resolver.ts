@@ -39,18 +39,15 @@ export async function resolveTheme(
   // Priority 3: Custom domain (future: check database for custom_domain column)
   // TODO: Implement when custom_domain column is populated
 
-  // Priority 4 & 5: Environment variable or default
-  const defaultThemeId = process.env.NEXT_PUBLIC_THEME_ID || "default"
-
-  // Try database first
-  const dbDefaultTheme = await getCachedTheme(defaultThemeId)
+  // Priority 4: Default theme
+  const dbDefaultTheme = await getCachedTheme("default")
   if (dbDefaultTheme) {
     return { theme: dbDefaultTheme, source: "database" }
   }
 
   // Ultimate fallback: hardcoded default theme
   console.warn(
-    `Theme "${defaultThemeId}" not found in database, using hardcoded default theme`,
+    `Default theme not found in database, using hardcoded default theme`,
   )
   return { theme: DEFAULT_THEME, source: "database" }
 }
