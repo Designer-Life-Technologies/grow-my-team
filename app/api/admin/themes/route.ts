@@ -52,7 +52,6 @@ export async function POST(request: Request) {
       clientSlug: validatedData.slug,
       name: validatedData.name,
       companyName: validatedData.companyName,
-      subdomain: validatedData.subdomain,
       customDomain: validatedData.customDomain,
       colors: validatedData.colors
         ? mergeWithDefaults(validatedData.colors)

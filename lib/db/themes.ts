@@ -7,7 +7,6 @@ export interface ClientThemeRow {
   name: string
   company_name: string | null
   organisation_id: string | null
-  subdomain: string | null
   custom_domain: string | null
   colors: {
     light: ColorPalette
@@ -26,7 +25,6 @@ export interface CreateThemeInput {
   name: string
   companyName?: string
   organisationId?: string
-  subdomain?: string
   customDomain?: string
   colors: {
     light: ColorPalette
@@ -70,20 +68,7 @@ export async function getThemeByOrganisationId(
 }
 
 /**
- * Get theme by subdomain prefix (e.g., "shr" for shr.applicant.growmy.team)
- */
-export async function getThemeBySubdomain(
-  subdomain: string,
-): Promise<ClientThemeRow | null> {
-  const result = await sql<ClientThemeRow>`
-    SELECT * FROM client_themes 
-    WHERE subdomain = ${subdomain} AND is_active = true
-  `
-  return result.rows[0] || null
-}
-
-/**
- * Get theme by custom domain (future feature)
+ * Get theme by custom domain (exact domain match)
  */
 export async function getThemeByCustomDomain(
   domain: string,
@@ -107,7 +92,6 @@ export async function createTheme(
       name,
       company_name,
       organisation_id,
-      subdomain,
       custom_domain,
       colors,
       logo_url,
@@ -119,7 +103,6 @@ export async function createTheme(
       ${input.name},
       ${input.companyName || null},
       ${input.organisationId || null},
-      ${input.subdomain || null},
       ${input.customDomain || null},
       ${JSON.stringify(input.colors)},
       ${input.logoUrl || null},
@@ -155,10 +138,6 @@ export async function updateTheme(
   if (input.organisationId !== undefined) {
     updates.push(`organisation_id = $${paramIndex++}`)
     values.push(input.organisationId)
-  }
-  if (input.subdomain !== undefined) {
-    updates.push(`subdomain = $${paramIndex++}`)
-    values.push(input.subdomain)
   }
   if (input.customDomain !== undefined) {
     updates.push(`custom_domain = $${paramIndex++}`)

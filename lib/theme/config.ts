@@ -1,4 +1,4 @@
-import { getThemeByCustomDomain, getThemeBySubdomain } from "@/lib/db/themes"
+import { getThemeByCustomDomain, getThemeBySlug } from "@/lib/db/themes"
 
 const themeAliasEntries: Record<string, string[]> = {
   default: ["default", "growmyteam", "gmt", "core"],
@@ -45,7 +45,7 @@ export const getTheme = (): never => {
 
 /**
  * Get theme from domain (database-driven with fallback)
- * Checks database for subdomain and custom_domain matches, then falls back to hardcoded mappings
+ * Checks database for client_slug (subdomain) and custom_domain matches, then falls back to hardcoded mappings
  */
 export async function getThemeFromDomain(hostname: string): Promise<string> {
   const normalizedHost = hostname.split(":")[0]?.toLowerCase() || ""
@@ -53,8 +53,8 @@ export async function getThemeFromDomain(hostname: string): Promise<string> {
   // Extract subdomain (first part of hostname)
   const subdomain = normalizedHost.split(".")[0] || normalizedHost
 
-  // Priority 1: Check database for subdomain match (e.g., "shr" for shr.applicant.growmy.team)
-  const themeFromSubdomain = await getThemeBySubdomain(subdomain)
+  // Priority 1: Check database for subdomain match using client_slug (e.g., "shr" for shr.applicant.growmy.team)
+  const themeFromSubdomain = await getThemeBySlug(subdomain)
   if (themeFromSubdomain) {
     return themeFromSubdomain.client_slug
   }

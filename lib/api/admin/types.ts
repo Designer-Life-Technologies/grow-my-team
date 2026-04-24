@@ -79,15 +79,6 @@ export const createThemeSchema = z.object({
     ),
   name: z.string().min(1).max(100),
   companyName: z.string().min(1).max(100),
-  subdomain: z
-    .string()
-    .min(1)
-    .max(50)
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Subdomain must contain only lowercase letters, numbers, and hyphens",
-    )
-    .optional(),
   customDomain: z.string().url().optional(),
   website: z.string().url().optional(),
   colors: colorsSchema.optional(),
@@ -109,15 +100,6 @@ export const createThemeSchema = z.object({
 export const updateThemeSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   companyName: z.string().min(1).max(100).optional(),
-  subdomain: z
-    .string()
-    .min(1)
-    .max(50)
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Subdomain must contain only lowercase letters, numbers, and hyphens",
-    )
-    .optional(),
   customDomain: z.string().url().optional(),
   website: z.string().url().optional(),
   colors: colorsSchema.optional(),
