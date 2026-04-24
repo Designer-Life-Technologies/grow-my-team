@@ -75,6 +75,7 @@ export default function ThemeShowcase() {
                             : currentTheme.branding.logo.light
                         }
                         alt={`${currentTheme.branding.companyName} logo`}
+                        width={currentTheme.branding.logo.width || 250}
                         height={currentTheme.branding.logo.height || 50}
                         className="object-contain"
                       />
