@@ -1,16 +1,18 @@
 import { headers } from "next/headers"
+import { getThemeBySlug } from "@/lib/db/themes"
 
 /**
  * Centralized resolver for the GetMe.video API base URL.
  *
- * The resolver supports host-based overrides by parsing the optional
- * GETME_API_URL_MAP environment variable. The map expects a comma-separated
- * list of `host=baseUrl` pairs, for example:
+ * The resolver supports:
+ * 1. Database-driven client-specific API endpoints (from client_settings.gmt_api_endpoint)
+ * 2. Environment variable GETME_API_URL_MAP for host-based overrides
+ * 3. Fallback to GETME_API_URL environment variable
  *
- * GETME_API_URL_MAP="careers.example.com=https://api.acme.getme.video,partners.example.com=https://api.beta.getme.video"
- *
- * If no override matches the current host, the function falls back to the
- * default GETME_API_URL value.
+ * Priority:
+ * 1. Client-specific API endpoint from database (by subdomain)
+ * 2. Host-based override from GETME_API_URL_MAP
+ * 3. Default GETME_API_URL
  */
 const defaultApiBase = process.env.GETME_API_URL
 
@@ -116,7 +118,48 @@ async function detectRuntimeHost() {
   }
 }
 
+/**
+ * Get client-specific API endpoint from database
+ */
+async function getClientApiEndpoint(
+  host?: string | null,
+): Promise<string | null> {
+  if (!host) {
+    return null
+  }
+
+  // Extract subdomain (first part of hostname)
+  const normalizedHost = host.split(":")[0]?.toLowerCase() || ""
+  const subdomain = normalizedHost.split(".")[0] || normalizedHost
+
+  try {
+    const client = await getThemeBySlug(subdomain)
+    if (client?.gmt_api_endpoint) {
+      console.log(
+        `[resolveGetMeApiUrl] Using client-specific API endpoint for ${subdomain}: ${client.gmt_api_endpoint}`,
+      )
+      return client.gmt_api_endpoint
+    }
+  } catch (error) {
+    // Handle missing database connection gracefully
+    console.warn(
+      `[resolveGetMeApiUrl] Failed to get client API endpoint from database: ${error}`,
+    )
+  }
+
+  return null
+}
+
 export async function resolveGetMeApiUrl(explicitHost?: string | null) {
+  // Priority 1: Client-specific API endpoint from database
+  const clientApiEndpoint = await getClientApiEndpoint(
+    explicitHost ?? (await detectRuntimeHost()),
+  )
+  if (clientApiEndpoint) {
+    return clientApiEndpoint
+  }
+
+  // Priority 2: Host-based override from environment variable
   const candidates = normalizeHostCandidates(
     explicitHost ?? (await detectRuntimeHost()),
   )
@@ -128,6 +171,7 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
     }
   }
 
+  // Priority 3: Default API URL from environment variable
   if (!defaultApiBase) {
     throw new Error("GETME_API_URL environment variable is not configured")
   }

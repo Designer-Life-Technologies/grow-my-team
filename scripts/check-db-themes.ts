@@ -11,7 +11,7 @@ async function checkThemes() {
 
   try {
     const result = await client.query(
-      "SELECT client_slug, name, logo_url, favicon_url FROM client_themes WHERE is_active = true",
+      "SELECT client_slug, name, logo_url, favicon_url FROM client_settings WHERE is_active = true",
     )
     console.log(JSON.stringify(result.rows, null, 2))
   } finally {

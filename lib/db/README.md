@@ -31,21 +31,64 @@ pnpm db:migrate:status
 
 ## Database Schema
 
-**client_themes** — White-label theme configurations:
+## Tables
 
-- `client_slug` — Subdomain identifier
-- `organisation_id` — GetMe.video API org mapping (future)
-- `custom_domain` — Future white-label domains
-- `colors` (JSONB) — Light/dark color palettes
-- `logo_url`, `favicon_url` — Vercel Blob URLs
-- `is_active` — Soft delete flag
+### client_settings
 
-**Indexes:**
+Stores white-label theme configurations and client-specific settings for multi-tenant deployment.
 
-- `client_slug` — Theme lookup
-- `organisation_id` — Org-based resolution
-- `custom_domain` — Domain-based resolution
-- `is_active` — Active themes only (partial index)
+| Column             | Type         | Description                                                     |
+| ------------------ | ------------ | --------------------------------------------------------------- |
+| id                 | UUID         | Primary key                                                     |
+| client_slug        | VARCHAR(255) | URL-friendly identifier used as subdomain (e.g., virgin-active) |
+| name               | VARCHAR(255) | Display name of the client/theme                                |
+| company_name       | VARCHAR(255) | Company name for branding                                       |
+| organisation_id    | VARCHAR(255) | GetMe.video API organisation ID for tenant data isolation       |
+| custom_domain      | VARCHAR(255) | Custom domain for white-label (e.g., careers.virginactive.com)  |
+| colors             | JSONB        | JSON containing light and dark mode color palettes              |
+| logo_url           | TEXT         | URL to client logo                                              |
+| favicon_url        | TEXT         | URL to client favicon                                           |
+| website            | TEXT         | Client website URL                                              |
+| logo_width         | INTEGER      | Logo width in pixels (optional)                                 |
+| supports_dark_mode | BOOLEAN      | Whether the theme supports dark mode                            |
+| gmt_api_endpoint   | VARCHAR(500) | Client-specific GetMe.video API endpoint                        |
+| settings           | JSONB        | Additional client-specific settings                             |
+| is_active          | BOOLEAN      | Whether the theme is active                                     |
+| created_at         | TIMESTAMP    | Creation timestamp                                              |
+| updated_at         | TIMESTAMP    | Last update timestamp                                           |
+
+### Indexes
+
+- `idx_client_settings_client_slug` on `client_slug`
+- `idx_client_settings_organisation_id` on `organisation_id`
+- `idx_client_settings_custom_domain` on `custom_domain`
+- `idx_client_settings_active` on `is_active` (partial index for active themes)
+
+## Functions
+
+### getThemeBySlug(slug)
+
+Retrieves a theme by its client slug (subdomain identifier).
+
+### getThemeByCustomDomain(domain)
+
+Retrieves a theme by its custom domain.
+
+### createTheme(input)
+
+Creates a new client theme.
+
+### updateTheme(slug, input)
+
+Updates an existing theme.
+
+### deactivateTheme(slug)
+
+Soft deletes a theme by setting `is_active = false`.
+
+### listThemes(includeInactive)
+
+Lists all themes, optionally including inactive ones.
 
 ## Usage
 

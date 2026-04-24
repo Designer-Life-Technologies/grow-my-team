@@ -18,6 +18,8 @@ export interface ClientThemeRow {
   logo_width: number | null
   supports_dark_mode: boolean
   is_active: boolean
+  gmt_api_endpoint: string | null
+  settings: Record<string, unknown>
 }
 
 export interface CreateThemeInput {
@@ -35,6 +37,8 @@ export interface CreateThemeInput {
   logoWidth?: number
   website?: string
   supportsDarkMode?: boolean
+  gmtApiEndpoint?: string
+  settings?: Record<string, unknown>
 }
 
 export interface UpdateThemeInput extends Partial<CreateThemeInput> {
@@ -48,7 +52,7 @@ export async function getThemeBySlug(
   slug: string,
 ): Promise<ClientThemeRow | null> {
   const result = await sql<ClientThemeRow>`
-    SELECT * FROM client_themes 
+    SELECT * FROM client_settings 
     WHERE client_slug = ${slug} AND is_active = true
   `
   return result.rows[0] || null
@@ -61,7 +65,7 @@ export async function getThemeByOrganisationId(
   organisationId: string,
 ): Promise<ClientThemeRow | null> {
   const result = await sql<ClientThemeRow>`
-    SELECT * FROM client_themes 
+    SELECT * FROM client_settings 
     WHERE organisation_id = ${organisationId} AND is_active = true
   `
   return result.rows[0] || null
@@ -74,7 +78,7 @@ export async function getThemeByCustomDomain(
   domain: string,
 ): Promise<ClientThemeRow | null> {
   const result = await sql<ClientThemeRow>`
-    SELECT * FROM client_themes 
+    SELECT * FROM client_settings 
     WHERE custom_domain = ${domain} AND is_active = true
   `
   return result.rows[0] || null
@@ -87,7 +91,7 @@ export async function createTheme(
   input: CreateThemeInput,
 ): Promise<ClientThemeRow> {
   const result = await sql<ClientThemeRow>`
-    INSERT INTO client_themes (
+    INSERT INTO client_settings (
       client_slug,
       name,
       company_name,
@@ -97,7 +101,9 @@ export async function createTheme(
       logo_url,
       favicon_url,
       website,
-      supports_dark_mode
+      supports_dark_mode,
+      gmt_api_endpoint,
+      settings
     ) VALUES (
       ${input.clientSlug},
       ${input.name},
@@ -108,7 +114,9 @@ export async function createTheme(
       ${input.logoUrl || null},
       ${input.faviconUrl || null},
       ${input.website || null},
-      ${input.supportsDarkMode ?? true}
+      ${input.supportsDarkMode ?? true},
+      ${input.gmtApiEndpoint || null},
+      ${JSON.stringify(input.settings || {})}
     )
     RETURNING *
   `
@@ -163,6 +171,14 @@ export async function updateTheme(
     updates.push(`supports_dark_mode = $${paramIndex++}`)
     values.push(input.supportsDarkMode)
   }
+  if (input.gmtApiEndpoint !== undefined) {
+    updates.push(`gmt_api_endpoint = $${paramIndex++}`)
+    values.push(input.gmtApiEndpoint)
+  }
+  if (input.settings !== undefined) {
+    updates.push(`settings = $${paramIndex++}`)
+    values.push(JSON.stringify(input.settings))
+  }
   if (input.isActive !== undefined) {
     updates.push(`is_active = $${paramIndex++}`)
     values.push(input.isActive)
@@ -174,7 +190,7 @@ export async function updateTheme(
 
   values.push(slug)
   const query = `
-    UPDATE client_themes 
+    UPDATE client_settings 
     SET ${updates.join(", ")} 
     WHERE client_slug = $${paramIndex}
     RETURNING *
@@ -189,7 +205,7 @@ export async function updateTheme(
  */
 export async function deactivateTheme(slug: string): Promise<boolean> {
   const result = await sql`
-    UPDATE client_themes 
+    UPDATE client_settings 
     SET is_active = false 
     WHERE client_slug = ${slug}
   `
@@ -203,8 +219,8 @@ export async function listThemes(
   includeInactive = false,
 ): Promise<ClientThemeRow[]> {
   const result = includeInactive
-    ? await sql<ClientThemeRow>`SELECT * FROM client_themes ORDER BY name`
-    : await sql<ClientThemeRow>`SELECT * FROM client_themes WHERE is_active = true ORDER BY name`
+    ? await sql<ClientThemeRow>`SELECT * FROM client_settings ORDER BY name`
+    : await sql<ClientThemeRow>`SELECT * FROM client_settings WHERE is_active = true ORDER BY name`
   return result.rows
 }
 

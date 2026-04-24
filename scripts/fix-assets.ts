@@ -79,7 +79,7 @@ async function fixAssets() {
       }
       values.push(slug)
 
-      const query = `UPDATE client_themes SET ${updates.join(", ")} WHERE client_slug = $${idx}`
+      const query = `UPDATE client_settings SET ${updates.join(", ")} WHERE client_slug = $${idx}`
       await pool.query(query, values)
       console.log(`  ✅ DB updated`)
     }

@@ -40,7 +40,7 @@ async function fixShrTheme() {
   }
 
   await pool.query(
-    "UPDATE client_themes SET colors = $1, logo_width = $2 WHERE client_slug = $3",
+    "UPDATE client_settings SET colors = $1, logo_width = $2 WHERE client_slug = $3",
     [JSON.stringify(colors), 200, "shr"],
   )
   console.log("✅ Updated SHR theme with correct colors and logo_width=200")

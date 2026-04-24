@@ -12,7 +12,7 @@ import { pool } from "../lib/db/client"
 async function invalidateCache() {
   // Update the updated_at timestamp to invalidate cache
   await pool.query(
-    "UPDATE client_themes SET updated_at = NOW() WHERE client_slug = $1",
+    "UPDATE client_settings SET updated_at = NOW() WHERE client_slug = $1",
     ["shr"],
   )
   console.log("✅ Invalidated cache for shr theme")

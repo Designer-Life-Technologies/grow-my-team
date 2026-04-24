@@ -28,7 +28,7 @@ const UPDATES = [
 async function update() {
   for (const [slug, logo, favicon] of UPDATES) {
     await pool.query(
-      "UPDATE client_themes SET logo_url = $1, favicon_url = $2 WHERE client_slug = $3",
+      "UPDATE client_settings SET logo_url = $1, favicon_url = $2 WHERE client_slug = $3",
       [logo, favicon, slug],
     )
     console.log(`✅ ${slug} updated`)
