@@ -101,7 +101,9 @@ export function ThemeProvider({
           setThemeSource(resolvedSource === "query" ? "query" : "database")
           setMode(enforceSupportedMode(savedMode, DEFAULT_THEME))
           setMounted(true)
-          console.log("[ThemeProvider] ✓ Loaded hardcoded default theme")
+          console.log(
+            "[ThemeProvider] ✓ Loaded hardcoded default theme (hardcoded fallback)",
+          )
           return
         }
 
@@ -132,7 +134,7 @@ export function ThemeProvider({
 
       // If theme not found, use default theme and clear invalid localStorage
       console.warn(
-        `[ThemeProvider] ⚠ Theme "${resolvedThemeId}" not found, using default`,
+        `[ThemeProvider] ⚠ Theme "${resolvedThemeId}" not found in API, using default`,
       )
       localStorage.removeItem("theme-id")
       try {
@@ -146,17 +148,22 @@ export function ThemeProvider({
             setThemeSource("database")
             setMode(enforceSupportedMode(savedMode, theme))
             setMounted(true)
-            console.log("[ThemeProvider] ✓ Loaded default theme from API")
+            console.log(
+              "[ThemeProvider] ✓ Loaded default theme from API (database)",
+            )
             return
           }
         }
       } catch (error) {
-        console.error("[ThemeProvider] ✗ Failed to fetch default theme:", error)
+        console.error(
+          "[ThemeProvider] ✗ Failed to fetch default theme from API:",
+          error,
+        )
       }
 
       // Ultimate fallback - hardcoded default theme to prevent crash
       console.warn(
-        "[ThemeProvider] ⚠ Using hardcoded default theme as ultimate fallback",
+        "[ThemeProvider] ⚠ Using hardcoded default theme as ultimate fallback (hardcoded)",
       )
       setCurrentTheme(DEFAULT_THEME)
       setThemeSource("database")

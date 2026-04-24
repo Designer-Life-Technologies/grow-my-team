@@ -140,17 +140,17 @@ async function getClientApiEndpoint(
     const client = await getThemeBySlug(subdomain)
     if (client?.gmt_api_endpoint) {
       console.log(
-        `[GetMeApiUrl] ✓ Using client-specific API endpoint for ${subdomain}: ${client.gmt_api_endpoint}`,
+        `[GetMeApiUrl] ✓ Using client-specific API endpoint for ${subdomain}: ${client.gmt_api_endpoint} (database)`,
       )
       return client.gmt_api_endpoint
     }
     console.log(
-      `[GetMeApiUrl] ✗ No client-specific API endpoint found for ${subdomain}`,
+      `[GetMeApiUrl] ✗ No client-specific API endpoint found for ${subdomain} in database`,
     )
   } catch (error) {
     // Handle missing database connection gracefully
     console.warn(
-      `[GetMeApiUrl] ⚠ Failed to get client API endpoint from database: ${error}`,
+      `[GetMeApiUrl] ⚠ Failed to get client API endpoint from database: ${error} (will use fallback)`,
     )
   }
 
@@ -175,7 +175,7 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
     const mappedUrl = hostApiMap[candidate]
     if (mappedUrl) {
       console.log(
-        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl}`,
+        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl} (env var)`,
       )
       return mappedUrl
     }
@@ -186,7 +186,9 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
     throw new Error("GETME_API_URL environment variable is not configured")
   }
 
-  console.log(`[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase}`)
+  console.log(
+    `[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase} (env var fallback)`,
+  )
   return defaultApiBase
 }
 

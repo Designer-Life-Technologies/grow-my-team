@@ -27,12 +27,12 @@ export async function resolveTheme(
     const theme = await getCachedTheme(queryTheme)
     if (theme) {
       console.log(
-        `[ThemeResolver] ✓ Using theme "${theme.id}" from query parameter`,
+        `[ThemeResolver] ✓ Using theme "${theme.id}" from query parameter (database)`,
       )
       return { theme, source: "query" }
     }
     console.log(
-      `[ThemeResolver] ✗ Query parameter theme "${queryTheme}" not found`,
+      `[ThemeResolver] ✗ Query parameter theme "${queryTheme}" not found in database`,
     )
   }
 
@@ -43,18 +43,20 @@ export async function resolveTheme(
     const dbTheme = await getCachedTheme(domainThemeId)
     if (dbTheme) {
       console.log(
-        `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping`,
+        `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping (database)`,
       )
       return { theme: dbTheme, source: "custom-domain" }
     }
-    console.log(`[ThemeResolver] ✗ Domain theme "${domainThemeId}" not found`)
+    console.log(
+      `[ThemeResolver] ✗ Domain theme "${domainThemeId}" not found in database`,
+    )
   }
 
   // Priority 3: Custom domain (future: check database for custom_domain column)
   // TODO: Implement when custom_domain column is populated
 
   // Priority 4: Default theme
-  console.log(`[ThemeResolver] Trying default theme`)
+  console.log(`[ThemeResolver] Trying default theme from database`)
   const dbDefaultTheme = await getCachedTheme("default")
   if (dbDefaultTheme) {
     console.log(
@@ -65,7 +67,7 @@ export async function resolveTheme(
 
   // Ultimate fallback: hardcoded default theme
   console.warn(
-    `[ThemeResolver] ⚠ Default theme not found in database, using hardcoded default theme`,
+    `[ThemeResolver] ⚠ Default theme not found in database, using hardcoded default theme (fallback)`,
   )
   return { theme: DEFAULT_THEME, source: "database" }
 }
