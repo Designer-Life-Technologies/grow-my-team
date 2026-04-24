@@ -56,6 +56,7 @@ export function ThemeProvider({
           const data = await response.json()
           console.log(`[API Endpoint] Host: ${data.host}`)
           console.log(`[API Endpoint] ✓ Using: ${data.apiEndpoint}`)
+          console.log(`[API Endpoint] Source: ${data.source}`)
         }
       } catch (error) {
         console.warn("[API Endpoint] Failed to fetch endpoint info:", error)
@@ -106,7 +107,9 @@ export function ThemeProvider({
         setThemeSource(resolvedSource)
         setMode(enforceSupportedMode(savedMode, initialTheme))
         setMounted(true)
-        console.log("Loaded initial theme:", initialTheme)
+        console.log(
+          `[Theme] ✓ Loaded theme "${initialTheme.id}" (source: ${resolvedSource})`,
+        )
         return
       }
 
@@ -119,75 +122,67 @@ export function ThemeProvider({
           setMode(enforceSupportedMode(savedMode, DEFAULT_THEME))
           setMounted(true)
           console.log(
-            "[ThemeProvider] ✓ Loaded hardcoded default theme (hardcoded fallback)",
+            `[Theme] ✓ Loaded theme "default" (source: ${resolvedSource === "query" ? "query" : "hardcoded fallback"})`,
           )
           return
         }
 
-        console.log(
-          `[ThemeProvider] Fetching theme from API: ${resolvedThemeId}`,
-        )
+        console.log(`[Theme] Fetching theme from API: ${resolvedThemeId}`)
         const response = await fetch(`/api/themes/${resolvedThemeId}`)
         if (response.ok) {
           const theme = await response.json()
-          console.log("[ThemeProvider] API response:", theme)
+          console.log("[Theme] API response:", theme)
           if (!theme.error) {
             setCurrentTheme(theme)
             setThemeSource(resolvedSource === "query" ? "query" : "database")
             setMode(enforceSupportedMode(savedMode, theme))
             setMounted(true)
             console.log(
-              `[ThemeProvider] ✓ Loaded theme "${theme.id}" from API (source: ${resolvedSource})`,
+              `[Theme] ✓ Loaded theme "${theme.id}" (source: ${resolvedSource === "query" ? "query" : "database"})`,
             )
             return
           }
         }
       } catch (error) {
-        console.error(
-          "[ThemeProvider] ✗ Failed to fetch theme from API:",
-          error,
-        )
+        console.error("[Theme] ✗ Failed to fetch theme from API:", error)
       }
 
       // If theme not found, use default theme and clear invalid localStorage
       console.warn(
-        `[ThemeProvider] ⚠ Theme "${resolvedThemeId}" not found in API, using default`,
+        `[Theme] ⚠ Theme "${resolvedThemeId}" not found in API, using default`,
       )
       localStorage.removeItem("theme-id")
       try {
-        console.log("[ThemeProvider] Fetching default theme from API")
+        console.log("[Theme] Fetching default theme from API")
         const response = await fetch("/api/themes/default")
         if (response.ok) {
           const theme = await response.json()
-          console.log("[ThemeProvider] Default theme API response:", theme)
+          console.log("[Theme] Default theme API response:", theme)
           if (!theme.error) {
             setCurrentTheme(theme)
             setThemeSource("database")
             setMode(enforceSupportedMode(savedMode, theme))
             setMounted(true)
-            console.log(
-              "[ThemeProvider] ✓ Loaded default theme from API (database)",
-            )
+            console.log('[Theme] ✓ Loaded theme "default" (source: database)')
             return
           }
         }
       } catch (error) {
         console.error(
-          "[ThemeProvider] ✗ Failed to fetch default theme from API:",
+          "[Theme] ✗ Failed to fetch default theme from API:",
           error,
         )
       }
 
       // Ultimate fallback - hardcoded default theme to prevent crash
       console.warn(
-        "[ThemeProvider] ⚠ Using hardcoded default theme as ultimate fallback (hardcoded)",
+        "[Theme] ⚠ Using hardcoded default theme as ultimate fallback (source: hardcoded fallback)",
       )
       setCurrentTheme(DEFAULT_THEME)
       setThemeSource("database")
       setMode(enforceSupportedMode(savedMode, DEFAULT_THEME))
       setMounted(true)
     }
-
     loadTheme()
   }, [initialTheme, initialSource])
 

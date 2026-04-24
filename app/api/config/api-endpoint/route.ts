@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server"
-import { resolveGetMeApiUrl } from "@/lib/api/getme-api-url"
+import { resolveGetMeApiUrlWithSource } from "@/lib/api/getme-api-url"
 
 /**
  * GET /api/config/api-endpoint
- * Returns the current API endpoint being used for the host
+ * Returns the current API endpoint being used for the host, including the source
  */
 export async function GET(request: Request) {
   try {
     const host = request.headers.get("host")
-    const apiEndpoint = await resolveGetMeApiUrl(host)
+    const { endpoint, source } = await resolveGetMeApiUrlWithSource(host)
 
     return NextResponse.json({
       host,
-      apiEndpoint,
+      apiEndpoint: endpoint,
+      source,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

@@ -192,6 +192,46 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
   return defaultApiBase
 }
 
+export async function resolveGetMeApiUrlWithSource(
+  explicitHost?: string | null,
+): Promise<{
+  endpoint: string
+  source: "database" | "env-var" | "env-var-fallback"
+}> {
+  // Priority 1: Client-specific API endpoint from database
+  const clientApiEndpoint = await getClientApiEndpoint(
+    explicitHost ?? (await detectRuntimeHost()),
+  )
+  if (clientApiEndpoint) {
+    return { endpoint: clientApiEndpoint, source: "database" }
+  }
+
+  // Priority 2: Host-based override from environment variable
+  const candidates = normalizeHostCandidates(
+    explicitHost ?? (await detectRuntimeHost()),
+  )
+
+  for (const candidate of candidates) {
+    const mappedUrl = hostApiMap[candidate]
+    if (mappedUrl) {
+      console.log(
+        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl} (env var)`,
+      )
+      return { endpoint: mappedUrl, source: "env-var" }
+    }
+  }
+
+  // Priority 3: Default API URL from environment variable
+  if (!defaultApiBase) {
+    throw new Error("GETME_API_URL environment variable is not configured")
+  }
+
+  console.log(
+    `[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase} (env var fallback)`,
+  )
+  return { endpoint: defaultApiBase, source: "env-var-fallback" }
+}
+
 export async function resolveGetMeApiUrlFromHeaders(headersLike?: HeadersLike) {
   return resolveGetMeApiUrl(extractHostFromHeaders(headersLike))
 }
