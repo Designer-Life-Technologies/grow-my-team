@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 import { getCachedTheme, getCachedThemeList } from "./cache"
 import { getThemeFromDomain } from "./config"
+import { DEFAULT_THEME } from "./constants"
 import type { Theme } from "./types"
 
 /**
@@ -47,8 +48,11 @@ export async function resolveTheme(
     return { theme: dbDefaultTheme, source: "database" }
   }
 
-  // Error: theme not found in database
-  throw new Error(`Theme "${defaultThemeId}" not found in database`)
+  // Ultimate fallback: hardcoded default theme
+  console.warn(
+    `Theme "${defaultThemeId}" not found in database, using hardcoded default theme`,
+  )
+  return { theme: DEFAULT_THEME, source: "database" }
 }
 
 /**

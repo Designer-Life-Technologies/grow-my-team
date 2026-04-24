@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { getThemeFromDomain } from "@/lib/theme/config"
+import { DEFAULT_THEME } from "@/lib/theme/constants"
 import type { ThemeSource } from "@/lib/theme/resolver"
 import type { Theme, ThemeContextType, ThemeMode } from "@/lib/theme/types"
 import { applyThemeToDocument, getSystemTheme } from "@/lib/theme/utils"
@@ -39,43 +40,8 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
     if (initialTheme) return initialTheme
-    // Return minimal default theme as fallback
-    return {
-      id: "default",
-      name: "Default",
-      colors: {
-        light: {
-          primary: "#3b82f6",
-          secondary: "#1e40af",
-          accent: "#60a5fa",
-          background: "#ffffff",
-          surface: "#f8fafc",
-          text: "#1e293b",
-          textSecondary: "#64748b",
-          border: "#e2e8f0",
-          success: "#22c55e",
-          warning: "#f59e0b",
-          error: "#ef4444",
-        },
-        dark: {
-          primary: "#60a5fa",
-          secondary: "#3b82f6",
-          accent: "#93c5fd",
-          background: "#0f172a",
-          surface: "#1e293b",
-          text: "#f1f5f9",
-          textSecondary: "#94a3b8",
-          border: "#334155",
-          success: "#4ade80",
-          warning: "#fbbf24",
-          error: "#f87171",
-        },
-      },
-      supportsDarkMode: true,
-      branding: {
-        companyName: "Grow My Team",
-      },
-    }
+    // Return hardcoded default theme as fallback
+    return DEFAULT_THEME
   })
   const [themeSource, setThemeSource] = useState<ThemeSource>(initialSource)
   const [mode, setMode] = useState<ThemeMode>("system")
@@ -172,82 +138,10 @@ export function ThemeProvider({
         console.error("Failed to fetch default theme:", error)
       }
 
-      // Ultimate fallback - minimal theme to prevent crash
-      setCurrentTheme({
-        id: "default",
-        name: "Default",
-        colors: {
-          light: {
-            primary: "#3b82f6",
-            secondary: "#1e40af",
-            accent: "#60a5fa",
-            background: "#ffffff",
-            surface: "#f8fafc",
-            text: "#1e293b",
-            textSecondary: "#64748b",
-            border: "#e2e8f0",
-            success: "#22c55e",
-            warning: "#f59e0b",
-            error: "#ef4444",
-          },
-          dark: {
-            primary: "#60a5fa",
-            secondary: "#3b82f6",
-            accent: "#93c5fd",
-            background: "#0f172a",
-            surface: "#1e293b",
-            text: "#f1f5f9",
-            textSecondary: "#94a3b8",
-            border: "#334155",
-            success: "#4ade80",
-            warning: "#fbbf24",
-            error: "#f87171",
-          },
-        },
-        supportsDarkMode: true,
-        branding: {
-          companyName: "Grow My Team",
-        },
-      })
+      // Ultimate fallback - hardcoded default theme to prevent crash
+      setCurrentTheme(DEFAULT_THEME)
       setThemeSource("database")
-      setMode(
-        enforceSupportedMode(savedMode, {
-          id: "default",
-          name: "Default",
-          colors: {
-            light: {
-              primary: "#3b82f6",
-              secondary: "#1e40af",
-              accent: "#60a5fa",
-              background: "#ffffff",
-              surface: "#f8fafc",
-              text: "#1e293b",
-              textSecondary: "#64748b",
-              border: "#e2e8f0",
-              success: "#22c55e",
-              warning: "#f59e0b",
-              error: "#ef4444",
-            },
-            dark: {
-              primary: "#60a5fa",
-              secondary: "#3b82f6",
-              accent: "#93c5fd",
-              background: "#0f172a",
-              surface: "#1e293b",
-              text: "#f1f5f9",
-              textSecondary: "#94a3b8",
-              border: "#334155",
-              success: "#4ade80",
-              warning: "#fbbf24",
-              error: "#f87171",
-            },
-          },
-          supportsDarkMode: true,
-          branding: {
-            companyName: "Grow My Team",
-          },
-        }),
-      )
+      setMode(enforceSupportedMode(savedMode, DEFAULT_THEME))
       setMounted(true)
     }
 
