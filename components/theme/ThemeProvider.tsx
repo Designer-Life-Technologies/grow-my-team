@@ -55,11 +55,6 @@ export function ThemeProvider({
       const savedThemeId = localStorage.getItem("theme-id")
       const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
 
-      // Legacy ID mapping for transition
-      const legacyIdMap: Record<string, string> = {
-        "team-puzzle": "puzzle",
-      }
-
       // Priority 1: Query parameter (?theme=xxx)
       const urlParams = new URLSearchParams(window.location.search)
       const queryThemeId = urlParams.get("theme")
@@ -69,17 +64,13 @@ export function ThemeProvider({
 
       if (queryThemeId) {
         // Query param takes highest priority for preview
-        resolvedThemeId = legacyIdMap[queryThemeId] || queryThemeId
+        resolvedThemeId = queryThemeId
         resolvedSource = "query"
-        localStorage.setItem("theme-id", resolvedThemeId)
+        localStorage.setItem("theme-id", queryThemeId)
       } else if (savedThemeId) {
-        // Use previously selected theme (with legacy mapping)
-        resolvedThemeId = legacyIdMap[savedThemeId] || savedThemeId
+        // Use previously selected theme
+        resolvedThemeId = savedThemeId
         resolvedSource = initialSource
-        // Update localStorage if we mapped an old ID
-        if (legacyIdMap[savedThemeId]) {
-          localStorage.setItem("theme-id", resolvedThemeId)
-        }
       } else {
         // Use server-provided theme or default
         resolvedThemeId = initialTheme?.id || "default"
@@ -131,8 +122,9 @@ export function ThemeProvider({
         console.error("Failed to fetch theme from API:", error)
       }
 
-      // If theme not found, use default theme
+      // If theme not found, use default theme and clear invalid localStorage
       console.warn(`Theme "${resolvedThemeId}" not found, using default`)
+      localStorage.removeItem("theme-id")
       try {
         const response = await fetch("/api/themes/default")
         if (response.ok) {
