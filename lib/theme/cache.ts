@@ -20,7 +20,8 @@ function rowToTheme(row: ClientThemeRow): Theme {
         ? {
             light: row.logo_url,
             dark: row.logo_url,
-            width: row.logo_width || 110,
+            width: row.logo_width || undefined,
+            height: row.logo_height || undefined,
           }
         : undefined,
       favicon: row.favicon_url || undefined,
