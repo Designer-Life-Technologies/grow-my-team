@@ -61,20 +61,28 @@ export default function ThemeShowcase() {
             </div>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <strong>Logo:</strong>
+                <strong>Logo (App Bar Preview):</strong>
                 {currentTheme.branding.logo ? (
-                  <div className="relative bg-white dark:bg-gray-800 border border-[var(--color-border)] rounded p-2">
-                    <Image
-                      src={
-                        isDark
-                          ? currentTheme.branding.logo.dark
-                          : currentTheme.branding.logo.light
-                      }
-                      alt={`${currentTheme.branding.companyName} logo`}
-                      width={currentTheme.branding.logo.width || 110}
-                      height={40}
-                      className="object-contain"
-                    />
+                  <div className="flex flex-col gap-2">
+                    <div
+                      className="border-t border-b border-[var(--color-border)] bg-white dark:bg-gray-800 px-4 py-2 flex items-center"
+                      style={{ height: "56px" }}
+                    >
+                      <Image
+                        src={
+                          isDark
+                            ? currentTheme.branding.logo.dark
+                            : currentTheme.branding.logo.light
+                        }
+                        alt={`${currentTheme.branding.companyName} logo`}
+                        width={currentTheme.branding.logo.width || 110}
+                        height={40}
+                        className="object-contain"
+                      />
+                    </div>
+                    <span className="text-xs text-[var(--color-textSecondary)]">
+                      Box height: 56px (app bar height)
+                    </span>
                   </div>
                 ) : (
                   <span className="text-sm text-[var(--color-textSecondary)]">
