@@ -1,6 +1,6 @@
 "use client"
 
-// No need to import React in 'use client' components
+import { useEffect, useState } from "react"
 import { useTheme } from "@/components/theme"
 
 export function ThemeModeToggle() {
@@ -49,16 +49,39 @@ export function ThemeModeToggle() {
 
 export function ThemeSelector() {
   const { currentTheme, setTheme } = useTheme()
+  const [availableThemes, setAvailableThemes] = useState<
+    { id: string; name: string }[]
+  >([])
+  const [loading, setLoading] = useState(true)
 
-  // This would typically be populated from your theme config
-  const availableThemes = [
-    { id: "default", name: "Grow My Team" },
-    { id: "team-puzzle", name: "Team Puzzle" },
-    { id: "placement-partner", name: "Placement Partner" },
-    { id: "demo", name: "Demo" },
-    { id: "shr", name: "Strategic HR" },
-    { id: "virgin", name: "Virgin Active" },
-  ]
+  useEffect(() => {
+    async function fetchThemes() {
+      try {
+        const response = await fetch("/api/themes")
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableThemes(data.themes || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch themes:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchThemes()
+  }, [])
+
+  if (loading) {
+    return (
+      <select
+        disabled
+        className="px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] opacity-50"
+      >
+        <option>Loading themes...</option>
+      </select>
+    )
+  }
 
   return (
     <select
