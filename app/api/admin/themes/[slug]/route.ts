@@ -50,7 +50,7 @@ export async function PUT(
       colors: validatedData.colors,
       logoUrl,
       faviconUrl,
-      logoWidth: validatedData.logoWidth,
+      logoScale: validatedData.logoScale,
       website: validatedData.website,
       supportsDarkMode: validatedData.supportsDarkMode,
     })
