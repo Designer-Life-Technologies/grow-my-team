@@ -103,7 +103,8 @@ export async function createTheme(
       website,
       supports_dark_mode,
       gmt_api_endpoint,
-      settings
+      settings,
+      is_active
     ) VALUES (
       ${input.clientSlug},
       ${input.name},
@@ -116,7 +117,8 @@ export async function createTheme(
       ${input.website || null},
       ${input.supportsDarkMode ?? true},
       ${input.gmtApiEndpoint || null},
-      ${JSON.stringify(input.settings || {})}
+      ${JSON.stringify(input.settings || {})},
+      true
     )
     RETURNING *
   `
