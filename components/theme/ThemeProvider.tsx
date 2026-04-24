@@ -55,6 +55,11 @@ export function ThemeProvider({
       const savedThemeId = localStorage.getItem("theme-id")
       const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null
 
+      // Legacy ID mapping for transition
+      const legacyIdMap: Record<string, string> = {
+        "team-puzzle": "puzzle",
+      }
+
       // Priority 1: Query parameter (?theme=xxx)
       const urlParams = new URLSearchParams(window.location.search)
       const queryThemeId = urlParams.get("theme")
@@ -64,13 +69,17 @@ export function ThemeProvider({
 
       if (queryThemeId) {
         // Query param takes highest priority for preview
-        resolvedThemeId = queryThemeId
+        resolvedThemeId = legacyIdMap[queryThemeId] || queryThemeId
         resolvedSource = "query"
-        localStorage.setItem("theme-id", queryThemeId)
+        localStorage.setItem("theme-id", resolvedThemeId)
       } else if (savedThemeId) {
-        // Use previously selected theme
-        resolvedThemeId = savedThemeId
+        // Use previously selected theme (with legacy mapping)
+        resolvedThemeId = legacyIdMap[savedThemeId] || savedThemeId
         resolvedSource = initialSource
+        // Update localStorage if we mapped an old ID
+        if (legacyIdMap[savedThemeId]) {
+          localStorage.setItem("theme-id", resolvedThemeId)
+        }
       } else {
         // Use server-provided theme or default
         resolvedThemeId = initialTheme?.id || "default"
