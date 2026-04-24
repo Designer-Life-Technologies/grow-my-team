@@ -134,7 +134,7 @@ async function main() {
       logoBase64,
       faviconBase64,
       screenshotBase64,
-      logoWidth: 110,
+      logoHeight: 50,
       supportsDarkMode: true,
     }
 

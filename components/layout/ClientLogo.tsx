@@ -29,17 +29,6 @@ interface ClientLogoProps {
    * Whether to show the company name alongside the logo
    */
   showCompanyName?: boolean
-  /**
-   * Size variant for the logo
-   */
-  size?: "sm" | "md" | "lg" | "xl"
-}
-
-const sizeVariants = {
-  sm: { width: 80, height: 32 },
-  md: { width: 120, height: 48 },
-  lg: { width: 160, height: 64 },
-  xl: { width: 200, height: 80 },
 }
 
 /**
@@ -53,14 +42,39 @@ export function ClientLogo({
   alt,
   priority = false,
   showCompanyName = false,
-  size = "md",
 }: ClientLogoProps) {
   const { currentTheme, isDark, mounted } = useTheme()
 
-  // Use theme-defined width if available, otherwise use size variant or prop
+  // Priority-based sizing: height takes priority over width
+  // Default to 50px height (slightly smaller than 56px app bar)
+  const themeLogoHeight = currentTheme.branding.logo?.height
   const themeLogoWidth = currentTheme.branding.logo?.width
-  const logoWidth = width || themeLogoWidth || sizeVariants[size].width
-  const logoHeight = height || sizeVariants[size].height
+
+  let logoHeight: number
+  let logoWidth: number | undefined
+
+  if (themeLogoHeight) {
+    // Use height, width auto-calculates
+    logoHeight = themeLogoHeight
+    logoWidth = undefined
+  } else if (themeLogoWidth) {
+    // Use width, height defaults to 50
+    logoWidth = themeLogoWidth
+    logoHeight = 50
+  } else {
+    // Use default height 50px, width auto-calculates
+    logoHeight = 50
+    logoWidth = undefined
+  }
+
+  // Override with props if provided
+  if (height) {
+    logoHeight = height
+    logoWidth = undefined
+  } else if (width) {
+    logoWidth = width
+    logoHeight = 50
+  }
 
   // Select appropriate logo based on theme mode
   const logoSrc = currentTheme.branding.logo

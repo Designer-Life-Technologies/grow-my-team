@@ -16,6 +16,7 @@ export interface ClientThemeRow {
   favicon_url: string | null
   website: string | null
   logo_width: number | null
+  logo_height: number | null
   supports_dark_mode: boolean
   is_active: boolean
   gmt_api_endpoint: string | null
@@ -35,6 +36,7 @@ export interface CreateThemeInput {
   logoUrl?: string
   faviconUrl?: string
   logoWidth?: number
+  logoHeight?: number
   website?: string
   supportsDarkMode?: boolean
   gmtApiEndpoint?: string
@@ -104,7 +106,9 @@ export async function createTheme(
       supports_dark_mode,
       gmt_api_endpoint,
       settings,
-      is_active
+      is_active,
+      logo_width,
+      logo_height
     ) VALUES (
       ${input.clientSlug},
       ${input.name},
@@ -118,7 +122,9 @@ export async function createTheme(
       ${input.supportsDarkMode ?? true},
       ${input.gmtApiEndpoint || null},
       ${JSON.stringify(input.settings || {})},
-      true
+      true,
+      ${input.logoWidth || null},
+      ${input.logoHeight || null}
     )
     RETURNING *
   `
@@ -164,6 +170,14 @@ export async function updateTheme(
   if (input.faviconUrl !== undefined) {
     updates.push(`favicon_url = $${paramIndex++}`)
     values.push(input.faviconUrl)
+  }
+  if (input.logoWidth !== undefined) {
+    updates.push(`logo_width = $${paramIndex++}`)
+    values.push(input.logoWidth)
+  }
+  if (input.logoHeight !== undefined) {
+    updates.push(`logo_height = $${paramIndex++}`)
+    values.push(input.logoHeight)
   }
   if (input.website !== undefined) {
     updates.push(`website = $${paramIndex++}`)
@@ -241,6 +255,8 @@ export function rowToTheme(row: ClientThemeRow): Theme {
         ? {
             light: row.logo_url,
             dark: row.logo_url,
+            width: row.logo_width || undefined,
+            height: row.logo_height || undefined,
           }
         : undefined,
       favicon: row.favicon_url || undefined,

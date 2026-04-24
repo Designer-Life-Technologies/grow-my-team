@@ -27,6 +27,7 @@ export interface Theme {
       light: string
       dark: string
       width?: number
+      height?: number
     }
     favicon?: string
     description?: string

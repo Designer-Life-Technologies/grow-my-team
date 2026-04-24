@@ -75,14 +75,23 @@ export default function ThemeShowcase() {
                             : currentTheme.branding.logo.light
                         }
                         alt={`${currentTheme.branding.companyName} logo`}
-                        width={currentTheme.branding.logo.width || 110}
-                        height={40}
+                        height={currentTheme.branding.logo.height || 50}
                         className="object-contain"
                       />
                     </div>
-                    <span className="text-xs text-[var(--color-textSecondary)]">
-                      Box height: 56px (app bar height)
-                    </span>
+                    <div className="flex gap-4 text-xs text-[var(--color-textSecondary)]">
+                      <span>Box height: 56px (app bar height)</span>
+                      {currentTheme.branding.logo.height && (
+                        <span>
+                          Logo height: {currentTheme.branding.logo.height}px
+                        </span>
+                      )}
+                      {currentTheme.branding.logo.width && (
+                        <span>
+                          Logo width: {currentTheme.branding.logo.width}px
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <span className="text-sm text-[var(--color-textSecondary)]">
