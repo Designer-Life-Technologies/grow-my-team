@@ -120,7 +120,7 @@ async function main() {
       : undefined
 
     // Prepare API request
-    const apiUrl = "http://localhost:3001/api/admin/themes"
+    const apiUrl = "http://localhost:3002/api/admin/themes"
     const body: Record<string, unknown> = {
       slug,
       name,
