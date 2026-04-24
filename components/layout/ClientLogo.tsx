@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useTheme } from "@/components/theme/ThemeProvider"
 import { cn } from "@/lib/utils"
 
@@ -93,13 +92,10 @@ export function ClientLogo({
         className,
       )}
     >
-      <Image
+      <img
         src={logoSrc}
         alt={logoAlt}
-        height={logoHeight}
-        priority={priority}
-        className="object-contain"
-        style={{ width: "auto" }}
+        style={{ height: `${logoHeight}px`, width: "auto" }}
       />
       {showCompanyName && (
         <span className="text-lg font-semibold text-foreground">
