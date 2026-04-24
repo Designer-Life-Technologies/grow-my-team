@@ -75,8 +75,10 @@ export default function ThemeShowcase() {
                             : currentTheme.branding.logo.light
                         }
                         alt={`${currentTheme.branding.companyName} logo`}
+                        width={250}
                         height={50 * (currentTheme.branding.logo.scale || 1.0)}
                         className="object-contain"
+                        style={{ width: "auto" }}
                       />
                     </div>
                     <div className="flex gap-4 text-xs text-[var(--color-textSecondary)]">
