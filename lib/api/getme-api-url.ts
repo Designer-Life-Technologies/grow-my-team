@@ -132,18 +132,25 @@ async function getClientApiEndpoint(
   const normalizedHost = host.split(":")[0]?.toLowerCase() || ""
   const subdomain = normalizedHost.split(".")[0] || normalizedHost
 
+  console.log(
+    `[GetMeApiUrl] Resolving API endpoint for host: ${host} (subdomain: ${subdomain})`,
+  )
+
   try {
     const client = await getThemeBySlug(subdomain)
     if (client?.gmt_api_endpoint) {
       console.log(
-        `[resolveGetMeApiUrl] Using client-specific API endpoint for ${subdomain}: ${client.gmt_api_endpoint}`,
+        `[GetMeApiUrl] ✓ Using client-specific API endpoint for ${subdomain}: ${client.gmt_api_endpoint}`,
       )
       return client.gmt_api_endpoint
     }
+    console.log(
+      `[GetMeApiUrl] ✗ No client-specific API endpoint found for ${subdomain}`,
+    )
   } catch (error) {
     // Handle missing database connection gracefully
     console.warn(
-      `[resolveGetMeApiUrl] Failed to get client API endpoint from database: ${error}`,
+      `[GetMeApiUrl] ⚠ Failed to get client API endpoint from database: ${error}`,
     )
   }
 
@@ -167,6 +174,9 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
   for (const candidate of candidates) {
     const mappedUrl = hostApiMap[candidate]
     if (mappedUrl) {
+      console.log(
+        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl}`,
+      )
       return mappedUrl
     }
   }
@@ -176,6 +186,7 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
     throw new Error("GETME_API_URL environment variable is not configured")
   }
 
+  console.log(`[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase}`)
   return defaultApiBase
 }
 
