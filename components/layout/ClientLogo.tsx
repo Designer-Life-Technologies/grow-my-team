@@ -54,23 +54,23 @@ export function ClientLogo({
   let logoWidth: number | undefined
 
   if (themeLogoHeight) {
-    // Use height, width auto-calculates (set to 0 for Next.js Image to calculate)
+    // Use height, provide reasonable width for Next.js Image
     logoHeight = themeLogoHeight
-    logoWidth = 0
+    logoWidth = 250
   } else if (themeLogoWidth) {
     // Use width, height defaults to 50
     logoWidth = themeLogoWidth
     logoHeight = 50
   } else {
-    // Use default height 50px, width auto-calculates
+    // Use default height 50px, provide reasonable width
     logoHeight = 50
-    logoWidth = 0
+    logoWidth = 250
   }
 
   // Override with props if provided
   if (height) {
     logoHeight = height
-    logoWidth = 0
+    logoWidth = width || 250
   } else if (width) {
     logoWidth = width
     logoHeight = 50
