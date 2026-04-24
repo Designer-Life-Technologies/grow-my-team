@@ -194,11 +194,32 @@ export async function resolveGetMeApiUrl(explicitHost?: string | null) {
 
 export async function resolveGetMeApiUrlWithSource(
   explicitHost?: string | null,
+  themeParam?: string | null,
 ): Promise<{
   endpoint: string
   source: "database" | "env-var" | "env-var-fallback"
 }> {
-  // Priority 1: Client-specific API endpoint from database
+  // Priority 1: Client-specific API endpoint from database (by theme param if provided)
+  if (themeParam) {
+    try {
+      const theme = await getThemeBySlug(themeParam)
+      if (theme?.gmt_api_endpoint) {
+        console.log(
+          `[GetMeApiUrl] ✓ Using theme-specific API endpoint for ${themeParam}: ${theme.gmt_api_endpoint} (database)`,
+        )
+        return { endpoint: theme.gmt_api_endpoint, source: "database" }
+      }
+      console.log(
+        `[GetMeApiUrl] ✗ No theme-specific API endpoint found for ${themeParam} in database`,
+      )
+    } catch (error) {
+      console.warn(
+        `[GetMeApiUrl] ⚠ Failed to get theme API endpoint from database: ${error} (will use fallback)`,
+      )
+    }
+  }
+
+  // Priority 2: Client-specific API endpoint from database (by subdomain)
   const clientApiEndpoint = await getClientApiEndpoint(
     explicitHost ?? (await detectRuntimeHost()),
   )
@@ -206,7 +227,7 @@ export async function resolveGetMeApiUrlWithSource(
     return { endpoint: clientApiEndpoint, source: "database" }
   }
 
-  // Priority 2: Host-based override from environment variable
+  // Priority 3: Host-based override from environment variable
   const candidates = normalizeHostCandidates(
     explicitHost ?? (await detectRuntimeHost()),
   )
@@ -221,7 +242,7 @@ export async function resolveGetMeApiUrlWithSource(
     }
   }
 
-  // Priority 3: Default API URL from environment variable
+  // Priority 4: Default API URL from environment variable
   if (!defaultApiBase) {
     throw new Error("GETME_API_URL environment variable is not configured")
   }

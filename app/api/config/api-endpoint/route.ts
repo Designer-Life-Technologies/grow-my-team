@@ -8,12 +8,19 @@ import { resolveGetMeApiUrlWithSource } from "@/lib/api/getme-api-url"
 export async function GET(request: Request) {
   try {
     const host = request.headers.get("host")
-    const { endpoint, source } = await resolveGetMeApiUrlWithSource(host)
+    const { searchParams } = new URL(request.url)
+    const themeParam = searchParams.get("theme")
+
+    const { endpoint, source } = await resolveGetMeApiUrlWithSource(
+      host,
+      themeParam,
+    )
 
     return NextResponse.json({
       host,
       apiEndpoint: endpoint,
       source,
+      themeParam,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

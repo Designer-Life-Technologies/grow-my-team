@@ -51,12 +51,19 @@ export function ThemeProvider({
   useEffect(() => {
     async function logApiEndpoint() {
       try {
-        const response = await fetch("/api/config/api-endpoint")
+        const urlParams = new URLSearchParams(window.location.search)
+        const themeParam = urlParams.get("theme")
+        const apiUrl = `/api/config/api-endpoint${themeParam ? `?theme=${themeParam}` : ""}`
+
+        const response = await fetch(apiUrl)
         if (response.ok) {
           const data = await response.json()
           console.log(`[API Endpoint] Host: ${data.host}`)
           console.log(`[API Endpoint] ✓ Using: ${data.apiEndpoint}`)
           console.log(`[API Endpoint] Source: ${data.source}`)
+          if (data.themeParam) {
+            console.log(`[API Endpoint] Theme param: ${data.themeParam}`)
+          }
         }
       } catch (error) {
         console.warn("[API Endpoint] Failed to fetch endpoint info:", error)
