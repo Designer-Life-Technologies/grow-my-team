@@ -37,7 +37,11 @@ export const getCachedTheme = unstable_cache(
   async (slug: string): Promise<Theme | null> => {
     try {
       const row = await getThemeBySlug(slug)
-      if (!row) return null
+      if (!row) {
+        console.log(`[getCachedTheme] Theme "${slug}" not found in database`)
+        return null
+      }
+      console.log(`[getCachedTheme] ✓ Found theme "${slug}" in database`)
       return rowToTheme(row)
     } catch (error) {
       // Handle missing database connection gracefully
@@ -45,10 +49,13 @@ export const getCachedTheme = unstable_cache(
         error instanceof Error &&
         error.message.includes("missing_connection_string")
       ) {
-        console.warn("Database connection not available, returning null")
+        console.warn(
+          "[getCachedTheme] ⚠ Database connection not available, returning null",
+        )
         return null
       }
-      throw error
+      console.error(`[getCachedTheme] ✗ Error fetching theme "${slug}":`, error)
+      return null
     }
   },
   ["theme"],

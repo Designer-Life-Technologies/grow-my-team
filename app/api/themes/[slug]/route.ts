@@ -13,12 +13,15 @@ interface RouteParams {
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
     const { slug } = await params
+    console.log(`[API/themes/${slug}] Fetching theme`)
     const theme = await getCachedTheme(slug)
 
     if (!theme) {
+      console.log(`[API/themes/${slug}] ✗ Theme not found, returning 404`)
       return NextResponse.json({ error: "Theme not found" }, { status: 404 })
     }
 
+    console.log(`[API/themes/${slug}] ✓ Returning theme`)
     // Add cache headers for CDN
     return NextResponse.json(theme, {
       headers: {
@@ -26,7 +29,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       },
     })
   } catch (error) {
-    console.error("Error fetching theme:", error)
+    console.error(`[API/themes] Error fetching theme:`, error)
     return NextResponse.json(
       { error: "Failed to fetch theme" },
       { status: 500 },
