@@ -38,5 +38,11 @@ export const DEFAULT_THEME: Theme = {
   supportsDarkMode: true,
   branding: {
     companyName: "Grow My Team",
+    logo: {
+      light: "/themes/logo.png",
+      dark: "/themes/logo.png",
+      width: 110,
+    },
+    favicon: "/themes/favicon.ico",
   },
 }
