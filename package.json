@@ -20,7 +20,8 @@
     "migrate:themes": "tsx scripts/migrate-themes.ts",
     "fix:assets": "tsx scripts/fix-assets.ts",
     "fix:shr-colors": "tsx scripts/fix-shr-colors.ts",
-    "invalidate-cache": "tsx scripts/invalidate-cache.ts"
+    "invalidate-cache": "tsx scripts/invalidate-cache.ts",
+    "create-theme": "tsx scripts/create-theme-with-ai.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.0",
