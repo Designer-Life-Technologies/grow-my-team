@@ -90,8 +90,7 @@ export async function POST(request: Request) {
       colors,
       logoUrl,
       faviconUrl,
-      logoWidth: validatedData.logoWidth,
-      logoHeight: validatedData.logoHeight || 50,
+      logoScale: validatedData.logoScale || 1.0,
       website: validatedData.website,
       supportsDarkMode: validatedData.supportsDarkMode ?? true,
     })

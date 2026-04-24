@@ -94,8 +94,7 @@ export const createThemeSchema = z.object({
     .string()
     .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
-  logoWidth: z.number().min(50).max(500).optional(),
-  logoHeight: z.number().min(20).max(200).optional(),
+  logoScale: z.number().min(0.5).max(2.0).optional(),
   supportsDarkMode: z.boolean().optional(),
 })
 
@@ -116,8 +115,7 @@ export const updateThemeSchema = z.object({
     .string()
     .regex(/^data:image\/[a-z-]+;base64,/, "Invalid base64 image")
     .optional(),
-  logoWidth: z.number().min(50).max(500).optional(),
-  logoHeight: z.number().min(20).max(200).optional(),
+  logoScale: z.number().min(0.5).max(2.0).optional(),
   supportsDarkMode: z.boolean().optional(),
 })
 

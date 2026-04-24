@@ -36,8 +36,6 @@ interface ClientLogoProps {
  * Automatically switches between light and dark logo variants based on the theme mode.
  */
 export function ClientLogo({
-  width,
-  height,
   className,
   alt,
   priority = false,
@@ -45,36 +43,9 @@ export function ClientLogo({
 }: ClientLogoProps) {
   const { currentTheme, isDark, mounted } = useTheme()
 
-  // Priority-based sizing: height takes priority over width
-  // Default to 50px height (slightly smaller than 56px app bar)
-  const themeLogoHeight = currentTheme.branding.logo?.height
-  const themeLogoWidth = currentTheme.branding.logo?.width
-
-  let logoHeight: number
-  let logoWidth: number | undefined
-
-  if (themeLogoHeight) {
-    // Use height, provide width for Next.js (will use style to auto-calculate)
-    logoHeight = themeLogoHeight
-    logoWidth = 250
-  } else if (themeLogoWidth) {
-    // Use width, provide height for Next.js (will use style to auto-calculate)
-    logoWidth = themeLogoWidth
-    logoHeight = 50
-  } else {
-    // Use default height 50px, provide width for Next.js
-    logoHeight = 50
-    logoWidth = 250
-  }
-
-  // Override with props if provided
-  if (height) {
-    logoHeight = height
-    logoWidth = width || 250
-  } else if (width) {
-    logoWidth = width
-    logoHeight = 50
-  }
+  // Scale-based sizing: height = 50px * scale
+  const logoScale = currentTheme.branding.logo?.scale || 1.0
+  const logoHeight = Math.round(50 * logoScale)
 
   // Select appropriate logo based on theme mode
   const logoSrc = currentTheme.branding.logo
@@ -92,7 +63,7 @@ export function ClientLogo({
       <div
         className={cn("flex items-center gap-3", className)}
         style={{
-          width: showCompanyName ? "auto" : logoWidth,
+          width: showCompanyName ? "auto" : undefined,
           height: logoHeight,
         }}
       />
@@ -125,11 +96,10 @@ export function ClientLogo({
       <Image
         src={logoSrc}
         alt={logoAlt}
-        width={logoWidth}
         height={logoHeight}
         priority={priority}
         className="object-contain"
-        style={logoHeight ? { width: "auto" } : { height: "auto" }}
+        style={{ width: "auto" }}
       />
       {showCompanyName && (
         <span className="text-lg font-semibold text-foreground">

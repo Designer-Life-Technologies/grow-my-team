@@ -15,8 +15,7 @@ export interface ClientThemeRow {
   logo_url: string | null
   favicon_url: string | null
   website: string | null
-  logo_width: number | null
-  logo_height: number | null
+  logo_scale: number | null
   supports_dark_mode: boolean
   is_active: boolean
   gmt_api_endpoint: string | null
@@ -35,8 +34,7 @@ export interface CreateThemeInput {
   }
   logoUrl?: string
   faviconUrl?: string
-  logoWidth?: number
-  logoHeight?: number
+  logoScale?: number
   website?: string
   supportsDarkMode?: boolean
   gmtApiEndpoint?: string
@@ -107,8 +105,7 @@ export async function createTheme(
       gmt_api_endpoint,
       settings,
       is_active,
-      logo_width,
-      logo_height
+      logo_scale
     ) VALUES (
       ${input.clientSlug},
       ${input.name},
@@ -123,8 +120,7 @@ export async function createTheme(
       ${input.gmtApiEndpoint || null},
       ${JSON.stringify(input.settings || {})},
       true,
-      ${input.logoWidth || null},
-      ${input.logoHeight || null}
+      ${input.logoScale || 1.0}
     )
     RETURNING *
   `
@@ -171,13 +167,9 @@ export async function updateTheme(
     updates.push(`favicon_url = $${paramIndex++}`)
     values.push(input.faviconUrl)
   }
-  if (input.logoWidth !== undefined) {
-    updates.push(`logo_width = $${paramIndex++}`)
-    values.push(input.logoWidth)
-  }
-  if (input.logoHeight !== undefined) {
-    updates.push(`logo_height = $${paramIndex++}`)
-    values.push(input.logoHeight)
+  if (input.logoScale !== undefined) {
+    updates.push(`logo_scale = $${paramIndex++}`)
+    values.push(input.logoScale)
   }
   if (input.website !== undefined) {
     updates.push(`website = $${paramIndex++}`)
@@ -255,8 +247,7 @@ export function rowToTheme(row: ClientThemeRow): Theme {
         ? {
             light: row.logo_url,
             dark: row.logo_url,
-            width: row.logo_width || undefined,
-            height: row.logo_height || undefined,
+            scale: row.logo_scale || 1.0,
           }
         : undefined,
       favicon: row.favicon_url || undefined,

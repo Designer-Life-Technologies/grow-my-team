@@ -75,23 +75,24 @@ export default function ThemeShowcase() {
                             : currentTheme.branding.logo.light
                         }
                         alt={`${currentTheme.branding.companyName} logo`}
-                        width={currentTheme.branding.logo.width || 250}
-                        height={currentTheme.branding.logo.height || 50}
+                        height={50 * (currentTheme.branding.logo.scale || 1.0)}
                         className="object-contain"
                       />
                     </div>
                     <div className="flex gap-4 text-xs text-[var(--color-textSecondary)]">
                       <span>Box height: 56px (app bar height)</span>
-                      {currentTheme.branding.logo.height && (
+                      {currentTheme.branding.logo.scale && (
                         <span>
-                          Logo height: {currentTheme.branding.logo.height}px
+                          Logo scale: {currentTheme.branding.logo.scale}x
                         </span>
                       )}
-                      {currentTheme.branding.logo.width && (
-                        <span>
-                          Logo width: {currentTheme.branding.logo.width}px
-                        </span>
-                      )}
+                      <span>
+                        Logo height:{" "}
+                        {Math.round(
+                          50 * (currentTheme.branding.logo.scale || 1.0),
+                        )}
+                        px
+                      </span>
                     </div>
                   </div>
                 ) : (

@@ -42,8 +42,7 @@ export const DEFAULT_THEME: Theme = {
     logo: {
       light: "/themes/logo.png",
       dark: "/themes/logo.png",
-      width: 250,
-      height: 50,
+      scale: 1.0,
     },
     favicon: "/themes/favicon.ico",
   },

@@ -26,8 +26,7 @@ export interface Theme {
     logo?: {
       light: string
       dark: string
-      width?: number
-      height?: number
+      scale?: number
     }
     favicon?: string
     description?: string
