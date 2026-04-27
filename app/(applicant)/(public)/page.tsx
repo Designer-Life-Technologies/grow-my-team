@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { setApiContext } from "@/lib/api/context"
 import { getOpenPositions } from "@/lib/applicant"
 import { resolveClientConfig } from "@/lib/config/client-config"
 import PositionsClient from "./PositionsClient"
@@ -28,8 +29,19 @@ export default async function ApplicantPositionsPage({
     // Use unified client config resolver
     const config = await resolveClientConfig(params)
     organisationId = config.organisationId
+
+    // Update API context with theme-specific endpoint for this request
+    setApiContext({
+      apiEndpoint: config.apiEndpoint,
+      theme: config.theme.id,
+      organisationId: config.organisationId,
+    })
+
     console.log(
       `[ApplicantPage] Organisation ID from config: ${organisationId}`,
+    )
+    console.log(
+      `[ApplicantPage] API Endpoint from config: ${config.apiEndpoint}`,
     )
   }
 
@@ -38,7 +50,6 @@ export default async function ApplicantPositionsPage({
   )
 
   // Fetch open positions from the API, filtered by organisation if available
-  // API endpoint is automatically set globally in root layout
   const positions = await getOpenPositions(organisationId || undefined)
 
   return <PositionsClient vacancies={positions} />
