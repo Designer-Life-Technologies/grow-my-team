@@ -49,7 +49,12 @@ export function DebugInfo() {
 
     const fetchDebugInfo = async () => {
       try {
-        const response = await fetch("/api/config/debug-info")
+        // Pass theme parameter from URL to server-side API
+        const urlParams = new URLSearchParams(window.location.search)
+        const themeParam = urlParams.get("theme")
+        const apiUrl = `/api/config/debug-info${themeParam ? `?theme=${themeParam}` : ""}`
+
+        const response = await fetch(apiUrl)
         if (response.ok) {
           const data = await response.json()
           setDebugInfo(data)
