@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { decode } from "next-auth/jwt"
+import { getApiContext } from "./context"
 import {
   resolveGetMeApiUrl,
   resolveGetMeApiUrlWithSource,
@@ -115,17 +116,23 @@ async function callGetMeApi<T>(
     config.body = JSON.stringify(body)
   }
 
-  // Use explicit API endpoint if provided, otherwise resolve it
+  // Use explicit API endpoint if provided, otherwise use context or resolve it
   let baseUrl: string
   if (explicitApiEndpoint) {
     baseUrl = explicitApiEndpoint
-  } else if (theme) {
-    // Use theme-specific API endpoint resolution
-    const resolved = await resolveGetMeApiUrlWithSource(host, theme)
-    baseUrl = resolved.endpoint
   } else {
-    // Use default resolution
-    baseUrl = await resolveGetMeApiUrl(host)
+    // Get API endpoint from context (set in root layout)
+    const context = getApiContext()
+    if (context.apiEndpoint) {
+      baseUrl = context.apiEndpoint
+    } else if (theme) {
+      // Use theme-specific API endpoint resolution
+      const resolved = await resolveGetMeApiUrlWithSource(host, theme)
+      baseUrl = resolved.endpoint
+    } else {
+      // Use default resolution
+      baseUrl = await resolveGetMeApiUrl(host)
+    }
   }
 
   const fullUrl = `${baseUrl}${path}`

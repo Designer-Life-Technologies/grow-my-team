@@ -17,7 +17,6 @@ export default async function ApplicantPositionsPage({
   const urlOrganisationId = params.organisationId
 
   let organisationId: string | null = null
-  let themeParam: string | null = null
 
   if (urlOrganisationId) {
     // Use URL parameter if provided (for testing)
@@ -29,24 +28,18 @@ export default async function ApplicantPositionsPage({
     // Use unified client config resolver
     const config = await resolveClientConfig(params)
     organisationId = config.organisationId
-    themeParam = config.theme.id
     console.log(
       `[ApplicantPage] Organisation ID from config: ${organisationId}`,
     )
-    console.log(`[ApplicantPage] Theme from config: ${themeParam}`)
   }
 
   console.log(
     `[ApplicantPage] ✓ Using organisationId: ${organisationId || "none"}`,
   )
-  console.log(`[ApplicantPage] ✓ Using theme: ${themeParam || "default"}`)
 
   // Fetch open positions from the API, filtered by organisation if available
-  // Pass theme parameter to ensure theme-specific API endpoint is used
-  const positions = await getOpenPositions(
-    organisationId || undefined,
-    themeParam || undefined,
-  )
+  // API endpoint is automatically set globally in root layout
+  const positions = await getOpenPositions(organisationId || undefined)
 
   return <PositionsClient vacancies={positions} />
 }
