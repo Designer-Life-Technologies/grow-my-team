@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { getOrganisationId, setupApiContext } from "@/lib/api/context"
+import { getOrganisationId } from "@/lib/api/context"
 import { getOpenPositions } from "@/lib/applicant"
 import PositionsClient from "./PositionsClient"
 
@@ -15,9 +15,6 @@ export default async function ApplicantPositionsPage({
 }) {
   const params = await searchParams
   const urlOrganisationId = params.organisationId
-
-  // Set up API context globally for this request
-  await setupApiContext(params)
 
   // Use URL parameter if provided (for testing), otherwise get from global context
   const organisationId = urlOrganisationId || getOrganisationId()

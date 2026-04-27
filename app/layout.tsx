@@ -30,6 +30,7 @@
  */
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import { headers } from "next/headers"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
 import { ClientConfigProvider } from "@/components/config/ClientConfigProvider"
@@ -38,6 +39,7 @@ import { ClientFavicon } from "@/components/layout"
 import { ThemeProvider } from "@/components/theme"
 import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
 import { Toaster } from "@/components/ui/sonner"
+import { setApiContext } from "@/lib/api/context"
 import { resolveClientConfig } from "@/lib/config/client-config"
 import "./globals.css"
 
@@ -83,6 +85,28 @@ export default async function RootLayout({
 }>) {
   // Resolve all client configuration in one place
   const config = await resolveClientConfig()
+
+  // Try to read API context from middleware headers (set by proxy.ts)
+  // If headers are present, use them to set the API context globally
+  try {
+    const headersList = await headers()
+    const apiEndpoint = headersList.get("X-ApiEndpoint")
+    const organisationId = headersList.get("X-OrganisationId")
+
+    if (apiEndpoint) {
+      setApiContext({
+        apiEndpoint,
+        theme: "", // Theme is not needed once API endpoint is resolved
+        organisationId: organisationId || null,
+      })
+      console.log(
+        `[RootLayout] ✓ Set API context from middleware: endpoint=${apiEndpoint}, organisationId=${organisationId || "none"}`,
+      )
+    }
+  } catch (_error) {
+    // headers() throws when a request context is not available (e.g., during build)
+    // This is expected, so we silently continue
+  }
 
   return (
     <html lang="en">

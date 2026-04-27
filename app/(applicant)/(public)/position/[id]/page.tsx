@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { PositionDetail, PositionDetailSkeleton } from "@/components/applicant"
-import { getOrganisationId, setupApiContext } from "@/lib/api/context"
+import { getOrganisationId } from "@/lib/api/context"
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -27,9 +27,6 @@ export default async function ApplicantPositionDetailPage({
   const { id } = await params
   const paramsData = await searchParams
   const urlOrganisationId = paramsData.organisationId
-
-  // Set up API context globally for this request
-  await setupApiContext(paramsData)
 
   // Use URL parameter if provided (for testing), otherwise get from global context
   const organisationId = urlOrganisationId || getOrganisationId()
