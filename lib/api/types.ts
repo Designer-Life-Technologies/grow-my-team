@@ -10,6 +10,16 @@ export interface ApiOptions extends Omit<RequestInit, "body"> {
    * When omitted, the resolver infers the host from the current request context.
    */
   host?: string | null
+  /**
+   * Optional theme parameter to use for API endpoint resolution.
+   * When provided, the resolver will use the theme-specific API endpoint from the database.
+   */
+  theme?: string | null
+  /**
+   * Optional explicit API endpoint to use.
+   * When provided, overrides the default resolution logic.
+   */
+  apiEndpoint?: string
 }
 
 export interface ApiResponse<T> {

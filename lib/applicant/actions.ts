@@ -27,13 +27,15 @@ import type {
  * Get all open positions
  *
  * Returns a list of all currently open job positions from the public API.
- * Can optionally filter by organisation ID.
+ * Can optionally filter by organisation ID and use a specific theme for API endpoint resolution.
  *
  * @param organisationId - Optional organisation ID to filter vacancies
+ * @param theme - Optional theme parameter to use for API endpoint resolution
  * @returns Promise<ApplicantPublic.Position[]> - Array of open positions
  */
 export async function getOpenPositions(
   organisationId?: string,
+  theme?: string,
 ): Promise<ApplicantPublic.Position[]> {
   const url = organisationId
     ? `/public/vacancy?organisationId=${organisationId}`
@@ -41,6 +43,7 @@ export async function getOpenPositions(
 
   const result = await safeCallGetMeApi<ApplicantPublic.Position[]>(url, {
     public: true,
+    theme,
   })
 
   if (!result.success) {

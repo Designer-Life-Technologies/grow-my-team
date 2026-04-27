@@ -2,8 +2,11 @@
 
 import { cookies } from "next/headers"
 import { decode } from "next-auth/jwt"
-import { resolveGetMeApiUrl } from "./getme-api-url"
-import type { ApiOptions, ApiResponse } from "./types"
+import {
+  resolveGetMeApiUrl,
+  resolveGetMeApiUrlWithSource,
+} from "./getme-api-url"
+import type { ApiOptions, ApiResponse, SafeApiResult } from "./types"
 
 type GetMeApiError = Error & { status?: number }
 
@@ -60,6 +63,8 @@ async function callGetMeApi<T>(
     body,
     headers = {},
     cache,
+    apiEndpoint: explicitApiEndpoint,
+    theme,
     public: _public,
     host,
     ...rest
@@ -110,7 +115,19 @@ async function callGetMeApi<T>(
     config.body = JSON.stringify(body)
   }
 
-  const baseUrl = await resolveGetMeApiUrl(host)
+  // Use explicit API endpoint if provided, otherwise resolve it
+  let baseUrl: string
+  if (explicitApiEndpoint) {
+    baseUrl = explicitApiEndpoint
+  } else if (theme) {
+    // Use theme-specific API endpoint resolution
+    const resolved = await resolveGetMeApiUrlWithSource(host, theme)
+    baseUrl = resolved.endpoint
+  } else {
+    // Use default resolution
+    baseUrl = await resolveGetMeApiUrl(host)
+  }
+
   const fullUrl = `${baseUrl}${path}`
   console.log(`[GetMeAPI] ${method} ${fullUrl}`)
 
@@ -154,8 +171,6 @@ async function callGetMeApi<T>(
     serverNow: serverNow ? new Date(serverNow).toISOString() : undefined,
   }
 }
-
-import type { SafeApiResult } from "./types"
 
 /**
  * Safe wrapper for callGetMeApi that uses the Result pattern.
