@@ -15,8 +15,14 @@ import type { Theme } from "./types"
 export async function resolveTheme(
   searchParams?: Record<string, string | undefined>,
 ): Promise<{ theme: Theme; source: ThemeSource }> {
-  const headersList = await headers()
-  const host = headersList.get("host") || "localhost"
+  let host: string | undefined
+  try {
+    const headersList = await headers()
+    host = headersList.get("host") || "localhost"
+  } catch (_error) {
+    // headers() throws when a request context is not available (e.g., during build).
+    host = undefined
+  }
 
   // Priority 1: Query parameter (?theme=virgin)
   const queryTheme = searchParams?.theme
@@ -30,15 +36,17 @@ export async function resolveTheme(
     }
   }
 
-  // Priority 2: Subdomain/host mapping
-  const domainThemeId = await getThemeFromDomain(host)
-  if (domainThemeId) {
-    const dbTheme = await getCachedTheme(domainThemeId)
-    if (dbTheme) {
-      console.log(
-        `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping`,
-      )
-      return { theme: dbTheme, source: "custom-domain" }
+  // Priority 2: Subdomain/host mapping (only if host is available)
+  if (host) {
+    const domainThemeId = await getThemeFromDomain(host)
+    if (domainThemeId) {
+      const dbTheme = await getCachedTheme(domainThemeId)
+      if (dbTheme) {
+        console.log(
+          `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping`,
+        )
+        return { theme: dbTheme, source: "custom-domain" }
+      }
     }
   }
 
