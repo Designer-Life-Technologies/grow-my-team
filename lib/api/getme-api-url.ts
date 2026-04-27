@@ -203,6 +203,16 @@ export async function resolveGetMeApiUrlWithSource(
   if (themeParam) {
     try {
       const theme = await getThemeBySlug(themeParam)
+      console.log(
+        `[GetMeApiUrl] Theme "${themeParam}" from local DB:`,
+        theme
+          ? {
+              id: theme.client_slug,
+              hasApiEndpoint: !!theme.gmt_api_endpoint,
+              apiEndpoint: theme.gmt_api_endpoint,
+            }
+          : null,
+      )
       if (theme?.gmt_api_endpoint) {
         console.log(
           `[GetMeApiUrl] ✓ Using theme-specific API endpoint for ${themeParam}: ${theme.gmt_api_endpoint} (database)`,
@@ -210,7 +220,7 @@ export async function resolveGetMeApiUrlWithSource(
         return { endpoint: theme.gmt_api_endpoint, source: "database" }
       }
       console.log(
-        `[GetMeApiUrl] ✗ No theme-specific API endpoint found for ${themeParam} in database`,
+        `[GetMeApiUrl] ✗ No theme-specific API endpoint found for ${themeParam} in local database`,
       )
     } catch (error) {
       console.warn(
