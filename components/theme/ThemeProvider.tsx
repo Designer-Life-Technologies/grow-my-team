@@ -47,26 +47,27 @@ export function ThemeProvider({
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  // Log API endpoint on mount
+  // Log API endpoint and organisation ID on mount
   useEffect(() => {
     async function logApiEndpoint() {
       try {
         const urlParams = new URLSearchParams(window.location.search)
         const themeParam = urlParams.get("theme")
-        const apiUrl = `/api/config/api-endpoint${themeParam ? `?theme=${themeParam}` : ""}`
+        const apiUrl = `/api/config/debug-info${themeParam ? `?theme=${themeParam}` : ""}`
 
         const response = await fetch(apiUrl)
         if (response.ok) {
           const data = await response.json()
-          console.log(`[API Endpoint] Host: ${data.host}`)
-          console.log(`[API Endpoint] ✓ Using: ${data.apiEndpoint}`)
-          console.log(`[API Endpoint] Source: ${data.source}`)
-          if (data.themeParam) {
-            console.log(`[API Endpoint] Theme param: ${data.themeParam}`)
-          }
+          console.log(`[Debug] Current configuration:`)
+          console.log(`  - Host: ${data.host}`)
+          console.log(`  - Theme: ${data.theme.id} (${data.theme.name})`)
+          console.log(`  - Theme Source: ${data.theme.source}`)
+          console.log(`  - Organisation ID: ${data.organisationId || "none"}`)
+          console.log(`  - API Endpoint: ${data.apiEndpoint.url}`)
+          console.log(`  - API Source: ${data.apiEndpoint.source}`)
         }
       } catch (error) {
-        console.warn("[API Endpoint] Failed to fetch endpoint info:", error)
+        console.warn("[Debug] Failed to fetch debug info:", error)
       }
     }
     logApiEndpoint()

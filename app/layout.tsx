@@ -30,15 +30,16 @@
  */
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import { Suspense } from "react"
+import { AuthProvider } from "@/components/auth"
+import { DebugInfo } from "@/components/debug/DebugInfo"
+import { ClientFavicon } from "@/components/layout"
 import { ThemeProvider } from "@/components/theme"
+import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
+import { Toaster } from "@/components/ui/sonner"
 import type { Theme } from "@/lib/theme"
 import { resolveTheme, type ThemeSource } from "@/lib/theme/resolver"
 import "./globals.css"
-import { Suspense } from "react"
-import { AuthProvider } from "@/components/auth"
-import { ClientFavicon } from "@/components/layout"
-import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
-import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -126,6 +127,7 @@ export default async function RootLayout({
               */}
               {children}
               <Toaster />
+              <DebugInfo />
             </StreamingModalProvider>
           </AuthProvider>
         </ThemeProvider>
