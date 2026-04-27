@@ -27,8 +27,25 @@ export function DebugInfo() {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Only fetch in non-production environments (dev, staging, UAT)
-    if (process.env.NODE_ENV === "production") return
+    // Only fetch in non-production environments or if explicitly enabled
+    // Check: NODE_ENV, Vercel env, host pattern
+    const isDev = process.env.NODE_ENV !== "production"
+    const enableDebug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === "true"
+    const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV || ""
+
+    if (!isDev && !enableDebug && vercelEnv !== "preview") {
+      // Additional check: allow if host contains staging/uat/preview
+      const host = window.location.hostname
+      const isNonProdHost =
+        host.includes("uat") ||
+        host.includes("staging") ||
+        host.includes("preview") ||
+        host.includes("dev") ||
+        host.includes("localhost") ||
+        host.includes("127.0.0.1")
+
+      if (!isNonProdHost) return
+    }
 
     const fetchDebugInfo = async () => {
       try {
@@ -50,8 +67,23 @@ export function DebugInfo() {
     return () => clearInterval(interval)
   }, [])
 
-  // Only render in non-production environments
-  if (process.env.NODE_ENV === "production") return null
+  // Only render in non-production environments or if explicitly enabled
+  const isDev = process.env.NODE_ENV !== "production"
+  const enableDebug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === "true"
+  const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV || ""
+
+  if (!isDev && !enableDebug && vercelEnv !== "preview") {
+    const host = window.location.hostname
+    const isNonProdHost =
+      host.includes("uat") ||
+      host.includes("staging") ||
+      host.includes("preview") ||
+      host.includes("dev") ||
+      host.includes("localhost") ||
+      host.includes("127.0.0.1")
+
+    if (!isNonProdHost) return null
+  }
 
   if (!debugInfo) {
     return (
