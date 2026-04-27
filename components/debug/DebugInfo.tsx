@@ -65,12 +65,13 @@ export function DebugInfo() {
       }
     }
 
-    fetchDebugInfo()
-
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchDebugInfo, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    // Only poll when the debug info window is visible
+    if (isVisible) {
+      fetchDebugInfo()
+      const interval = setInterval(fetchDebugInfo, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [isVisible])
 
   // Only render in non-production environments or if explicitly enabled
   const isDev = process.env.NODE_ENV !== "production"
