@@ -32,13 +32,13 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
+import { ClientConfigProvider } from "@/components/config/ClientConfigProvider"
 import { DebugInfo } from "@/components/debug/DebugInfo"
 import { ClientFavicon } from "@/components/layout"
 import { ThemeProvider } from "@/components/theme"
 import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
 import { Toaster } from "@/components/ui/sonner"
-import type { Theme } from "@/lib/theme"
-import { resolveTheme, type ThemeSource } from "@/lib/theme/resolver"
+import { resolveClientConfig } from "@/lib/config/client-config"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -81,56 +81,50 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Resolve theme server-side from database (or fallback to file)
-  let theme: Theme | null = null
-  let source: ThemeSource = "database"
-  try {
-    const resolved = await resolveTheme()
-    theme = resolved.theme
-    source = resolved.source
-  } catch (error) {
-    // Handle missing database connection gracefully
-    console.warn("Failed to resolve theme, using default:", error)
-    const { DEFAULT_THEME } = await import("@/lib/theme/constants")
-    theme = DEFAULT_THEME
-    source = "database"
-  }
+  // Resolve all client configuration in one place
+  const config = await resolveClientConfig()
 
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* ThemeProvider: Manages theme state and provides theme context */}
-        <ThemeProvider initialTheme={theme} initialSource={source}>
-          {/* AuthProvider: Provides authentication session to all components */}
-          <AuthProvider>
-            {/* StreamingModalProvider: Provides global access to streaming modal for long-running operations */}
-            <StreamingModalProvider>
-              {/* 
+        {/* ClientConfigProvider: Provides unified config to all components */}
+        <ClientConfigProvider config={config}>
+          {/* ThemeProvider: Manages theme state and provides theme context */}
+          <ThemeProvider
+            initialTheme={config.theme}
+            initialSource={config.themeSource}
+          >
+            {/* AuthProvider: Provides authentication session to all components */}
+            <AuthProvider>
+              {/* StreamingModalProvider: Provides global access to streaming modal for long-running operations */}
+              <StreamingModalProvider>
+                {/* 
                 Suspense boundary only for ClientFavicon:
                 - Isolates loading state to just the favicon component
                 - Allows main content to render immediately without waiting
                 - Improves perceived performance by not blocking main content
                 - Uses null fallback since favicon loading shouldn't show a visual indicator
               */}
-              <Suspense fallback={null}>
-                <ClientFavicon />
-              </Suspense>
+                <Suspense fallback={null}>
+                  <ClientFavicon />
+                </Suspense>
 
-              {/* 
+                {/* 
                 Main content not wrapped in Suspense at root level:
                 - Allows pages to handle their own loading states
                 - Enables more granular control of loading indicators
                 - Improves initial page load performance
                 - Individual page components can implement their own Suspense boundaries as needed
               */}
-              {children}
-              <Toaster />
-              <DebugInfo />
-            </StreamingModalProvider>
-          </AuthProvider>
-        </ThemeProvider>
+                {children}
+                <Toaster />
+                <DebugInfo />
+              </StreamingModalProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ClientConfigProvider>
       </body>
     </html>
   )

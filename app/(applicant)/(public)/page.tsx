@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { getOpenPositions } from "@/lib/applicant"
-import { getOrganisationIdBySlug } from "@/lib/db/themes"
-import { resolveTheme } from "@/lib/theme/resolver"
+import { resolveClientConfig } from "@/lib/config/client-config"
 import PositionsClient from "./PositionsClient"
 
 export const metadata: Metadata = {
@@ -26,12 +25,12 @@ export default async function ApplicantPositionsPage({
       `[ApplicantPage] Using organisationId from URL: ${organisationId}`,
     )
   } else {
-    // Resolve theme to determine customer/organisation
-    const { theme } = await resolveTheme(params)
-    console.log(`[ApplicantPage] Resolved theme: ${theme.id}`)
-
-    organisationId = await getOrganisationIdBySlug(theme.id)
-    console.log(`[ApplicantPage] Organisation ID from theme: ${organisationId}`)
+    // Use unified client config resolver
+    const config = await resolveClientConfig(params)
+    organisationId = config.organisationId
+    console.log(
+      `[ApplicantPage] Organisation ID from config: ${organisationId}`,
+    )
   }
 
   console.log(

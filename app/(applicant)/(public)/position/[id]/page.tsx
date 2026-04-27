@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { PositionDetail, PositionDetailSkeleton } from "@/components/applicant"
-import { getOrganisationIdBySlug } from "@/lib/db/themes"
-import { resolveTheme } from "@/lib/theme/resolver"
+import { resolveClientConfig } from "@/lib/config/client-config"
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -38,13 +37,11 @@ export default async function ApplicantPositionDetailPage({
       `[PositionDetailPage] Using organisationId from URL: ${organisationId}`,
     )
   } else {
-    // Resolve theme to determine customer/organisation
-    const { theme } = await resolveTheme(paramsData)
-    console.log(`[PositionDetailPage] Resolved theme: ${theme.id}`)
-
-    organisationId = await getOrganisationIdBySlug(theme.id)
+    // Use unified client config resolver
+    const config = await resolveClientConfig(paramsData)
+    organisationId = config.organisationId
     console.log(
-      `[PositionDetailPage] Organisation ID from theme: ${organisationId}`,
+      `[PositionDetailPage] Organisation ID from config: ${organisationId}`,
     )
   }
 
