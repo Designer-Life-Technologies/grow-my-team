@@ -18,45 +18,31 @@ export async function resolveTheme(
   const headersList = await headers()
   const host = headersList.get("host") || "localhost"
 
-  console.log(`[ThemeResolver] Resolving theme for host: ${host}`)
-
   // Priority 1: Query parameter (?theme=virgin)
   const queryTheme = searchParams?.theme
   if (queryTheme) {
-    console.log(`[ThemeResolver] Trying query parameter theme: ${queryTheme}`)
     const theme = await getCachedTheme(queryTheme)
     if (theme) {
       console.log(
-        `[ThemeResolver] ✓ Using theme "${theme.id}" from query parameter (database)`,
+        `[ThemeResolver] ✓ Using theme "${theme.id}" from query parameter`,
       )
       return { theme, source: "query" }
     }
-    console.log(
-      `[ThemeResolver] ✗ Query parameter theme "${queryTheme}" not found in database`,
-    )
   }
 
   // Priority 2: Subdomain/host mapping
   const domainThemeId = await getThemeFromDomain(host)
   if (domainThemeId) {
-    console.log(`[ThemeResolver] Trying domain theme: ${domainThemeId}`)
     const dbTheme = await getCachedTheme(domainThemeId)
     if (dbTheme) {
       console.log(
-        `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping (database)`,
+        `[ThemeResolver] ✓ Using theme "${dbTheme.id}" from domain mapping`,
       )
       return { theme: dbTheme, source: "custom-domain" }
     }
-    console.log(
-      `[ThemeResolver] ✗ Domain theme "${domainThemeId}" not found in database`,
-    )
   }
 
-  // Priority 3: Custom domain (future: check database for custom_domain column)
-  // TODO: Implement when custom_domain column is populated
-
-  // Priority 4: Default theme
-  console.log(`[ThemeResolver] Trying default theme from database`)
+  // Priority 3: Default theme
   const dbDefaultTheme = await getCachedTheme("default")
   if (dbDefaultTheme) {
     console.log(
@@ -66,9 +52,7 @@ export async function resolveTheme(
   }
 
   // Ultimate fallback: hardcoded default theme
-  console.warn(
-    `[ThemeResolver] ⚠ Default theme not found in database, using hardcoded default theme (fallback)`,
-  )
+  console.warn(`[ThemeResolver] ⚠ Using hardcoded default theme (fallback)`)
   return { theme: DEFAULT_THEME, source: "database" }
 }
 

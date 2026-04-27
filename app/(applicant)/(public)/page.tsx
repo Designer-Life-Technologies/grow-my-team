@@ -12,9 +12,8 @@ export const metadata: Metadata = {
 export default async function ApplicantPositionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ organisationId?: string }>
+  searchParams: Promise<{ organisationId?: string; theme?: string }>
 }) {
-  // Check for organisationId URL parameter (for testing)
   const params = await searchParams
   const urlOrganisationId = params.organisationId
 
@@ -28,7 +27,7 @@ export default async function ApplicantPositionsPage({
     )
   } else {
     // Resolve theme to determine customer/organisation
-    const { theme } = await resolveTheme()
+    const { theme } = await resolveTheme(params)
     console.log(`[ApplicantPage] Resolved theme: ${theme.id}`)
 
     organisationId = await getOrganisationIdBySlug(theme.id)

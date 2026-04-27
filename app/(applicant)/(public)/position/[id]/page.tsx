@@ -6,7 +6,7 @@ import { resolveTheme } from "@/lib/theme/resolver"
 
 type PageProps = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ organisationId?: string }>
+  searchParams: Promise<{ organisationId?: string; theme?: string }>
 }
 
 export async function generateMetadata({
@@ -39,7 +39,7 @@ export default async function ApplicantPositionDetailPage({
     )
   } else {
     // Resolve theme to determine customer/organisation
-    const { theme } = await resolveTheme()
+    const { theme } = await resolveTheme(paramsData)
     console.log(`[PositionDetailPage] Resolved theme: ${theme.id}`)
 
     organisationId = await getOrganisationIdBySlug(theme.id)
