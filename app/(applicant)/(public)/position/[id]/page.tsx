@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { PositionDetail, PositionDetailSkeleton } from "@/components/applicant"
-import { resolveClientConfig } from "@/lib/config/client-config"
+import { getOrganisationId, setupApiContext } from "@/lib/api/context"
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -28,22 +28,11 @@ export default async function ApplicantPositionDetailPage({
   const paramsData = await searchParams
   const urlOrganisationId = paramsData.organisationId
 
-  let organisationId: string | null = null
+  // Set up API context globally for this request
+  await setupApiContext(paramsData)
 
-  if (urlOrganisationId) {
-    // Use URL parameter if provided (for testing)
-    organisationId = urlOrganisationId
-    console.log(
-      `[PositionDetailPage] Using organisationId from URL: ${organisationId}`,
-    )
-  } else {
-    // Use unified client config resolver
-    const config = await resolveClientConfig(paramsData)
-    organisationId = config.organisationId
-    console.log(
-      `[PositionDetailPage] Organisation ID from config: ${organisationId}`,
-    )
-  }
+  // Use URL parameter if provided (for testing), otherwise get from global context
+  const organisationId = urlOrganisationId || getOrganisationId()
 
   console.log(
     `[PositionDetailPage] ✓ Using organisationId: ${organisationId || "none"}`,

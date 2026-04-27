@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
-import { setApiContext } from "@/lib/api/context"
+import { getOrganisationId, setupApiContext } from "@/lib/api/context"
 import { getOpenPositions } from "@/lib/applicant"
-import { resolveClientConfig } from "@/lib/config/client-config"
 import PositionsClient from "./PositionsClient"
 
 export const metadata: Metadata = {
@@ -17,33 +16,11 @@ export default async function ApplicantPositionsPage({
   const params = await searchParams
   const urlOrganisationId = params.organisationId
 
-  let organisationId: string | null = null
+  // Set up API context globally for this request
+  await setupApiContext(params)
 
-  if (urlOrganisationId) {
-    // Use URL parameter if provided (for testing)
-    organisationId = urlOrganisationId
-    console.log(
-      `[ApplicantPage] Using organisationId from URL: ${organisationId}`,
-    )
-  } else {
-    // Use unified client config resolver
-    const config = await resolveClientConfig(params)
-    organisationId = config.organisationId
-
-    // Update API context with theme-specific endpoint for this request
-    setApiContext({
-      apiEndpoint: config.apiEndpoint,
-      theme: config.theme.id,
-      organisationId: config.organisationId,
-    })
-
-    console.log(
-      `[ApplicantPage] Organisation ID from config: ${organisationId}`,
-    )
-    console.log(
-      `[ApplicantPage] API Endpoint from config: ${config.apiEndpoint}`,
-    )
-  }
+  // Use URL parameter if provided (for testing), otherwise get from global context
+  const organisationId = urlOrganisationId || getOrganisationId()
 
   console.log(
     `[ApplicantPage] ✓ Using organisationId: ${organisationId || "none"}`,
