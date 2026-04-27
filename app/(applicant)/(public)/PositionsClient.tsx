@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
 import type { ApplicantPublic } from "@/lib/applicant/types"
 
 interface PositionsClientProps {
@@ -9,110 +8,14 @@ interface PositionsClientProps {
 }
 
 export default function PositionsClient({ vacancies }: PositionsClientProps) {
-  const [query, setQuery] = useState("")
-  const [location, setLocation] = useState("")
-  const [jobType, setJobType] = useState<string | "">("")
-  const [remoteOnly, setRemoteOnly] = useState(false)
-
-  // Filter vacancies based on search criteria
-  const results = useMemo(() => {
-    return vacancies.filter((vacancy) => {
-      const { jobDescription } = vacancy
-      const q = query.trim().toLowerCase()
-      const matchesQuery = !q
-        ? true
-        : [
-            jobDescription.title,
-            jobDescription.industry,
-            ...jobDescription.skills,
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(q)
-
-      const l = location.trim().toLowerCase()
-      const matchesLocation = !l
-        ? true
-        : jobDescription.location.toLowerCase().includes(l)
-
-      const matchesType = jobType ? jobDescription.type === jobType : true
-
-      const matchesRemote = remoteOnly
-        ? jobDescription.workplaceType === "REMOTE"
-        : true
-
-      return matchesQuery && matchesLocation && matchesType && matchesRemote
-    })
-  }, [vacancies, query, location, jobType, remoteOnly])
+  const results = vacancies
 
   return (
     <section className="mx-auto max-w-5xl">
       <h1 className="text-3xl font-bold tracking-tight">Open Positions</h1>
       <p className="mt-2 text-muted-foreground">
-        Search and filter roles that match your skills and goals.
+        Browse our available positions.
       </p>
-
-      {/* Search and filters */}
-      <div className="mt-6 rounded-lg border bg-card p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="query" className="text-sm font-medium">
-              Keyword
-            </label>
-            <input
-              id="query"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Title, company, tag..."
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="location" className="text-sm font-medium">
-              Location
-            </label>
-            <input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Remote, city, country..."
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="jobType" className="text-sm font-medium">
-              Job Type
-            </label>
-            <select
-              id="jobType"
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">Any</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-              <option value="Internship">Internship</option>
-            </select>
-          </div>
-
-          <div className="flex items-end gap-2">
-            <input
-              id="remoteOnly"
-              type="checkbox"
-              checked={remoteOnly}
-              onChange={(e) => setRemoteOnly(e.target.checked)}
-              className="h-4 w-4 rounded border"
-            />
-            <label htmlFor="remoteOnly" className="text-sm">
-              Remote only
-            </label>
-          </div>
-        </div>
-      </div>
 
       {/* Results */}
       <div className="mt-6">

@@ -27,17 +27,21 @@ import type {
  * Get all open positions
  *
  * Returns a list of all currently open job positions from the public API.
+ * Can optionally filter by organisation ID.
  *
+ * @param organisationId - Optional organisation ID to filter vacancies
  * @returns Promise<ApplicantPublic.Position[]> - Array of open positions
  */
-export async function getOpenPositions(): Promise<ApplicantPublic.Position[]> {
-  const result = await safeCallGetMeApi<ApplicantPublic.Position[]>(
-    "/public/vacancy",
-    {
-      public: true,
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
-    },
-  )
+export async function getOpenPositions(
+  organisationId?: string,
+): Promise<ApplicantPublic.Position[]> {
+  const url = organisationId
+    ? `/public/vacancy?organisationId=${organisationId}`
+    : "/public/vacancy"
+
+  const result = await safeCallGetMeApi<ApplicantPublic.Position[]>(url, {
+    public: true,
+  })
 
   if (!result.success) {
     // Errors are already logged by the API client

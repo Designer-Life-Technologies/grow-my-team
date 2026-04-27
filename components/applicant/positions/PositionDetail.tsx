@@ -22,6 +22,10 @@ interface PositionDetailProps {
    * Position ID to fetch and display
    */
   positionId: string
+  /**
+   * Optional organisation ID - if set, shows back link to positions
+   */
+  organisationId?: string
 }
 
 /**
@@ -88,7 +92,10 @@ export function PositionDetailSkeleton() {
   )
 }
 
-export async function PositionDetail({ positionId }: PositionDetailProps) {
+export async function PositionDetail({
+  positionId,
+  organisationId,
+}: PositionDetailProps) {
   // Fetch position data
   const vacancy = await getPositionById(positionId)
 
@@ -101,14 +108,16 @@ export async function PositionDetail({ positionId }: PositionDetailProps) {
 
   return (
     <section className="mx-auto max-w-3xl animate-in fade-in duration-700">
-      {/* <div className="mb-6">
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Back to positions
-        </Link>
-      </div> */}
+      {organisationId && (
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            ← Back to positions
+          </Link>
+        </div>
+      )}
 
       <header>
         <h1 className="text-3xl font-bold tracking-tight">

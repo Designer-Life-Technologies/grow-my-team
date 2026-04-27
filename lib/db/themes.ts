@@ -233,6 +233,16 @@ export async function listThemes(
 }
 
 /**
+ * Get organisation ID by theme slug
+ */
+export async function getOrganisationIdBySlug(
+  slug: string,
+): Promise<string | null> {
+  const theme = await getThemeBySlug(slug)
+  return theme?.organisation_id || null
+}
+
+/**
  * Convert database row to Theme object (for use in ThemeProvider)
  */
 export function rowToTheme(row: ClientThemeRow): Theme {

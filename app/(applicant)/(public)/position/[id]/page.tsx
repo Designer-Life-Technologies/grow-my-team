@@ -4,6 +4,7 @@ import { PositionDetail, PositionDetailSkeleton } from "@/components/applicant"
 
 type PageProps = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ organisationId?: string }>
 }
 
 export async function generateMetadata({
@@ -20,12 +21,14 @@ export async function generateMetadata({
 
 export default async function ApplicantPositionDetailPage({
   params,
+  searchParams,
 }: PageProps) {
   const { id } = await params
+  const { organisationId } = await searchParams
 
   return (
     <Suspense fallback={<PositionDetailSkeleton />}>
-      <PositionDetail positionId={id} />
+      <PositionDetail positionId={id} organisationId={organisationId} />
     </Suspense>
   )
 }
