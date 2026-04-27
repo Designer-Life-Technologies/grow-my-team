@@ -27,8 +27,8 @@ export function DebugInfo() {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Only fetch in development
-    if (process.env.NODE_ENV !== "development") return
+    // Only fetch in non-production environments (dev, staging, UAT)
+    if (process.env.NODE_ENV === "production") return
 
     const fetchDebugInfo = async () => {
       try {
@@ -50,8 +50,8 @@ export function DebugInfo() {
     return () => clearInterval(interval)
   }, [])
 
-  // Only render in development
-  if (process.env.NODE_ENV !== "development") return null
+  // Only render in non-production environments
+  if (process.env.NODE_ENV === "production") return null
 
   if (!debugInfo) {
     return (

@@ -15,10 +15,10 @@ import { resolveTheme } from "@/lib/theme/resolver"
  * Only available in development mode
  */
 export async function GET(request: Request) {
-  // Security: Only allow in development
-  if (process.env.NODE_ENV !== "development") {
+  // Security: Allow in development and staging/UAT, but not production
+  if (process.env.NODE_ENV === "production") {
     return NextResponse.json(
-      { error: "Debug endpoint only available in development" },
+      { error: "Debug endpoint not available in production" },
       { status: 403 },
     )
   }
