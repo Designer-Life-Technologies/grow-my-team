@@ -101,3 +101,51 @@ export async function resolveGetMeApiUrlWithSource(
   )
   return { endpoint: defaultApiBase, source: "env-var-fallback" }
 }
+
+export async function resolveGetMeApiUrlFromHeaders(
+  headersLike?: HeadersLike,
+): Promise<string> {
+  const host = headersLike
+    ? getHeaderValue(headersLike, "host") ||
+      getHeaderValue(headersLike, "x-forwarded-host") ||
+      getHeaderValue(headersLike, "origin") ||
+      "localhost"
+    : await detectRuntimeHost()
+
+  const clientApiEndpoint = await getClientApiEndpoint(host)
+  if (clientApiEndpoint) {
+    return clientApiEndpoint
+  }
+
+  if (!defaultApiBase) {
+    throw new Error("GETME_API_URL environment variable is not configured")
+  }
+
+  return defaultApiBase
+}
+
+type HeaderValue = string | string[] | undefined
+type HeadersLike = Headers | Record<string, HeaderValue> | null | undefined
+
+function getHeaderValue(headersLike: HeadersLike, headerName: string) {
+  if (!headersLike) {
+    return undefined
+  }
+
+  const normalized = headerName.toLowerCase()
+
+  if (headersLike instanceof Headers) {
+    return headersLike.get(normalized) ?? undefined
+  }
+
+  for (const [key, value] of Object.entries(headersLike)) {
+    if (key.toLowerCase() === normalized) {
+      if (Array.isArray(value)) {
+        return value[0]
+      }
+      return value
+    }
+  }
+
+  return undefined
+}
