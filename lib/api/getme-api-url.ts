@@ -46,9 +46,11 @@ async function getClientApiEndpoint(
   return null
 }
 
-export async function resolveGetMeApiUrl(): Promise<string> {
+export async function resolveGetMeApiUrl(
+  explicitHost?: string | null,
+): Promise<string> {
   const clientApiEndpoint = await getClientApiEndpoint(
-    await detectRuntimeHost(),
+    explicitHost ?? (await detectRuntimeHost()),
   )
   if (clientApiEndpoint) {
     return clientApiEndpoint
