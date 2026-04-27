@@ -38,7 +38,6 @@ import { ClientFavicon } from "@/components/layout"
 import { ThemeProvider } from "@/components/theme"
 import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
 import { Toaster } from "@/components/ui/sonner"
-import { setApiContext } from "@/lib/api/context"
 import { resolveClientConfig } from "@/lib/config/client-config"
 import "./globals.css"
 
@@ -84,13 +83,6 @@ export default async function RootLayout({
 }>) {
   // Resolve all client configuration in one place
   const config = await resolveClientConfig()
-
-  // Set API context for this request (global for all API calls)
-  setApiContext({
-    apiEndpoint: config.apiEndpoint,
-    theme: config.theme.id,
-    organisationId: config.organisationId,
-  })
 
   return (
     <html lang="en">
