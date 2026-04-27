@@ -215,7 +215,7 @@ export async function resolveGetMeApiUrlWithSource(
       )
       if (theme?.gmt_api_endpoint) {
         console.log(
-          `[GetMeApiUrl] ✓ Using theme-specific API endpoint for ${themeParam}: ${theme.gmt_api_endpoint} (database)`,
+          `[GetMeApiUrl] ✓ Using theme-specific API endpoint for ${themeParam}: ${theme.gmt_api_endpoint} (source: database)`,
         )
         return { endpoint: theme.gmt_api_endpoint, source: "database" }
       }
@@ -234,6 +234,9 @@ export async function resolveGetMeApiUrlWithSource(
     explicitHost ?? (await detectRuntimeHost()),
   )
   if (clientApiEndpoint) {
+    console.log(
+      `[GetMeApiUrl] ✓ Using subdomain-specific API endpoint (source: database)`,
+    )
     return { endpoint: clientApiEndpoint, source: "database" }
   }
 
@@ -246,7 +249,7 @@ export async function resolveGetMeApiUrlWithSource(
     const mappedUrl = hostApiMap[candidate]
     if (mappedUrl) {
       console.log(
-        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl} (env var)`,
+        `[GetMeApiUrl] ✓ Using host-based override for ${candidate}: ${mappedUrl} (source: env var - GETME_API_URL_MAP)`,
       )
       return { endpoint: mappedUrl, source: "env-var" }
     }
@@ -258,7 +261,7 @@ export async function resolveGetMeApiUrlWithSource(
   }
 
   console.log(
-    `[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase} (env var fallback)`,
+    `[GetMeApiUrl] ✓ Using default API endpoint: ${defaultApiBase} (source: env var - GETME_API_URL fallback)`,
   )
   return { endpoint: defaultApiBase, source: "env-var-fallback" }
 }
