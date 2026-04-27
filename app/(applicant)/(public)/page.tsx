@@ -34,6 +34,10 @@ export default async function ApplicantPositionsPage({
     console.log(`[ApplicantPage] Organisation ID from theme: ${organisationId}`)
   }
 
+  console.log(
+    `[ApplicantPage] ✓ Using organisationId: ${organisationId || "none"}`,
+  )
+
   // Fetch open positions from the API, filtered by organisation if available
   const positions = await getOpenPositions(organisationId || undefined)
 

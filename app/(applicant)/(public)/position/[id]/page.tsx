@@ -48,6 +48,10 @@ export default async function ApplicantPositionDetailPage({
     )
   }
 
+  console.log(
+    `[PositionDetailPage] ✓ Using organisationId: ${organisationId || "none"}`,
+  )
+
   return (
     <Suspense fallback={<PositionDetailSkeleton />}>
       <PositionDetail
