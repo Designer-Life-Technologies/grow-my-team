@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { Suspense } from "react"
 import { PositionDetail, PositionDetailSkeleton } from "@/components/applicant"
 import { getOrganisationId } from "@/lib/api/context"
@@ -28,12 +29,13 @@ export default async function ApplicantPositionDetailPage({
   const paramsData = await searchParams
   const urlOrganisationId = paramsData.organisationId
 
-  // Use URL parameter if provided (for testing), otherwise get from global context
-  const organisationId = urlOrganisationId || getOrganisationId()
-
-  console.log(
-    `[PositionDetailPage] ✓ Using organisationId: ${organisationId || "none"}`,
-  )
+  // Use URL parameter if provided, then AsyncLocalStorage context, then middleware header
+  let organisationId = urlOrganisationId || getOrganisationId()
+  if (!organisationId) {
+    const headersList = await headers()
+    const headerOrgId = headersList.get("X-OrganisationId")
+    if (headerOrgId) organisationId = headerOrgId
+  }
 
   return (
     <Suspense fallback={<PositionDetailSkeleton />}>

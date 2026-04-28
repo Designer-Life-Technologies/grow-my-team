@@ -34,7 +34,6 @@ import { headers } from "next/headers"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth"
 import { ClientConfigProvider } from "@/components/config/ClientConfigProvider"
-import { DebugInfo } from "@/components/debug/DebugInfo"
 import { ClientFavicon } from "@/components/layout"
 import { ThemeProvider } from "@/components/theme"
 import { StreamingModalProvider } from "@/components/ui/StreamingModalProvider"
@@ -57,6 +56,11 @@ const geistMono = Geist_Mono({
  * Generate dynamic metadata based on the current theme/client
  * This replaces the static metadata export to support white labeling
  */
+export async function generateViewport(): Promise<import("next").Viewport> {
+  const { generateDynamicViewport } = await import("@/lib/metadata")
+  return generateDynamicViewport()
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -83,30 +87,32 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Resolve all client configuration in one place
-  const config = await resolveClientConfig()
-
-  // Try to read API context from middleware headers (set by proxy.ts)
-  // If headers are present, use them to set the API context globally
+  // Read the theme resolved by middleware (from ?theme=, cookie, or host)
+  // Middleware always runs first and sets X-Theme, X-ApiEndpoint, X-OrganisationId
+  let resolvedThemeId: string | undefined
   try {
     const headersList = await headers()
-    const apiEndpoint = headersList.get("X-ApiEndpoint")
-    const organisationId = headersList.get("X-OrganisationId")
-
-    if (apiEndpoint) {
-      setApiContext({
-        apiEndpoint,
-        theme: "", // Theme is not needed once API endpoint is resolved
-        organisationId: organisationId || null,
-      })
-      console.log(
-        `[RootLayout] ✓ Set API context from middleware: endpoint=${apiEndpoint}, organisationId=${organisationId || "none"}`,
-      )
-    }
+    resolvedThemeId = headersList.get("X-Theme") || undefined
   } catch (_error) {
-    // headers() throws when a request context is not available (e.g., during build)
-    // This is expected, so we silently continue
+    // headers() may throw during build
   }
+
+  // Resolve full client config using the middleware-resolved theme
+  // This ensures ?theme= and cookie-based themes are correctly applied
+  const config = await resolveClientConfig(
+    resolvedThemeId ? { theme: resolvedThemeId } : undefined,
+  )
+
+  // Set request-scoped API context for all server-side API calls in this request
+  setApiContext({
+    apiEndpoint: config.apiEndpoint,
+    theme: config.theme.id,
+    organisationId: config.organisationId,
+  })
+
+  console.log(
+    `[RootLayout] ✓ API context: theme=${config.theme.id}, endpoint=${config.apiEndpoint}, org=${config.organisationId || "none"}`,
+  )
 
   return (
     <html lang="en">
@@ -144,7 +150,6 @@ export default async function RootLayout({
               */}
                 {children}
                 <Toaster />
-                <DebugInfo />
               </StreamingModalProvider>
             </AuthProvider>
           </ThemeProvider>

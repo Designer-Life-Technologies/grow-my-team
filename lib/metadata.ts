@@ -1,4 +1,5 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { getCachedTheme } from "@/lib/theme/cache"
 import { getThemeFromDomain } from "@/lib/theme/config"
 import type { Theme } from "@/lib/theme/types"
@@ -15,33 +16,67 @@ type RouteParams = {
  * @param params Optional route parameters with host information
  * @returns Metadata object for Next.js
  */
+export async function generateDynamicViewport(): Promise<Viewport> {
+  let themeId: string | undefined
+  try {
+    const headersList = await headers()
+    const headerTheme = headersList.get("X-Theme")
+    if (headerTheme && headerTheme !== "default") themeId = headerTheme
+  } catch {
+    // headers() throws during build — ignore
+  }
+
+  if (themeId && themeId !== "default") {
+    try {
+      const theme = await getCachedTheme(themeId)
+      if (theme) {
+        return { themeColor: theme.colors.light.primary }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return {}
+}
+
 export async function generateDynamicMetadata(
   params?: RouteParams,
 ): Promise<Metadata> {
-  // Get theme ID from environment variable or domain
+  // Get theme ID — priority: middleware header > env var > domain > fallback
   let themeId: string | undefined
 
-  // Check for environment variable first (highest priority)
-  if (process.env.NEXT_PUBLIC_THEME_ID) {
+  // Priority 1: Middleware-forwarded X-Theme header (set by proxy.ts for every request)
+  try {
+    const headersList = await headers()
+    const headerTheme = headersList.get("X-Theme")
+    if (headerTheme && headerTheme !== "default") themeId = headerTheme
+  } catch {
+    // headers() throws during build — ignore
+  }
+
+  // Priority 2: Environment variable override
+  if (!themeId && process.env.NEXT_PUBLIC_THEME_ID) {
     themeId = process.env.NEXT_PUBLIC_THEME_ID
   }
-  // If running on server, try to detect from hostname
-  else if (typeof window === "undefined" && params?.host) {
+
+  // Priority 3: Domain-based resolution
+  if (!themeId && typeof window === "undefined" && params?.host) {
     try {
       themeId = await getThemeFromDomain(params.host)
     } catch (error) {
-      // Handle missing database connection gracefully
       console.warn("Failed to get theme from domain:", error)
     }
   }
 
   // Get the theme configuration from database
   let theme: Theme | null = null
-  try {
-    theme = await getCachedTheme(themeId || "default")
-  } catch (error) {
-    // Handle missing database connection gracefully
-    console.warn("Failed to get cached theme:", error)
+  if (themeId && themeId !== "default") {
+    try {
+      theme = await getCachedTheme(themeId)
+    } catch (error) {
+      console.warn("Failed to get cached theme:", error)
+    }
   }
 
   if (!theme) {
@@ -73,8 +108,6 @@ export async function generateDynamicMetadata(
       icon: theme.branding.favicon || "/favicon.ico",
       apple: theme.branding.appleTouchIcon || "/apple-touch-icon.png",
     },
-    // Theme color based on primary color
-    themeColor: theme.colors.light.primary,
     // Open Graph metadata
     openGraph: {
       type: "website",

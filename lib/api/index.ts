@@ -1,6 +1,6 @@
 "use server"
 
-import { cookies } from "next/headers"
+import { cookies, headers as nextHeaders } from "next/headers"
 import { decode } from "next-auth/jwt"
 import { getApiContext } from "./context"
 import {
@@ -121,17 +121,27 @@ async function callGetMeApi<T>(
   if (explicitApiEndpoint) {
     baseUrl = explicitApiEndpoint
   } else {
-    // Get API endpoint from context (set in root layout)
+    // Priority 1: AsyncLocalStorage context (set in root layout)
     const context = getApiContext()
     if (context.apiEndpoint) {
       baseUrl = context.apiEndpoint
-    } else if (theme) {
-      // Use theme-specific API endpoint resolution
-      const resolved = await resolveGetMeApiUrlWithSource(host, theme)
-      baseUrl = resolved.endpoint
     } else {
-      // Use default resolution
-      baseUrl = await resolveGetMeApiUrl(host)
+      // Priority 2: Middleware-forwarded request headers (X-ApiEndpoint)
+      // These are set on the request by proxy.ts and are always available to server components
+      try {
+        const headersList = await nextHeaders()
+        const headerEndpoint = headersList.get("X-ApiEndpoint")
+        if (headerEndpoint) {
+          baseUrl = headerEndpoint
+        } else if (theme) {
+          const resolved = await resolveGetMeApiUrlWithSource(host, theme)
+          baseUrl = resolved.endpoint
+        } else {
+          baseUrl = await resolveGetMeApiUrl(host)
+        }
+      } catch {
+        baseUrl = await resolveGetMeApiUrl(host)
+      }
     }
   }
 

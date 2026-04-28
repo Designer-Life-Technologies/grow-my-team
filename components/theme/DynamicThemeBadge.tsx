@@ -16,6 +16,7 @@ export function DynamicThemeBadge({ themeId, source }: DynamicThemeBadgeProps) {
 
   const sourceLabels: Record<ThemeSource, string> = {
     query: "Preview",
+    cookie: "Cookie",
     subdomain: "Subdomain",
     "custom-domain": "Custom Domain",
     database: "Database",
