@@ -1,13 +1,13 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { withAuth } from "next-auth/middleware"
-import { resolveClientConfig } from "@/lib/config/client-config"
+import { getThemeByCustomDomain, getThemeBySlug } from "@/lib/db/themes"
 import { THEME_COOKIE_NAME } from "@/lib/theme/resolver"
 
 /**
- * Resolve client config and set response headers + cookie.
- * Always runs for every request so the root layout can read
- * X-ApiEndpoint / X-OrganisationId / X-Theme from headers.
+ * Resolve client config directly from the DB (no unstable_cache).
+ * unstable_cache requires Next.js incrementalCache which is unavailable in middleware.
+ * Sets X-ApiEndpoint / X-OrganisationId / X-Theme on both request and response headers.
  */
 async function resolveAndAttach(
   request: NextRequest,
@@ -17,23 +17,61 @@ async function resolveAndAttach(
   try {
     const url = new URL(request.url)
     const themeParam = url.searchParams.get("theme") || undefined
+    const host = request.headers.get("host") || "localhost"
+    const defaultApiEndpoint = process.env.GETME_API_URL || ""
 
-    const searchParams: Record<string, string | undefined> = {}
-    if (themeParam) searchParams.theme = themeParam
+    let themeSlug = "default"
+    let organisationId: string | null = null
+    let apiEndpoint = defaultApiEndpoint
 
-    const config = await resolveClientConfig(searchParams)
+    // Priority 1: Query parameter (?theme=carrick)
+    if (themeParam) {
+      if (themeParam !== "default") {
+        const row = await getThemeBySlug(themeParam)
+        if (row) {
+          themeSlug = row.client_slug
+          organisationId = row.organisation_id
+          apiEndpoint = row.gmt_api_endpoint || defaultApiEndpoint
+        }
+      }
+      // If not found or explicitly "default", themeSlug stays "default"
+    } else {
+      // Priority 2: Subdomain/host
+      const normalizedHost = host.split(":")[0]?.toLowerCase() || ""
+      const subdomain = normalizedHost.split(".")[0] || normalizedHost
+      const hostRow =
+        (await getThemeBySlug(subdomain)) ||
+        (await getThemeByCustomDomain(normalizedHost))
 
-    // Set on requestHeaders so server components (layout, pages) can read via headers()
-    requestHeaders.set("X-ApiEndpoint", config.apiEndpoint)
-    requestHeaders.set("X-OrganisationId", config.organisationId || "")
-    requestHeaders.set("X-Theme", config.theme.id)
+      if (hostRow) {
+        themeSlug = hostRow.client_slug
+        organisationId = hostRow.organisation_id
+        apiEndpoint = hostRow.gmt_api_endpoint || defaultApiEndpoint
+      } else {
+        // Priority 3: Cookie
+        const cookieTheme = request.cookies.get(THEME_COOKIE_NAME)?.value
+        if (cookieTheme && cookieTheme !== "default") {
+          const cookieRow = await getThemeBySlug(cookieTheme)
+          if (cookieRow) {
+            themeSlug = cookieRow.client_slug
+            organisationId = cookieRow.organisation_id
+            apiEndpoint = cookieRow.gmt_api_endpoint || defaultApiEndpoint
+          }
+        }
+      }
+    }
 
-    // Also set on response headers for the browser (e.g. debug tooling)
-    response.headers.set("X-ApiEndpoint", config.apiEndpoint)
-    response.headers.set("X-OrganisationId", config.organisationId || "")
-    response.headers.set("X-Theme", config.theme.id)
+    // Forward to server components via request headers
+    requestHeaders.set("X-ApiEndpoint", apiEndpoint)
+    requestHeaders.set("X-OrganisationId", organisationId || "")
+    requestHeaders.set("X-Theme", themeSlug)
 
-    // Persist theme in cookie so subsequent requests (without ?theme=) resolve correctly
+    // Also set on response headers (for browser/debug tooling)
+    response.headers.set("X-ApiEndpoint", apiEndpoint)
+    response.headers.set("X-OrganisationId", organisationId || "")
+    response.headers.set("X-Theme", themeSlug)
+
+    // Persist theme cookie so subsequent requests resolve correctly without ?theme=
     if (themeParam && themeParam !== "default") {
       response.cookies.set(THEME_COOKIE_NAME, themeParam, {
         httpOnly: false,
@@ -44,7 +82,7 @@ async function resolveAndAttach(
     }
 
     console.log(
-      `[Proxy] ✓ Resolved: theme=${config.theme.id}, endpoint=${config.apiEndpoint}, org=${config.organisationId || "none"}`,
+      `[Proxy] ✓ Resolved: theme=${themeSlug}, endpoint=${apiEndpoint}, org=${organisationId || "none"}`,
     )
   } catch (error) {
     console.error("[Proxy] Failed to resolve client config:", error)
