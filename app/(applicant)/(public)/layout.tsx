@@ -62,8 +62,9 @@ export default function ApplicantPublicLayout({
         </div>
       </header>
       <main className="container mx-auto flex-1 px-4 py-10">{children}</main>
-      <footer className="border-t py-2 pl-4 text-left text-sm text-muted-foreground">
-        © {new Date().getFullYear()} GrowMyTeam.ai
+      <footer className="border-t px-4 py-2 text-sm text-muted-foreground flex items-center justify-between">
+        <span>© {new Date().getFullYear()} GrowMyTeam.ai</span>
+        <span>Version: {process.env.NEXT_PUBLIC_APP_VERSION}</span>
       </footer>
     </div>
   )
